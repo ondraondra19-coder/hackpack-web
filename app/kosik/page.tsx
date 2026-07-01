@@ -10,6 +10,7 @@ import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
 import DiscountWidget from "@/components/DiscountWidget";
+import { useCartSync } from "@/lib/useCartSync";
 
 const COLOR_LABELS: Record<string, string> = {
   black: "Černá", white: "Bílá", grey: "Šedá", pink: "Růžová",
@@ -138,6 +139,7 @@ export default function KosikPage() {
     appliedDiscount, getDiscountAmount, getFinalPrice,
   } = useCart();
   const { currency } = useCurrency();
+  const { releaseOnRemove, checkAndSync } = useCartSync();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -150,6 +152,25 @@ export default function KosikPage() {
   const recommendedProducts = singleProduct ? getRelatedProducts(singleProduct, 6) : bestsellers;
   const recommendedTitle = singleProduct ? "Hodí se k tomu" : "Naše bestsellery";
   const recommendedSubtitle = singleProduct ? `K produktu ${singleProduct.name}` : "Výběr pro vás";
+
+  // Odebrání položky + uvolnění rezervace
+  async function handleRemove(slug: string, variants?: Record<string, string>) {
+    removeItem(slug, variants);
+    await releaseOnRemove(slug, variants);
+  }
+
+  // Změna množství + synchronizace rezervace
+  async function handleQuantityChange(slug: string, newQty: number, variants?: Record<string, string>) {
+    if (newQty < 1) {
+      // Snížení na 0 = odebrání
+      removeItem(slug, variants);
+      await releaseOnRemove(slug, variants);
+      return;
+    }
+    // Ověříme dostupnost na serveru — vrátí max povolené množství
+    const granted = await checkAndSync(slug, variants, newQty);
+    updateQuantity(slug, granted, variants);
+  }
 
   return (
     <>
@@ -225,18 +246,28 @@ export default function KosikPage() {
                                 </p>
                               )}
                               <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
+                                {/* Počítadlo množství */}
                                 <div className="flex items-center gap-1 border border-border rounded-xl overflow-hidden">
-                                  <button onClick={() => updateQuantity(item.slug, item.quantity - 1, item.variants)} className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors">
+                                  <button
+                                    onClick={() => handleQuantityChange(item.slug, item.quantity - 1, item.variants)}
+                                    className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors"
+                                  >
                                     <Minus size={14} />
                                   </button>
                                   <span className="w-9 text-center text-text-base text-sm font-medium">{item.quantity}</span>
-                                  <button onClick={() => updateQuantity(item.slug, item.quantity + 1, item.variants)} className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors">
+                                  <button
+                                    onClick={() => handleQuantityChange(item.slug, item.quantity + 1, item.variants)}
+                                    className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors"
+                                  >
                                     <Plus size={14} />
                                   </button>
                                 </div>
                                 <div className="flex items-center gap-4">
                                   <p className="text-primary font-extrabold text-xl">{formatPrice(itemPrice * item.quantity, currency)}</p>
-                                  <button onClick={() => removeItem(item.slug, item.variants)} className="text-text-subtle hover:text-red-500 transition-colors">
+                                  <button
+                                    onClick={() => handleRemove(item.slug, item.variants)}
+                                    className="text-text-subtle hover:text-red-500 transition-colors"
+                                  >
                                     <Trash2 size={17} />
                                   </button>
                                 </div>
@@ -283,7 +314,6 @@ export default function KosikPage() {
                           </div>
                         </div>
 
-                        {/* Slevový kód widget */}
                         <div className="px-6 pb-4">
                           <DiscountWidget />
                         </div>
