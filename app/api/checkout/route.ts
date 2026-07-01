@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     }
 
     // ── 1. Produkty ──────────────────────────────────────────────────────────
-    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((cartItem: any) => {
+    const line_items = items.map((cartItem: any) => {
       const realProduct = products.find(p => p.slug === cartItem.slug);
       if (!realProduct) throw new Error(`Produkt ${cartItem.slug} nenalezen.`);
 
