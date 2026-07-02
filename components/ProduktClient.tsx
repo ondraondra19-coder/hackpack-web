@@ -646,6 +646,7 @@ export default function ProduktClient({
         priceRaw: priceRawForCart as any,
         img: imgForCart,
         variants: Object.keys(variantInfo).length > 0 ? variantInfo : undefined,
+        reservationKey: variantKey, // přesný klíč pro uvolnění rezervace z košíku
       }, currentStock);
     }
     setAdded(true);

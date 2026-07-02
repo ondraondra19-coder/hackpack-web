@@ -153,23 +153,36 @@ export default function KosikPage() {
   const recommendedTitle = singleProduct ? "Hodí se k tomu" : "Naše bestsellery";
   const recommendedSubtitle = singleProduct ? `K produktu ${singleProduct.name}` : "Výběr pro vás";
 
-  // Odebrání položky + uvolnění rezervace
-  async function handleRemove(slug: string, variants?: Record<string, string>) {
+  // Odebrání položky + okamžité uvolnění rezervace
+  async function handleRemove(slug: string, variants?: Record<string, string>, reservationKey?: string) {
     removeItem(slug, variants);
-    await releaseOnRemove(slug, variants);
+    await releaseOnRemove(slug, reservationKey);
   }
 
   // Změna množství + synchronizace rezervace
-  async function handleQuantityChange(slug: string, newQty: number, variants?: Record<string, string>) {
+  async function handleQuantityChange(
+    slug: string,
+    newQty: number,
+    variants?: Record<string, string>,
+    reservationKey?: string,
+  ) {
     if (newQty < 1) {
-      // Snížení na 0 = odebrání
       removeItem(slug, variants);
-      await releaseOnRemove(slug, variants);
+      await releaseOnRemove(slug, reservationKey);
       return;
     }
-    // Ověříme dostupnost na serveru — vrátí max povolené množství
-    const granted = await checkAndSync(slug, variants, newQty);
-    updateQuantity(slug, granted, variants);
+    if (!reservationKey) {
+      // Starý item bez klíče — jen lokální update
+      updateQuantity(slug, newQty, variants);
+      return;
+    }
+    const granted = await checkAndSync(slug, reservationKey, newQty);
+    if (granted === 0) {
+      // Zcela vyprodáno — odeber z košíku
+      removeItem(slug, variants);
+    } else {
+      updateQuantity(slug, granted, variants);
+    }
   }
 
   return (
@@ -249,14 +262,14 @@ export default function KosikPage() {
                                 {/* Počítadlo množství */}
                                 <div className="flex items-center gap-1 border border-border rounded-xl overflow-hidden">
                                   <button
-                                    onClick={() => handleQuantityChange(item.slug, item.quantity - 1, item.variants)}
+                                    onClick={() => handleQuantityChange(item.slug, item.quantity - 1, item.variants, item.reservationKey)}
                                     className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors"
                                   >
                                     <Minus size={14} />
                                   </button>
                                   <span className="w-9 text-center text-text-base text-sm font-medium">{item.quantity}</span>
                                   <button
-                                    onClick={() => handleQuantityChange(item.slug, item.quantity + 1, item.variants)}
+                                    onClick={() => handleQuantityChange(item.slug, item.quantity + 1, item.variants, item.reservationKey)}
                                     className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors"
                                   >
                                     <Plus size={14} />
@@ -265,7 +278,7 @@ export default function KosikPage() {
                                 <div className="flex items-center gap-4">
                                   <p className="text-primary font-extrabold text-xl">{formatPrice(itemPrice * item.quantity, currency)}</p>
                                   <button
-                                    onClick={() => handleRemove(item.slug, item.variants)}
+                                    onClick={() => handleRemove(item.slug, item.variants, item.reservationKey)}
                                     className="text-text-subtle hover:text-red-500 transition-colors"
                                   >
                                     <Trash2 size={17} />

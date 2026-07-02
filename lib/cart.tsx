@@ -14,6 +14,7 @@ export type CartItem = {
   img: string;
   variants?: Record<string, string>;
   quantity: number;
+  reservationKey?: string; // klíč pro rezervační systém ve formátu "color|size"
 };
 
 type CartContext = {
