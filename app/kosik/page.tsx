@@ -156,7 +156,13 @@ export default function KosikPage() {
   // Odebrání položky + okamžité uvolnění rezervace
   async function handleRemove(slug: string, variants?: Record<string, string>, reservationKey?: string) {
     removeItem(slug, variants);
-    await releaseOnRemove(slug, reservationKey);
+    // Pokud reservationKey chybí, zkusíme odvodit z variant
+    const effectiveKey = reservationKey ?? (() => {
+      if (!variants || Object.keys(variants).length === 0) return "-|-";
+      const vals = Object.values(variants);
+      return vals.length === 1 ? `${vals[0]}|-` : `${vals[0]}|${vals[1]}`;
+    })();
+    await releaseOnRemove(slug, effectiveKey);
   }
 
   // Změna množství + synchronizace rezervace
@@ -171,12 +177,13 @@ export default function KosikPage() {
       await releaseOnRemove(slug, reservationKey);
       return;
     }
-    if (!reservationKey) {
-      // Starý item bez klíče — jen lokální update
-      updateQuantity(slug, newQty, variants);
-      return;
-    }
-    const granted = await checkAndSync(slug, reservationKey, newQty);
+    // Pokud reservationKey chybí (starší položka v košíku), zkusíme ho odvodit z variant
+    const effectiveKey = reservationKey ?? (() => {
+      if (!variants || Object.keys(variants).length === 0) return "-|-";
+      const vals = Object.values(variants);
+      return vals.length === 1 ? `${vals[0]}|-` : `${vals[0]}|${vals[1]}`;
+    })();
+    const granted = await checkAndSync(slug, effectiveKey, newQty);
     if (granted === 0) {
       // Zcela vyprodáno — odeber z košíku
       removeItem(slug, variants);

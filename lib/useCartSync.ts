@@ -12,9 +12,8 @@ export function useCartSync() {
    */
   const releaseOnRemove = useCallback(async (
     slug: string,
-    reservationKey?: string,
+    reservationKey: string,
   ) => {
-    if (!reservationKey) return; // starý item bez klíče — necháme expirovat
     const sessionId = getSessionId();
     try {
       await fetch("/api/stock-availability", {
