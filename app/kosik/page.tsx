@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
@@ -135,6 +135,42 @@ export default function KosikPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Sklad pro každý produkt v košíku — omezí + tlačítko
+  const [stockMap, setStockMap] = useState<Record<string, Record<string, number>>>({});
+
+  const fetchStockForItems = useCallback(async () => {
+    const slugs = [...new Set(items.map(i => i.slug))];
+    const results: Record<string, Record<string, number>> = {};
+    await Promise.all(slugs.map(async (slug) => {
+      try {
+        const res = await fetch(`/api/stock?slug=${encodeURIComponent(slug)}`, { cache: "no-store" });
+        if (res.ok) {
+          const json = await res.json();
+          results[slug] = json.stockData ?? {};
+        }
+      } catch {}
+    }));
+    setStockMap(results);
+  }, [items]);
+
+  useEffect(() => {
+    if (mounted) fetchStockForItems();
+  }, [mounted, fetchStockForItems]);
+
+  // Vrátí max dostupné množství pro položku v košíku
+  function getMaxQty(item: (typeof items)[0]): number {
+    const slugStock = stockMap[item.slug];
+    if (!slugStock || Object.keys(slugStock).length === 0) return 999; // fallback dokud nenačte
+    // Zkusíme odvodit variantKey z variant položky
+    if (!item.variants || Object.keys(item.variants).length === 0) {
+      const vals = Object.values(slugStock);
+      return vals.length > 0 ? Math.max(...vals) : 999;
+    }
+    const vals = Object.values(item.variants);
+    const key = vals.length === 1 ? `${vals[0]}|-` : `${vals[0]}|${vals[1]}`;
+    return slugStock[key] ?? Math.max(...Object.values(slugStock), 0);
+  }
+
   const isEmpty = items.length === 0;
   const totalPrice = getTotalPrice(currency);
   const discountAmount = getDiscountAmount(currency);
@@ -235,7 +271,12 @@ export default function KosikPage() {
                                   <span className="w-9 text-center text-text-base text-sm font-medium">{item.quantity}</span>
                                   <button
                                     onClick={() => updateQuantity(item.slug, item.quantity + 1, item.variants)}
-                                    className="w-9 h-9 flex items-center justify-center text-text-muted hover:text-text-base hover:bg-border transition-colors"
+                                    disabled={item.quantity >= getMaxQty(item)}
+                                    className={`w-9 h-9 flex items-center justify-center transition-colors ${
+                                      item.quantity >= getMaxQty(item)
+                                        ? "text-border cursor-not-allowed"
+                                        : "text-text-muted hover:text-text-base hover:bg-border"
+                                    }`}
                                   >
                                     <Plus size={14} />
                                   </button>
