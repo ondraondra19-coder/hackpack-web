@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Star, ChevronRight, Send, Check, AlertCircle, ChevronDown } from "lucide-react";
 
-const HCAPTCHA_SITE_KEY = "10000000-ffff-ffff-ffff-000000000001";
+const HCAPTCHA_SITE_KEY = "d5505d72-aa1a-4b50-a746-a1b0175c9092";
 // Poznámka: cooldown se nyní vynucuje na serveru (podle IP) přes Upstash Redis.
 // Tento klíč v localStorage slouží jen jako optimistická UX nápověda pro stejný prohlížeč.
 const LAST_REVIEW_KEY = "techgadgets-last-review";
