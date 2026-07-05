@@ -11,11 +11,7 @@ export type Review = {
   text: string;
   // ── Následující pole jsou VIDITELNÁ JEN V ADMINU (nikdy se nevrací z veřejného GET) ──
   email?: string;
-  ip?: string;
   userAgent?: string;
-  country?: string;   // ISO kód země, např. "CZ" (z Vercel geo headerů)
-  region?: string;    // kraj/region
-  city?: string;
 };
 
 // ── Veřejný tvar recenze — bez emailu, IP, zařízení a lokality ─────────────
@@ -61,11 +57,7 @@ export type NewReviewInput = {
   rating: number;
   text: string;
   email?: string;
-  ip?: string;
   userAgent?: string;
-  country?: string;
-  region?: string;
-  city?: string;
 };
 
 export async function addReview(input: NewReviewInput): Promise<Review> {
@@ -79,11 +71,7 @@ export async function addReview(input: NewReviewInput): Promise<Review> {
     date: new Date().toISOString(),
     text: input.text.trim(),
     ...(input.email?.trim() ? { email: input.email.trim() } : {}),
-    ...(input.ip ? { ip: input.ip } : {}),
     ...(input.userAgent ? { userAgent: input.userAgent } : {}),
-    ...(input.country ? { country: input.country } : {}),
-    ...(input.region ? { region: input.region } : {}),
-    ...(input.city ? { city: input.city } : {}),
   };
 
   await redis.lpush(LIST_KEY, JSON.stringify(review));

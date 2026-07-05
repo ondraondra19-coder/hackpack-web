@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function LoginForm() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ function LoginForm() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
 
     setLoading(false);
@@ -35,14 +36,36 @@ function LoginForm() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-neutral-50 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-[#f7f6f4] px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-md border border-neutral-200"
+        className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-sm border border-[#e5e7eb]"
       >
-        <h1 className="text-xl font-semibold mb-6 text-neutral-900">Admin přihlášení</h1>
+        {/* Logo ve stejném stylu jako v sidebaru dashboardu */}
+        <div className="flex items-baseline font-bold tracking-tight text-lg mb-1 text-[#0f0f10]">
+          <span>Tech</span>
+          <span className="text-[#dc143c]">Gadgets</span>
+          <span className="ml-1.5 text-[9px] font-mono font-medium bg-[#1c1c1c]/5 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-wider">
+            Admin
+          </span>
+        </div>
+        <p className="text-xs text-zinc-500 mb-6">Přihlaš se svým jménem a heslem.</p>
 
-        <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-1">
+        <label htmlFor="username" className="block text-xs font-semibold text-zinc-600 mb-1">
+          Uživatelské jméno
+        </label>
+        <input
+          id="username"
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoFocus
+          required
+          autoComplete="username"
+          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-[#dc143c]/30 focus:border-[#dc143c]/50"
+        />
+
+        <label htmlFor="password" className="block text-xs font-semibold text-zinc-600 mb-1">
           Heslo
         </label>
         <input
@@ -50,17 +73,17 @@ function LoginForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          autoFocus
           required
-          className="w-full border border-neutral-300 rounded-lg px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-neutral-800"
+          autoComplete="current-password"
+          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-[#dc143c]/30 focus:border-[#dc143c]/50"
         />
 
-        {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
+        {error && <p className="text-[#dc143c] text-sm mb-4">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-neutral-900 text-white rounded-lg py-2 font-medium hover:bg-neutral-800 disabled:opacity-50"
+          className="w-full bg-[#dc143c] text-white rounded-lg py-2 text-sm font-semibold hover:bg-[#b01030] disabled:opacity-50 transition-colors"
         >
           {loading ? "Přihlašuji…" : "Přihlásit se"}
         </button>

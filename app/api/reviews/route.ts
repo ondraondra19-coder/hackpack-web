@@ -127,15 +127,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // ── Metadata pro admin (IP jen jako informace, ne pro cooldown) ────────
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    // ── Metadata pro admin ─────────────────────────────────────────────────
     const userAgent = req.headers.get("user-agent") ?? undefined;
-    const country = req.headers.get("x-vercel-ip-country") ?? undefined;
-    const region = req.headers.get("x-vercel-ip-country-region") ?? undefined;
-    const city = req.headers.get("x-vercel-ip-city") ?? undefined;
 
     // ── Uložení ─────────────────────────────────────────────────────────────
     const review = await addReview({
@@ -143,11 +136,7 @@ export async function POST(req: Request) {
       rating: ratingNum,
       text,
       email: emailValue,
-      ip: ip !== "unknown" ? ip : undefined,
       userAgent,
-      country,
-      region,
-      city,
     });
     return NextResponse.json({ review: toPublicReview(review) });
   } catch (error) {

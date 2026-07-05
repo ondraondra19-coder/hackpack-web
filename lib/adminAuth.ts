@@ -1,10 +1,15 @@
 // lib/adminAuth.ts
-// Ochrana admin sekce — jednoduché podepsané session cookie odvozené z ADMIN_SECRET.
+// Ochrana admin sekce — podepsané session cookie odvozené z ADMIN_SECRET.
 // Používá Web Crypto API (ne node:crypto), takže funguje jak v Node.js API routes,
 // tak v middleware, který běží v Edge runtime.
+// Token nese identitu přihlášeného účtu (hlavní účet, nebo id dílčího účtu z lib/accounts.ts).
 
 const COOKIE_NAME = "admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12; // session platná 12 hodin
+
+// Hlavní účet je pevně zadrátovaný — nemá záznam v Redisu, jen tady.
+export const MAIN_ACCOUNT_ID = "main";
+export const MAIN_ACCOUNT_NAME = "Ondřej Kubrický";
 
 function getSecret(): string {
   const secret = process.env.ADMIN_SECRET;
@@ -39,38 +44,46 @@ function hexToBuf(hex: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-// Vytvoří podepsaný token ve tvaru "expires.signature"
-export async function createSessionToken(): Promise<string> {
+// Vytvoří podepsaný token ve tvaru "expires.accountId.signature"
+export async function createSessionToken(accountId: string): Promise<string> {
   const expires = Date.now() + SESSION_DURATION_MS;
-  const payload = String(expires);
+  const payload = `${expires}.${accountId}`;
   const key = await getKey();
   const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
   return `${payload}.${bufToHex(sig)}`;
 }
 
-// Ověří podpis i expiraci tokenu z cookie
-export async function isValidSessionToken(token: string | undefined | null): Promise<boolean> {
-  if (!token) return false;
-  const [payload, signatureHex] = token.split(".");
-  if (!payload || !signatureHex) return false;
+export type SessionToken = { accountId: string };
 
-  const expires = Number(payload);
-  if (!Number.isFinite(expires) || Date.now() > expires) return false;
+// Ověří podpis i expiraci tokenu z cookie a vrátí, jaký účet je přihlášený
+export async function verifySessionToken(token: string | undefined | null): Promise<SessionToken | null> {
+  if (!token) return null;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [expiresStr, accountId, signatureHex] = parts;
+  if (!expiresStr || !accountId || !signatureHex) return null;
+
+  const expires = Number(expiresStr);
+  if (!Number.isFinite(expires) || Date.now() > expires) return null;
+
+  const payload = `${expiresStr}.${accountId}`;
 
   try {
     const key = await getKey();
-    return await crypto.subtle.verify(
+    const valid = await crypto.subtle.verify(
       "HMAC",
       key,
       hexToBuf(signatureHex),
       new TextEncoder().encode(payload)
     );
+    return valid ? { accountId } : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-// Porovná zadané heslo s ADMIN_SECRET (dostatečné pro jednoho admina)
+// Porovná zadané heslo s ADMIN_SECRET (heslo hlavního účtu)
 export function checkPassword(password: string): boolean {
   return password === getSecret();
 }

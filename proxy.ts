@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ADMIN_COOKIE_NAME, isValidSessionToken } from "@/lib/adminAuth";
+import { ADMIN_COOKIE_NAME, verifySessionToken } from "@/lib/adminAuth";
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -10,9 +10,9 @@ export async function proxy(req: NextRequest) {
   }
 
   const token = req.cookies.get(ADMIN_COOKIE_NAME)?.value;
-  const valid = await isValidSessionToken(token);
+  const session = await verifySessionToken(token);
 
-  if (valid) {
+  if (session) {
     return NextResponse.next();
   }
 
