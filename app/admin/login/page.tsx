@@ -44,8 +44,8 @@ function LoginForm() {
         {/* Logo ve stejném stylu jako v sidebaru dashboardu */}
         <div className="flex items-baseline font-bold tracking-tight text-lg mb-1 text-[#0f0f10]">
           <span>Tech</span>
-          <span className="text-[#dc143c]">Gadgets</span>
-          <span className="ml-1.5 text-[9px] font-mono font-medium bg-[#1c1c1c]/5 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-wider">
+          <span className="text-primary">Gadgets</span>
+          <span className="ml-1.5 text-[9px] font-mono font-medium bg-primary/5 text-zinc-500 px-1 py-0.5 rounded uppercase tracking-wider">
             Admin
           </span>
         </div>
@@ -62,7 +62,7 @@ function LoginForm() {
           autoFocus
           required
           autoComplete="username"
-          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-[#dc143c]/30 focus:border-[#dc143c]/50"
+          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
         />
 
         <label htmlFor="password" className="block text-xs font-semibold text-zinc-600 mb-1">
@@ -75,15 +75,15 @@ function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           autoComplete="current-password"
-          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-[#dc143c]/30 focus:border-[#dc143c]/50"
+          className="w-full border border-[#e5e7eb] rounded-lg px-3 py-2 mb-4 text-sm text-[#0f0f10] focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50"
         />
 
-        {error && <p className="text-[#dc143c] text-sm mb-4">{error}</p>}
+        {error && <p className="text-primary text-sm mb-4">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#dc143c] text-white rounded-lg py-2 text-sm font-semibold hover:bg-[#b01030] disabled:opacity-50 transition-colors"
+          className="w-full bg-primary text-white rounded-lg py-2 text-sm font-semibold hover:bg-primary/80 disabled:opacity-50 transition-colors"
         >
           {loading ? "Přihlašuji…" : "Přihlásit se"}
         </button>

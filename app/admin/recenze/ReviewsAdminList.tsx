@@ -41,7 +41,7 @@ export default function ReviewsAdminList({ reviews, onDeleted }: ReviewsAdminLis
 
   return (
     <div className="space-y-3">
-      {error && <p className="text-sm text-[#dc143c]">{error}</p>}
+      {error && <p className="text-sm text-primary">{error}</p>}
 
       {reviews.map((review) => (
         <div
@@ -80,7 +80,7 @@ export default function ReviewsAdminList({ reviews, onDeleted }: ReviewsAdminLis
           <button
             onClick={() => handleDelete(review.id)}
             disabled={deletingId === review.id}
-            className="shrink-0 self-start text-xs font-semibold text-[#dc143c] hover:text-[#b01030] disabled:opacity-50"
+            className="shrink-0 self-start text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50"
           >
             {deletingId === review.id ? "Mažu…" : "Smazat"}
           </button>

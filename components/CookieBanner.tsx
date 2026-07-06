@@ -147,7 +147,7 @@ export default function CookieBanner() {
             <div className={`shrink-0 ${hasVisitedDetails ? "mt-1 md:mt-0" : "mt-4 md:mt-6"}`}>
               <button 
                 onClick={() => router.push('/cookies')}
-                className={`text-[#dc143c] hover:text-[#ff2e5b] font-medium inline-flex items-center transition-colors duration-200 bg-transparent border-none p-0 cursor-pointer whitespace-nowrap ${
+                className={`text-primary hover:text-primary/80 font-medium inline-flex items-center transition-colors duration-200 bg-transparent border-none p-0 cursor-pointer whitespace-nowrap ${
                   hasVisitedDetails ? "text-xs gap-1" : "text-xs md:text-sm gap-1.5"
                 }`}
               >
@@ -167,7 +167,7 @@ export default function CookieBanner() {
             {/* Tlačítko Povolit vše — nyní je na prvním místě */}
             <button
               onClick={accept}
-              className={`bg-[#dc143c] hover:bg-[#b00f2e] text-black font-bold tracking-wide transition-colors duration-200 cursor-pointer text-center whitespace-nowrap ${
+              className={`bg-primary hover:bg-primary/80 text-black font-bold tracking-wide transition-colors duration-200 cursor-pointer text-center whitespace-nowrap ${
                 hasVisitedDetails
                   ? "flex-1 md:flex-none py-2 px-5 rounded-lg text-xs" 
                   : "w-full md:w-48 py-3 px-6 rounded-xl text-sm" 
@@ -179,7 +179,7 @@ export default function CookieBanner() {
             {/* Tlačítko Upravit */}
             <button 
               onClick={() => setIsModalOpen(true)}
-              className={`font-bold tracking-wide transition-colors duration-200 cursor-pointer whitespace-nowrap border-[#dc143c] hover:bg-[#dc143c]/10 text-white flex items-center justify-center ${
+              className={`font-bold tracking-wide transition-colors duration-200 cursor-pointer whitespace-nowrap border-primary hover:bg-primary/10 text-white flex items-center justify-center ${
                 hasVisitedDetails
                   ? "flex-1 md:flex-none py-2 px-4 rounded-lg border text-xs" 
                   : "w-full md:w-48 py-3 px-6 rounded-xl border-2 text-sm gap-1" 
@@ -222,7 +222,7 @@ export default function CookieBanner() {
                   type="checkbox"
                   checked
                   disabled
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-[#dc143c] focus:ring-[#dc143c] disabled:opacity-50 cursor-not-allowed accent-[#dc143c]"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-primary focus:ring-primary disabled:opacity-50 cursor-not-allowed accent-primary"
                 />
               </div>
 
@@ -236,7 +236,7 @@ export default function CookieBanner() {
                   type="checkbox"
                   checked={analyticsAllowed}
                   onChange={(e) => setAnalyticsAllowed(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-[#dc143c] focus:ring-[#dc143c] cursor-pointer accent-[#dc143c]"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-primary focus:ring-primary cursor-pointer accent-primary"
                 />
               </div>
 
@@ -250,7 +250,7 @@ export default function CookieBanner() {
                   type="checkbox"
                   checked={marketingAllowed}
                   onChange={(e) => setMarketingAllowed(e.target.checked)}
-                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-[#dc143c] focus:ring-[#dc143c] cursor-pointer accent-[#dc143c]"
+                  className="mt-0.5 h-3.5 w-3.5 rounded border-white/10 bg-transparent text-primary focus:ring-primary cursor-pointer accent-primary"
                 />
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function CookieBanner() {
             <div className="flex justify-end pt-1">
               <button
                 onClick={saveCustomSettings}
-                className="w-full sm:w-auto py-2 px-5 rounded-lg bg-[#dc143c] hover:bg-[#b00f2e] text-black font-bold text-xs tracking-wide transition-colors duration-200 cursor-pointer text-center"
+                className="w-full sm:w-auto py-2 px-5 rounded-lg bg-primary hover:bg-primary/80 text-black font-bold text-xs tracking-wide transition-colors duration-200 cursor-pointer text-center"
               >
                 Uložit výběr
               </button>

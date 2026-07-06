@@ -10,6 +10,7 @@ import SearchBar from "./SearchBar";
 import { products, categories } from "@/lib/products";
 import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
+import Logo from "@/components/Logo";
 
 const languages = [
   { code: "cs", label: "Čeština", gtCode: "cs" },
@@ -152,14 +153,7 @@ export default function Header() {
           }}
           className="shrink-0"
         >
-          <Image
-            src="/images/main/logo-white.png"
-            alt="TechGadgets"
-            width={1024}
-            height={559}
-            className="h-8 lg:h-12 w-auto object-contain"
-            priority
-          />
+          <Logo className="h-8 lg:h-12 w-auto object-contain" />
         </a>
 
         {/* SearchBar — pouze desktop */}

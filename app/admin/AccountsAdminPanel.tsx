@@ -106,7 +106,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
 
   return (
     <div className="space-y-8">
-      {error && <p className="text-sm text-[#dc143c]">{error}</p>}
+      {error && <p className="text-sm text-primary">{error}</p>}
 
       {/* Vytvoření nového účtu */}
       <form onSubmit={handleCreate} className="border border-[#e5e7eb] rounded-xl p-4 space-y-3">
@@ -119,7 +119,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-[#dc143c]/50"
+            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-primary/50"
           />
           <input
             type="password"
@@ -128,7 +128,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-[#dc143c]/50"
+            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-primary/50"
           />
         </div>
 
@@ -139,7 +139,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
                 type="checkbox"
                 checked={newPermissions.includes(perm)}
                 onChange={() => toggleNewPermission(perm)}
-                className="accent-[#dc143c]"
+                className="accent-primary"
               />
               {PERMISSION_LABELS[perm]}
             </label>
@@ -172,7 +172,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
               <button
                 onClick={() => handleDelete(account.id)}
                 disabled={busyId === account.id}
-                className="text-xs font-semibold text-[#dc143c] hover:text-[#b01030] disabled:opacity-50"
+                className="text-xs font-semibold text-primary hover:text-primary/80 disabled:opacity-50"
               >
                 Smazat
               </button>
@@ -186,7 +186,7 @@ export default function AccountsAdminPanel({ accounts, onChange }: AccountsAdmin
                     checked={account.permissions.includes(perm)}
                     disabled={busyId === account.id}
                     onChange={() => togglePermission(account, perm)}
-                    className="accent-[#dc143c]"
+                    className="accent-primary"
                   />
                   {PERMISSION_LABELS[perm]}
                 </label>

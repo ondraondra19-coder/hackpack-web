@@ -114,7 +114,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
   const menuItems = allMenuItems.filter((item) => item.visible);
 
   return (
-    <div className="flex h-screen bg-[#f7f6f4] text-[#0f0f10] font-sans antialiased overflow-hidden selection:bg-[#dc143c]/10 selection:text-[#dc143c]">
+    <div className="flex h-screen bg-[#f7f6f4] text-[#0f0f10] font-sans antialiased overflow-hidden selection:bg-primary/10 selection:text-primary">
 
       {/* 1. LEVÁ LIŠTA (SIDEBAR) */}
       <aside className="w-64 bg-[#1c1c1c] text-[#fafafa] flex flex-col justify-between z-20 shadow-xl">
@@ -122,7 +122,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
           <div className="h-16 flex items-center px-6 border-b border-white/[0.05]">
             <div className="flex items-baseline font-bold tracking-tight text-lg">
               <span>Tech</span>
-              <span className="text-[#dc143c]">Gadgets</span>
+              <span className="text-primary">Gadgets</span>
               <span className="ml-1.5 text-[9px] font-mono font-medium bg-white/10 text-zinc-400 px-1 py-0.5 rounded uppercase tracking-wider">
                 Admin
               </span>
@@ -138,7 +138,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
                   onClick={() => setActiveTab(item.id)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-xs font-semibold tracking-wide transition-all duration-150 text-left ${
                     isActive
-                      ? 'bg-[#dc143c] text-white shadow-lg shadow-[#dc143c]/20'
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
                       : 'text-zinc-400 hover:text-white hover:bg-white/[0.03]'
                   }`}
                 >
@@ -188,7 +188,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
             <input
               type="text"
               placeholder="Hledat v administraci..."
-              className="w-full bg-[#f1f1f3] border border-[#e5e7eb] rounded-xl pl-9 pr-4 py-2 text-xs text-[#0f0f10] placeholder-zinc-400 focus:outline-none focus:border-[#dc143c]/50 focus:bg-white transition-all"
+              className="w-full bg-[#f1f1f3] border border-[#e5e7eb] rounded-xl pl-9 pr-4 py-2 text-xs text-[#0f0f10] placeholder-zinc-400 focus:outline-none focus:border-primary/50 focus:bg-white transition-all"
             />
           </div>
 
@@ -214,7 +214,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2.5 text-xs text-[#dc143c] hover:bg-red-50 flex items-center space-x-2 transition-colors font-semibold"
+                    className="w-full text-left px-4 py-2.5 text-xs text-primary hover:bg-red-50 flex items-center space-x-2 transition-colors font-semibold"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                     <span>Odhlásit se</span>
@@ -310,7 +310,7 @@ export default function AdminDashboard({ session, initialReviews, initialAccount
 
               <div className="mt-6 pt-4 border-t border-[#e5e7eb] flex items-center justify-between text-[11px] text-zinc-400 font-mono">
                 <span>ACTIVE_ROUTE</span>
-                <span className="text-[#dc143c] bg-[#dc143c]/5 px-2 py-0.5 rounded border border-[#dc143c]/10">
+                <span className="text-primary bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
                   /admin/{activeTab}
                 </span>
               </div>
