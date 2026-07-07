@@ -1,25 +1,103 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MessageCircle, X, Send, Check } from "lucide-react";
+
+const HCAPTCHA_SITE_KEY = "d5505d72-aa1a-4b50-a746-a1b0175c9092";
+
+declare global {
+  interface Window {
+    hcaptcha: {
+      render: (el: HTMLElement, options: object) => string;
+      reset: (id: string) => void;
+    };
+    onChatHcaptchaVerify: (token: string) => void;
+  }
+}
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit() {
-    if (!name || !email || !message) return;
-    setSent(true);
-    setTimeout(() => {
-      setSent(false);
-      setName("");
-      setEmail("");
-      setMessage("");
-      setOpen(false);
-    }, 2500);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaId, setCaptchaId] = useState<string | null>(null);
+  const captchaRef = useRef<HTMLDivElement>(null);
+
+  // hCaptcha se načte a vykreslí, jakmile se formulář otevře (ne hned při
+  // načtení stránky — ať se zbytečně nenačítá skript, dokud ho nikdo nepotřebuje).
+  useEffect(() => {
+    if (!open) return;
+
+    window.onChatHcaptchaVerify = (token: string) => setCaptchaToken(token);
+
+    if (document.getElementById("hcaptcha-script")) {
+      initCaptcha();
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = "hcaptcha-script";
+    script.src = "https://js.hcaptcha.com/1/api.js?render=explicit&onload=onChatHcaptchaLoad";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+    (window as any).onChatHcaptchaLoad = () => initCaptcha();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  function initCaptcha() {
+    if (captchaRef.current && window.hcaptcha && !captchaId) {
+      const id = window.hcaptcha.render(captchaRef.current, {
+        sitekey: HCAPTCHA_SITE_KEY,
+        callback: "onChatHcaptchaVerify",
+        theme: "light",
+        size: "compact",
+      });
+      setCaptchaId(id);
+    }
+  }
+
+  const canSubmit = !!name && !!email && !!message && !!captchaToken && !sending;
+
+  async function handleSubmit() {
+    if (!canSubmit) return;
+
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, text: message, captchaToken }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setCaptchaToken(null);
+        if (captchaId !== null && window.hcaptcha) window.hcaptcha.reset(captchaId);
+        throw new Error(data.error ?? "Nepodařilo se odeslat zprávu.");
+      }
+
+      setSent(true);
+      setCaptchaToken(null);
+      if (captchaId !== null && window.hcaptcha) window.hcaptcha.reset(captchaId);
+      setTimeout(() => {
+        setSent(false);
+        setName("");
+        setEmail("");
+        setMessage("");
+        setOpen(false);
+      }, 2500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nepodařilo se odeslat zprávu.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -51,6 +129,11 @@ export default function ChatWidget() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
+                {error && (
+                  <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
                 <input
                   value={name}
                   onChange={e => setName(e.target.value)}
@@ -70,17 +153,21 @@ export default function ChatWidget() {
                   rows={4}
                   className="w-full border border-border rounded-xl px-4 py-3 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/50 transition-colors resize-none bg-surface"
                 />
+
+                {/* hCaptcha */}
+                <div ref={captchaRef} />
+
                 <button
                   onClick={handleSubmit}
-                  disabled={!name || !email || !message}
+                  disabled={!canSubmit}
                   className={`w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm transition-all ${
-                    !name || !message
+                    !canSubmit
                       ? "bg-border text-text-subtle cursor-not-allowed"
                       : "bg-primary text-dark hover:brightness-105"
                   }`}
                 >
                   <Send size={14} />
-                  <span>Odeslat dotaz</span>
+                  <span>{sending ? "Odesílám…" : "Odeslat dotaz"}</span>
                 </button>
               </div>
             )}

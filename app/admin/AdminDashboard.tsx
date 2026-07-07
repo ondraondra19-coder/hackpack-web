@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Review } from '@/lib/reviews';
 import type { PublicAccount } from '@/lib/accounts';
 import type { CurrentSession } from '@/lib/session';
 import type { Permission } from '@/lib/permissions';
 import type { Product } from '@/lib/products';
+import type { Message } from '@/lib/messages';
 import ReviewsAdminList from './recenze/ReviewsAdminList';
 import AccountsAdminPanel from './AccountsAdminPanel';
-import ProductsAdminList from './ProductsAdminList'; // 1. Import komponenty
+import ProductsAdminList from './ProductsAdminList';
+import MessagesAdminList from './MessagesAdminList';
 
 type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'accounts';
 
@@ -22,7 +24,6 @@ function getInitials(name: string): string {
     .join('');
 }
 
-// 2. Rozšíření props o produkty a sklad
 type AdminDashboardProps = {
   session: CurrentSession;
   initialReviews: Review[];
@@ -31,18 +32,45 @@ type AdminDashboardProps = {
   initialStock: Record<string, number>;
 };
 
-export default function AdminDashboard({ 
-  session, 
-  initialReviews, 
-  initialAccounts, 
-  products, 
-  initialStock 
+export default function AdminDashboard({
+  session,
+  initialReviews,
+  initialAccounts,
+  products,
+  initialStock
 }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [reviews, setReviews] = useState(initialReviews);
   const [accounts, setAccounts] = useState(initialAccounts);
+  const [messages, setMessages] = useState<Message[]>([]);
   const router = useRouter();
+
+  const hasPermission = (perm: Permission) => session.isMain || session.permissions.includes(perm);
+  const canSeeMessages = hasPermission('messages');
+
+  // Zprávy z chat widgetu — natáhnou se hned po přihlášení, ať se počet
+  // nepřečtených v levém menu ukáže i bez otevření záložky "Zprávy".
+  useEffect(() => {
+    if (!canSeeMessages) return;
+
+    let cancelled = false;
+    fetch('/api/admin/messages', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setMessages(data.messages ?? []);
+      })
+      .catch(() => {
+        // Tiše ignorujeme — záložka "Zprávy" ukáže prázdný stav, není kritické.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canSeeMessages]);
+
+  const unreadMessagesCount = messages.filter((m) => !m.read).length;
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -50,8 +78,6 @@ export default function AdminDashboard({
     router.push('/admin/login');
     router.refresh();
   };
-
-  const hasPermission = (perm: Permission) => session.isMain || session.permissions.includes(perm);
 
   const allMenuItems: { id: Tab; label: string; icon: React.ReactNode; visible: boolean }[] = [
     {
@@ -164,6 +190,15 @@ export default function AdminDashboard({
                       {reviews.length}
                     </span>
                   )}
+                  {item.id === 'messages' && unreadMessagesCount > 0 && (
+                    <span
+                      className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-white/[0.06] text-zinc-400'
+                      }`}
+                    >
+                      {unreadMessagesCount}
+                    </span>
+                  )}
                   {item.id === 'accounts' && accounts.length > 0 && (
                     <span
                       className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
@@ -246,7 +281,7 @@ export default function AdminDashboard({
 
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 min-h-[400px] flex flex-col justify-between shadow-sm relative overflow-hidden">
 
-              <div className={activeTab === 'reviews' || activeTab === 'accounts' ? 'w-full' : undefined}>
+              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'messages' ? 'w-full' : undefined}>
                 {activeTab === 'dashboard' && (
                   <div className="space-y-2">
                     <h3 className="text-base font-bold text-[#0f0f10]">Vítej na administraci Tech Gadgets</h3>
@@ -267,7 +302,6 @@ export default function AdminDashboard({
                   </div>
                 )}
 
-                {/* 3. Zde proběhla výměna textu za novou tabulku */}
                 {activeTab === 'products' && (
                   <ProductsAdminList products={products} stock={initialStock} />
                 )}
@@ -285,9 +319,11 @@ export default function AdminDashboard({
                 )}
 
                 {activeTab === 'messages' && (
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-[#0f0f10]">Zprávy z formuláře</h3>
-                    <p className="text-zinc-500 text-xs leading-relaxed max-w-md">Dotazy uživatelů, které přijdou přes kontaktní sekci e-shopu (kompatibilita, dotazy na naskladnění).</p>
+                  <div className="space-y-4">
+                    <p className="text-zinc-500 text-xs leading-relaxed max-w-md">
+                      Dotazy uživatelů odeslané přes chat widget na e-shopu (kompatibilita, dotazy na naskladnění).
+                    </p>
+                    <MessagesAdminList messages={messages} onChange={setMessages} />
                   </div>
                 )}
 

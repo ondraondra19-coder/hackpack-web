@@ -1,81 +1,45 @@
 // lib/stock.ts
-// ─────────────────────────────────────────────────────────────────────────────
-// Google Sheets skladovost — live sync (Zabezpečená verze)
-// ─────────────────────────────────────────────────────────────────────────────
+// Skladovost uložená v Upstash Redis — spravovaná přímo z admin panelu.
+import { getRedis } from "./redis";
 
 export type StockKey = {
   slug: string;
-  color?: string; 
-  size?: string;  
+  color?: string;
+  size?: string;
 };
 
 export type StockMap = Map<string, number>;
 
-// Cache — POZOR: Na Vercelu (Serverless) se tato cache bude chovat nepředvídatelně.
-// Next.js fetch cache (revalidate) je spolehlivější řešení.
+const HASH_KEY = "stock:map";
+
+// Cache — krátké vyhlazení v rámci jedné serverless instance. Na Vercelu se
+// mezi jednotlivými invokacemi spolehnout nedá, ale v rámci jednoho běhu pomůže.
 let cache: StockMap | null = null;
 let cacheTime = 0;
-const CACHE_TTL = 3 * 60 * 1000; // 3 min
+const CACHE_TTL = 30 * 1000; // 30s
 
-function makeKey(slug: string, color?: string, size?: string): string {
+export function makeKey(slug: string, color?: string, size?: string): string {
   return `${slug}|${color ?? "-"}|${size ?? "-"}`;
 }
 
-async function fetchFromSheets(): Promise<StockMap> {
-  // 1. OBRANA: Kontrola, zda klíče v .env.local vůbec existují
-  const SHEET_ID = process.env.GOOGLE_SHEET_ID;
-  const API_KEY = process.env.GOOGLE_SHEETS_API_KEY;
+async function fetchFromRedis(): Promise<StockMap> {
+  const redis = getRedis();
+  const raw = await redis.hgetall<Record<string, number | string>>(HASH_KEY);
+  const map: StockMap = new Map();
+  if (!raw) return map;
 
-  if (!SHEET_ID || !API_KEY) {
-    console.error("❌ CHYBÍ API KLÍČE PRO GOOGLE SHEETS V .ENV.LOCAL");
-    return new Map(); // Vrátíme prázdnou mapu, aby web nespadl
+  for (const [key, value] of Object.entries(raw)) {
+    const num = typeof value === "number" ? value : parseInt(String(value), 10);
+    if (!isNaN(num)) map.set(key, num);
   }
-
-  const RANGE = "Sklad!A2:D"; 
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`;
-
-  try {
-    const res = await fetch(url, {
-      next: { revalidate: 180 }, // Next.js revalidace (3 minuty)
-    });
-
-    if (!res.ok) {
-      console.error(`Google Sheets API error: ${res.status} ${res.statusText}`);
-      return new Map();
-    }
-
-    const json = await res.json();
-    const rows: string[][] = json.values ?? [];
-    const map: StockMap = new Map();
-
-    for (const [slug, color, size, stockStr] of rows) {
-      if (!slug || !stockStr) continue;
-      const stock = parseInt(stockStr, 10);
-      if (isNaN(stock)) continue;
-      
-      const key = makeKey(
-        slug.trim(),
-        color?.trim() === "-" ? undefined : color?.trim(),
-        size?.trim() === "-" ? undefined : size?.trim(),
-      );
-      map.set(key, stock);
-    }
-
-    return map;
-  } catch (error) {
-    console.error("❌ Chyba při fetchování skladu:", error);
-    return new Map();
-  }
+  return map;
 }
-
-// Ostatní funkce (getStockMap, getStock, getProductStock, lookupStock) 
-// zůstávají beze změny, protože už pracují s výslednou Mapou.
 
 export async function getStockMap(): Promise<StockMap> {
   const now = Date.now();
   if (cache && now - cacheTime < CACHE_TTL) return cache;
 
-  cache = await fetchFromSheets();
+  cache = await fetchFromRedis();
   cacheTime = now;
   return cache;
 }
@@ -106,4 +70,39 @@ export function lookupStock(
 ): number {
   const key = `${color ?? "-"}|${size ?? "-"}`;
   return stockData[key] ?? 0;
+}
+
+// ── Zápis skladu z admin panelu ──────────────────────────────────────────────
+
+export async function setStock(key: StockKey, value: number): Promise<void> {
+  const redis = getRedis();
+  const field = makeKey(key.slug, key.color, key.size);
+  const safeValue = Math.max(0, Math.floor(value));
+  await redis.hset(HASH_KEY, { [field]: safeValue });
+
+  if (cache) cache.set(field, safeValue);
+}
+
+// Hromadné uložení více variant najednou — jeden HSET požadavek do Redisu
+// bez ohledu na to, kolik variant se změnilo.
+export async function setStockBulk(
+  entries: { key: StockKey; value: number }[],
+): Promise<void> {
+  if (entries.length === 0) return;
+
+  const redis = getRedis();
+  const fields: Record<string, number> = {};
+
+  for (const { key, value } of entries) {
+    const field = makeKey(key.slug, key.color, key.size);
+    fields[field] = Math.max(0, Math.floor(value));
+  }
+
+  await redis.hset(HASH_KEY, fields);
+
+  if (cache) {
+    for (const [field, value] of Object.entries(fields)) {
+      cache.set(field, value);
+    }
+  }
 }

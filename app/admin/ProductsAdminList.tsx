@@ -65,7 +65,7 @@ function getProductCombinations(product: Product): Combination[] {
 }
 
 export default function ProductsAdminList({ products, stock }: ProductsAdminListProps) {
-  const [currentStock, setCurrentStock] = useState<Record<string, number>>(() => {
+  const buildInitialStock = () => {
     const initial: Record<string, number> = {};
     products.forEach((p) => {
       const combos = getProductCombinations(p);
@@ -75,12 +75,20 @@ export default function ProductsAdminList({ products, stock }: ProductsAdminList
       });
     });
     return initial;
-  });
+  };
+
+  const [currentStock, setCurrentStock] = useState<Record<string, number>>(buildInitialStock);
+  // Poslední potvrzený (uložený) stav — proti tomuhle se porovnává, jestli je varianta "změněná".
+  const [savedStock, setSavedStock] = useState<Record<string, number>>(buildInitialStock);
 
   const [expandedSlugs, setExpandedSlugs] = useState<Record<string, boolean>>({});
   const [expandedSubKeys, setExpandedSubKeys] = useState<Record<string, boolean>>({});
-  const [savingKey, setSavingKey] = useState<string | null>(null);
+  const [savingAll, setSavingAll] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const changedKeys = Object.keys(currentStock).filter((k) => currentStock[k] !== savedStock[k]);
+  const changedCount = changedKeys.length;
 
   const toggleExpand = (slug: string) => {
     setExpandedSlugs((prev) => ({ ...prev, [slug]: !prev[slug] }));
@@ -97,15 +105,39 @@ export default function ProductsAdminList({ products, stock }: ProductsAdminList
     }));
   };
 
-  const handleSaveVariant = async (key: string) => {
-    setSavingKey(key);
+  // Uloží VŠECHNY změněné varianty napříč všemi produkty najednou (1 request na server).
+  const handleSaveAll = async () => {
+    if (changedKeys.length === 0) return;
+    setSavingAll(true);
+    setSaveError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 600));
-      console.log(`Ukládám variantu ${key} s novým stavem:`, currentStock[key]);
+      const entries = changedKeys.map((key) => {
+        const [slug, color, size] = key.split("|");
+        return {
+          slug,
+          color: color === "-" ? undefined : color,
+          size: size === "-" ? undefined : size,
+          value: currentStock[key],
+        };
+      });
+
+      const res = await fetch("/api/admin/stock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entries }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Uložení se nezdařilo.");
+      }
+
+      setSavedStock((prev) => ({ ...prev, ...currentStock }));
     } catch (error) {
       console.error("Chyba při ukládání skladu:", error);
+      setSaveError(error instanceof Error ? error.message : "Uložení se nezdařilo.");
     } finally {
-      setSavingKey(null);
+      setSavingAll(false);
     }
   };
 
@@ -118,12 +150,15 @@ export default function ProductsAdminList({ products, stock }: ProductsAdminList
 
   const renderVariantControls = (comboKey: string) => {
     const currentQty = currentStock[comboKey] ?? 0;
-    const originalQty = stock[comboKey] ?? 0;
-    const hasChanged = currentQty !== originalQty;
+    const hasChanged = currentQty !== (savedStock[comboKey] ?? 0);
 
     return (
       <div className="flex items-center space-x-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center bg-[#f1f1f1] border border-[#e5e7eb] rounded-lg p-0.5 w-24 justify-between">
+        <div
+          className={`flex items-center border rounded-lg p-0.5 w-24 justify-between transition-colors ${
+            hasChanged ? "bg-zinc-200 border-zinc-400" : "bg-[#f1f1f1] border-[#e5e7eb]"
+          }`}
+        >
           <button
             type="button"
             onClick={() => handleStockChange(comboKey, currentQty - 1)}
@@ -145,36 +180,32 @@ export default function ProductsAdminList({ products, stock }: ProductsAdminList
             +
           </button>
         </div>
-
-        <button
-          type="button"
-          disabled={!hasChanged || savingKey === comboKey}
-          onClick={() => handleSaveVariant(comboKey)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shadow-sm ${
-            hasChanged
-              ? "bg-[#1c1c1c] text-white hover:bg-[#2e2e2e]"
-              : "bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none"
-          }`}
-        >
-          {savingKey === comboKey ? (
-            <span className="flex items-center space-x-1">
-              <svg className="animate-spin h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-            </span>
-          ) : hasChanged ? (
-            "Uložit"
-          ) : (
-            "Uloženo"
-          )}
-        </button>
       </div>
     );
   };
 
   return (
     <div className="space-y-6">
+      {/* Plovoucí lišta — "fixed" (ne "sticky"), takže nepatří do normálního toku stránky
+          a její objevení/zmizení nezpůsobí posun zbytku obsahu. Zůstává viditelná a klikatelná
+          i po scrollu, protože je ukotvená k viewportu, ne ke kontejneru seznamu. */}
+      {changedCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-[#1c1c1c] text-white rounded-full pl-5 pr-2 py-2 shadow-2xl">
+          <span className="text-xs font-semibold whitespace-nowrap">
+            {changedCount} {changedCount === 1 ? "neuložená změna" : changedCount >= 2 && changedCount <= 4 ? "neuložené změny" : "neuložených změn"}
+          </span>
+          {saveError && <span className="text-[11px] text-rose-300 whitespace-nowrap">{saveError}</span>}
+          <button
+            type="button"
+            disabled={savingAll}
+            onClick={handleSaveAll}
+            className="px-4 py-2 rounded-full text-[11px] font-bold bg-white text-[#0f0f10] hover:bg-zinc-200 disabled:opacity-60 transition-all whitespace-nowrap"
+          >
+            {savingAll ? "Ukládám…" : "Uložit všechny změny"}
+          </button>
+        </div>
+      )}
+
       <div className="flex gap-4 justify-between items-center border-b border-[#e5e7eb] pb-5">
         <div className="relative w-full sm:w-80">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
