@@ -106,3 +106,60 @@ export async function setStockBulk(
     }
   }
 }
+
+// ── Automatický odečet při dokončené objednávce ─────────────────────────────
+// Vstup: slug produktu, jeho stockKey ("color|size", nebo dvojice u vrstvených
+// barev tělo+hlavička) a objednané množství. Používá ATOMICKÝ HINCRBY (ne
+// read-modify-write), takže je to bezpečné i při dvou objednávkách naráz.
+export type StockDeductionItem = {
+  slug: string;
+  quantity: number;
+  stockKey?: string | string[]; // "color|size" — stejný formát jako CartItem.stockKey
+};
+
+export async function deductStockForItems(items: StockDeductionItem[]): Promise<void> {
+  const redis = getRedis();
+
+  // Sečteme všechny odečty do jednoho pole (klíč se může u vrstvených barev
+  // opakovat napříč položkami, nebo dokonce v rámci jedné položky sdílet
+  // barvu s jinou — proto agregujeme přes Map, ne jen naivně pushujeme).
+  const totals = new Map<string, number>();
+
+  for (const item of items) {
+    if (!item.stockKey) continue; // produkt bez variant nemá sklad podle klíče — nic neodečítáme
+    const keys = Array.isArray(item.stockKey) ? item.stockKey : [item.stockKey];
+    for (const keyPart of keys) {
+      const field = `${item.slug}|${keyPart}`;
+      totals.set(field, (totals.get(field) ?? 0) + item.quantity);
+    }
+  }
+
+  if (totals.size === 0) return;
+
+  const pipeline = redis.pipeline();
+  const fields = Array.from(totals.keys());
+  for (const field of fields) {
+    pipeline.hincrby(HASH_KEY, field, -(totals.get(field) as number));
+  }
+
+  const results = (await pipeline.exec()) as number[];
+
+  // Pojistka: kdyby odečet spadl pod 0 (přeprodáno), vrátíme na 0 místo
+  // záporného čísla — a zalogujeme, ať o tom Ondřej ví.
+  const corrections: Record<string, number> = {};
+  fields.forEach((field, i) => {
+    const newValue = results[i];
+    if (typeof newValue === "number" && newValue < 0) {
+      corrections[field] = 0;
+      console.warn(`Sklad "${field}" šel do mínusu (${newValue}) — opraveno na 0. Zkontroluj skladovost.`);
+    }
+  });
+
+  if (Object.keys(corrections).length > 0) {
+    await redis.hset(HASH_KEY, corrections);
+  }
+
+  // Cache invalidujeme celá (jednodušší a bezpečnější než dopočítávat nové
+  // hodnoty ručně) — příští čtení si ji znovu natáhne z Redisu.
+  cache = null;
+}

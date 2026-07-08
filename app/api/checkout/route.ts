@@ -165,6 +165,7 @@ export async function POST(req: Request) {
           quantity: i.quantity,
           unitPrice: realProduct ? getUnitAmount(realProduct.price as any, currencyCode) : 0,
           variants: i.variants,
+          stockKey: i.stockKey,
         };
       }),
       subtotal,

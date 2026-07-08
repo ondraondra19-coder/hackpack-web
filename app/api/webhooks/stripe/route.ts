@@ -17,6 +17,7 @@ import Stripe from "stripe";
 import { products } from "@/lib/products";
 import { trackOrder } from "@/lib/analytics";
 import { confirmPendingOrder } from "@/lib/orders";
+import { deductStockForItems } from "@/lib/stock";
 
 export async function POST(req: Request) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -78,6 +79,10 @@ export async function POST(req: Request) {
         const confirmed = await confirmPendingOrder(pendingOrderId, session.id);
         if (!confirmed) {
           console.error(`Pending objednávka ${pendingOrderId} nenalezena (asi vypršela).`);
+        } else {
+          // Odečteme sklad AŽ TEĎ — po skutečném potvrzení platby, ne při
+          // pouhém zahájení checkoutu (kdyby zákazník platbu nedokončil).
+          await deductStockForItems(confirmed.items);
         }
       }
     } catch (err) {

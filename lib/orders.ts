@@ -48,6 +48,7 @@ export type OrderItem = {
   quantity: number;
   unitPrice: number;
   variants?: Record<string, string>;
+  stockKey?: string | string[]; // "color|size" — pro automatický odečet skladu při potvrzení
 };
 
 export type OrderInput = {

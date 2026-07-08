@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { products } from "@/lib/products";
 import { createOrderDirect, type OrderInput, type PaymentMethod } from "@/lib/orders";
+import { deductStockForItems } from "@/lib/stock";
 
 function getUnitAmount(price: number | Record<string, number>, code: string): number {
   if (typeof price === "number") return price;
@@ -35,6 +36,7 @@ export async function POST(req: Request) {
         quantity: i.quantity,
         unitPrice,
         variants: i.variants,
+        stockKey: i.stockKey,
       };
     });
 
@@ -89,6 +91,12 @@ export async function POST(req: Request) {
     };
 
     const order = await createOrderDirect(orderInput);
+
+    // Dobírka/převod nemá platební potvrzení jako karta — sklad si
+    // "rezervujeme" hned při vytvoření objednávky, stejně jako by to
+    // udělal kamenný obchod při přijetí objednávky k vyřízení.
+    await deductStockForItems(order.items);
+
     return NextResponse.json({ ok: true, orderId: order.id });
   } catch (err: any) {
     console.error("Chyba při vytváření objednávky (dobírka/převod):", err);
