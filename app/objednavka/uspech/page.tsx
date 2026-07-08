@@ -346,6 +346,8 @@ function SuccessContent() {
     const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
     const [hydrated, setHydrated] = useState(false);
     const [stableOrderId, setStableOrderId] = useState<string>("");
+    const [loadError, setLoadError] = useState(false);
+    const [apiTotal, setApiTotal] = useState<number | null>(null);
 
     const rawMethod = searchParams.get("method") ?? "";
     const method: "prevod" | "dobirka" | "karta" =
@@ -353,15 +355,70 @@ function SuccessContent() {
     const sessionId = searchParams.get("session_id");
 
     useEffect(() => {
-        try {
-            const raw = localStorage.getItem(SNAPSHOT_KEY);
-            if (raw) setSnapshot(JSON.parse(raw));
-        } catch {}
-
         const id = sessionId
             ? sessionId.replace(/^cs_live_|^cs_test_/, "").slice(-10).toUpperCase()
             : (Math.floor(Math.random() * 90000) + 10000).toString();
         setStableOrderId(id);
+
+        // Platba kartou — NEspoléháme na localStorage (to může obsahovat
+        // starou objednávku z jiné návštěvy). Místo toho ověříme skutečnou
+        // Stripe session a naši uloženou objednávku přes API.
+        if (method === "karta" && sessionId) {
+            fetch(`/api/checkout/session?session_id=${encodeURIComponent(sessionId)}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data.paid || !data.order) {
+                        setLoadError(true);
+                        setHydrated(true);
+                        return;
+                    }
+                    const o = data.order;
+                    setApiTotal(typeof data.amountTotal === "number" ? data.amountTotal : o.total);
+                    setSnapshot({
+                        items: o.items.map((it: any) => ({
+                            slug: it.slug,
+                            name: it.name,
+                            priceCZK: it.unitPrice,
+                            priceRaw: it.unitPrice,
+                            img: "",
+                            variants: it.variants,
+                            quantity: it.quantity,
+                        })),
+                        info: {
+                            jmeno: o.customer?.jmeno,
+                            email: o.customer?.email,
+                            telefon: o.customer?.telefon,
+                            firma: o.customer?.firma,
+                            nakupNaFirmu: !!o.customer?.firma,
+                            jineDorucenoAdresa: !!o.deliveryAddress,
+                            adresa: o.address,
+                            dorAdresa: o.deliveryAddress ?? undefined,
+                        },
+                        orderData: {
+                            dopravaName: o.shippingName,
+                            dopravaPrices: { CZK: o.shippingPrice, EUR: o.shippingPrice, USD: o.shippingPrice },
+                            isDobirka: false,
+                            zbox: o.zboxId ? { id: o.zboxId, name: "", nameStreet: "", city: "", zip: "" } : null,
+                            discountCode: o.discountCode ?? null,
+                            discountLabel: o.discountLabel ?? null,
+                        },
+                        savedAt: Date.now(),
+                    });
+                    setHydrated(true);
+                })
+                .catch(() => {
+                    setLoadError(true);
+                    setHydrated(true);
+                });
+            return;
+        }
+
+        // Dobírka / převod — tahle data se zapsala do localStorage jen pár
+        // vteřin předtím na téhle stránce, takže jsou spolehlivě aktuální.
+        try {
+            const raw = localStorage.getItem(SNAPSHOT_KEY);
+            if (raw) setSnapshot(JSON.parse(raw));
+        } catch {}
         setHydrated(true);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -374,7 +431,7 @@ function SuccessContent() {
     const subtotal = items.reduce((s, i) => s + getPrice(i.priceRaw as any, currency) * i.quantity, 0);
     const dopravaPrice = orderData?.dopravaPrices ? getPrice(orderData.dopravaPrices, currency) : 0;
     const dobirkaExtra = orderData?.isDobirka ? getPrice({ CZK: 39, EUR: 1.59, USD: 1.79 }, currency) : 0;
-    const celkem = subtotal + dopravaPrice + dobirkaExtra;
+    const celkem = apiTotal ?? (subtotal + dopravaPrice + dobirkaExtra);
     const celkemStr = hydrated ? formatPrice(celkem, currency) : "—";
 
     const statusLabel = method === "prevod" ? "Čeká na platbu" : method === "dobirka" ? "Připraveno k expedici" : "Zaplaceno";

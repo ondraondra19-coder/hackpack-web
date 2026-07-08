@@ -1,0 +1,202 @@
+// lib/orders.ts
+// Ukládání objednávek do Upstash Redis — pro VŠECHNY způsoby platby
+// (karta, dobírka, bankovní převod). Dřív se karta platba nikam neukládala
+// (jen do Stripe) a dobírka/převod se neukládaly vůbec — zákazník je viděl
+// jen ve svém prohlížeči. Teď má admin přehled o všem na jednom místě.
+//
+// ── Tok pro platbu kartou ──────────────────────────────────────────────────
+// 1. /api/checkout uloží "pending" objednávku (createPendingOrder) a pošle
+//    její ID do Stripe metadata.
+// 2. Stripe webhook po úspěšné platbě zavolá confirmPendingOrder — teprve
+//    TEHDY se objednávka objeví v adminu (= jen opravdu zaplacené).
+// 3. Pending objednávky mají expiraci 24 h (kdyby zákazník platbu nedokončil).
+//
+// ── Tok pro dobírku / bankovní převod ───────────────────────────────────────
+// Žádný Stripe krok — objednávka se vytvoří rovnou (createOrderDirect) se
+// stavem "nova", protože se ke zpracování nemusí čekat na potvrzení platby.
+
+import { getRedis } from "./redis";
+
+export type OrderStatus = "nova" | "zabalena" | "odeslana" | "na_ceste" | "dorucena";
+export type PaymentMethod = "karta" | "dobirka" | "prevod";
+export type PaymentStatus = "zaplaceno" | "ceka_na_platbu" | "zaplatit_pri_prevzeti";
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  nova: "Nová",
+  zabalena: "Zabalená",
+  odeslana: "Odeslaná",
+  na_ceste: "Na cestě",
+  dorucena: "Doručená",
+};
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  zaplaceno: "Zaplaceno",
+  ceka_na_platbu: "Čeká na platbu",
+  zaplatit_pri_prevzeti: "Platba při převzetí",
+};
+
+export type AddressBlock = {
+  mesto: string;
+  uliceCp: string;
+  psc: string;
+  zeme: string;
+};
+
+export type OrderItem = {
+  slug: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  variants?: Record<string, string>;
+};
+
+export type OrderInput = {
+  currency: string;
+  paymentMethod: PaymentMethod;
+  customer: { jmeno: string; email: string; telefon: string; firma?: string; ic?: string; dic?: string };
+  address: AddressBlock;
+  deliveryAddress?: AddressBlock | null;
+  poznamka?: string;
+  shippingName: string;
+  shippingPrice: number;
+  isDobirka: boolean;
+  dobirkaFee?: number;
+  discountCode?: string | null;
+  discountLabel?: string | null;
+  discountAmountCZK?: number;
+  items: OrderItem[];
+  subtotal: number;
+  total: number;
+  zboxId?: string | null;
+};
+
+export type Order = OrderInput & {
+  id: string;
+  createdAt: number;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  stripeSessionId?: string;
+};
+
+const PENDING_TTL_SECONDS = 24 * 60 * 60; // 24 h — kdyby zákazník platbu nedokončil
+
+function generateId(): string {
+  return `obj_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function initialPaymentStatus(method: PaymentMethod): PaymentStatus {
+  if (method === "karta") return "zaplaceno"; // vzniká až po potvrzení Stripe webhookem
+  if (method === "dobirka") return "zaplatit_pri_prevzeti";
+  return "ceka_na_platbu"; // prevod
+}
+
+// ── Karta: 1) pending při zahájení checkoutu ────────────────────────────────
+
+export async function createPendingOrder(input: OrderInput): Promise<string> {
+  const redis = getRedis();
+  const id = generateId();
+  await redis.set(`orders:pending:${id}`, JSON.stringify(input), { ex: PENDING_TTL_SECONDS });
+  return id;
+}
+
+/** Přečte pending objednávku BEZ jejího smazání/povýšení — používá to
+ *  děkovná stránka, aby zákazníkovi ukázala správná data ihned po platbě,
+ *  i kdyby Stripe webhook ještě nedoběhl (nebo vůbec nebyl nastavený). */
+export async function getPendingOrder(id: string): Promise<OrderInput | null> {
+  const redis = getRedis();
+  const raw = await redis.get<string | OrderInput>(`orders:pending:${id}`);
+  if (!raw) return null;
+  return typeof raw === "string" ? (JSON.parse(raw) as OrderInput) : raw;
+}
+
+// ── Karta: 2) potvrzení z webhooku po úspěšné platbě ────────────────────────
+
+export async function confirmPendingOrder(id: string, stripeSessionId: string): Promise<Order | null> {
+  const redis = getRedis();
+  const raw = await redis.get<string | OrderInput>(`orders:pending:${id}`);
+  if (!raw) return null;
+
+  const input = (typeof raw === "string" ? JSON.parse(raw) : raw) as OrderInput;
+  const order: Order = {
+    ...input,
+    id,
+    createdAt: Date.now(),
+    status: "nova",
+    paymentStatus: "zaplaceno",
+    stripeSessionId,
+  };
+
+  const pipeline = redis.pipeline();
+  pipeline.set(`orders:data:${id}`, JSON.stringify(order));
+  pipeline.zadd("orders:index", { score: order.createdAt, member: id });
+  pipeline.del(`orders:pending:${id}`);
+  await pipeline.exec();
+
+  return order;
+}
+
+// ── Dobírka / převod: vytvoření rovnou ──────────────────────────────────────
+
+export async function createOrderDirect(input: OrderInput): Promise<Order> {
+  const redis = getRedis();
+  const id = generateId();
+  const order: Order = {
+    ...input,
+    id,
+    createdAt: Date.now(),
+    status: "nova",
+    paymentStatus: initialPaymentStatus(input.paymentMethod),
+  };
+
+  const pipeline = redis.pipeline();
+  pipeline.set(`orders:data:${id}`, JSON.stringify(order));
+  pipeline.zadd("orders:index", { score: order.createdAt, member: id });
+  await pipeline.exec();
+
+  return order;
+}
+
+// ── Čtení / správa pro admin ────────────────────────────────────────────────
+
+export async function listOrders(limit: number = 50, offset: number = 0): Promise<{ orders: Order[]; total: number }> {
+  const redis = getRedis();
+  const total = await redis.zcard("orders:index");
+  if (total === 0) return { orders: [], total: 0 };
+
+  // Nejnovější první.
+  const ids = await redis.zrange<string[]>("orders:index", offset, offset + limit - 1, { rev: true });
+  if (ids.length === 0) return { orders: [], total };
+
+  const pipeline = redis.pipeline();
+  for (const id of ids) pipeline.get(`orders:data:${id}`);
+  const results = (await pipeline.exec()) as (string | Order | null)[];
+
+  const orders = results
+    .map((r) => (typeof r === "string" ? (JSON.parse(r) as Order) : (r as Order | null)))
+    .filter((o): o is Order => o != null);
+
+  return { orders, total };
+}
+
+export async function getOrder(id: string): Promise<Order | null> {
+  const redis = getRedis();
+  const raw = await redis.get<string | Order>(`orders:data:${id}`);
+  if (!raw) return null;
+  return typeof raw === "string" ? (JSON.parse(raw) as Order) : raw;
+}
+
+export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
+  const order = await getOrder(id);
+  if (!order) return null;
+  const updated: Order = { ...order, status };
+  await getRedis().set(`orders:data:${id}`, JSON.stringify(updated));
+  return updated;
+}
+
+export async function updatePaymentStatus(id: string, paymentStatus: PaymentStatus): Promise<Order | null> {
+  const order = await getOrder(id);
+  if (!order) return null;
+  const updated: Order = { ...order, paymentStatus };
+  await getRedis().set(`orders:data:${id}`, JSON.stringify(updated));
+  return updated;
+}

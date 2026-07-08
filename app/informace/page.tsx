@@ -590,13 +590,34 @@ export default function InformacePage() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             items, currency: currency.code,
-            orderData: { ...dataToSave, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, isDobirka: parsedOrder?.isDobirka || false, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0 },
+            orderData: { ...dataToSave, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, isDobirka: parsedOrder?.isDobirka || false, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
           }),
         });
         const d = await res.json();
         if (d.url) { clearCart(); removeDiscount(); window.location.href = d.url; return; }
         else alert("Stripe chyba: " + d.error);
       }
+
+      // Dobírka / bankovní převod — žádný Stripe krok, objednávku uložíme
+      // rovnou přes /api/orders, ať o ní admin ví (dřív se neukládala nikam).
+      if (metoda.includes("dobirka") || metoda.includes("prevod")) {
+        const discountAmountCZK = getDiscountAmount({ code: "CZK", symbol: "Kč", decimals: 0, symbolBefore: false });
+        const res = await fetch("/api/orders", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items, currency: currency.code,
+            paymentMethod: metoda.includes("dobirka") ? "dobirka" : "prevod",
+            orderData: { ...dataToSave, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
+          }),
+        });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          console.error("Nepodařilo se uložit objednávku:", d.error);
+          // Necháme zákazníka pokračovat na success stránku i tak — nechceme
+          // mu zablokovat dokončení kvůli chybě na naší straně, jen to zalogujeme.
+        }
+      }
+
       // Snapshot košíku a info uložíme PŘED clearCart — success page ho přečte
       try {
         localStorage.setItem("techgadgets-order-snapshot", JSON.stringify({

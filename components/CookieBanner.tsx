@@ -16,6 +16,22 @@ export function getConsent(): "accepted" | null {
   }
 }
 
+export const CONSENT_CHANGED_EVENT = "techgadgets-consent-changed";
+
+/** True, pokud uživatel povolil analytické cookies (buď "Povolit vše", nebo vlastní výběr). */
+export function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    if (raw === "accepted") return true;
+    const parsed = JSON.parse(raw);
+    return parsed?.analytics === true;
+  } catch {
+    return false;
+  }
+}
+
 export default function CookieBanner() {
   const router = useRouter();
   const pathname = usePathname();
@@ -58,6 +74,7 @@ export default function CookieBanner() {
     try {
       localStorage.setItem(STORAGE_KEY, "accepted");
       sessionStorage.removeItem(SESSION_KEY);
+      window.dispatchEvent(new Event(CONSENT_CHANGED_EVENT));
     } catch {}
     setState("leaving");
     setTimeout(() => setState("gone"), 500);
@@ -72,6 +89,7 @@ export default function CookieBanner() {
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(customConsent));
       sessionStorage.removeItem(SESSION_KEY);
+      window.dispatchEvent(new Event(CONSENT_CHANGED_EVENT));
     } catch {}
     setIsModalOpen(false);
     setState("leaving");

@@ -12,6 +12,8 @@ import ReviewsAdminList from './recenze/ReviewsAdminList';
 import AccountsAdminPanel from './AccountsAdminPanel';
 import ProductsAdminList from './ProductsAdminList';
 import MessagesAdminList from './MessagesAdminList';
+import AnalyticsPanel from './AnalyticsPanel';
+import OrdersAdminList from './OrdersAdminList';
 
 type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'accounts';
 
@@ -290,15 +292,9 @@ export default function AdminDashboard({
                 )}
 
                 {activeTab === 'reservations' && (
-                  <div className="space-y-2">
-                    <h3 className="text-base font-bold text-[#0f0f10]">Přehled objednávek</h3>
-                    <p className="text-zinc-500 text-xs leading-relaxed max-w-lg">Tady se ti načtou lidé, co odeslali košík. Budeš tu moct jedním kliknutím měnit stavy rezervace:</p>
-                    <div className="flex flex-wrap gap-2 pt-2 text-[11px] font-semibold">
-                      <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-1 rounded-md">Zabalená</span>
-                      <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2 py-1 rounded-md">Odeslaná</span>
-                      <span className="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-1 rounded-md">Na cestě</span>
-                      <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-md">Doručená</span>
-                    </div>
+                  <div className="space-y-4">
+                    <h3 className="text-base font-bold text-[#0f0f10]">Objednávky</h3>
+                    <OrdersAdminList />
                   </div>
                 )}
 
@@ -328,9 +324,9 @@ export default function AdminDashboard({
                 )}
 
                 {activeTab === 'analytics' && (
-                  <div className="space-y-2">
+                  <div className="space-y-4">
                     <h3 className="text-base font-bold text-[#0f0f10]">Analytika</h3>
-                    <p className="text-zinc-500 text-xs leading-relaxed max-w-md">Zde brzy uvidíš grafy tržeb, návštěvnosti a nejprodávanějších produktů.</p>
+                    <AnalyticsPanel />
                   </div>
                 )}
 
