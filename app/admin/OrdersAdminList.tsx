@@ -58,15 +58,23 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "vse", label: "Vše" },
 ];
 
-export default function OrdersAdminList() {
+type OrdersAdminListProps = {
+  initialQuery?: string;
+  initialExpandId?: string;
+};
+
+export default function OrdersAdminList({ initialQuery, initialExpandId }: OrdersAdminListProps = {}) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [tab, setTab] = useState<TabId>("aktivni");
+  const [expandedId, setExpandedId] = useState<string | null>(initialExpandId ?? null);
+  const [searchQuery, setSearchQuery] = useState(initialQuery ?? "");
+  // initialExpandId může mířit na objednávku mimo aktuálně vybranou záložku stavu
+  // (např. doručenou), proto v tom případě startujeme rovnou na "Vše", ať je vidět.
+  const [tab, setTab] = useState<TabId>(initialExpandId ? "vse" : "aktivni");
   const PAGE = 100;
 
   async function load(offset: number, append: boolean) {
@@ -135,10 +143,20 @@ export default function OrdersAdminList() {
   }, [orders]);
 
   const filteredOrders = useMemo(() => {
-    if (tab === "vse") return orders;
-    if (tab === "aktivni") return orders.filter((o) => ACTIVE_STATUSES.includes(o.status));
-    return orders.filter((o) => o.status === tab);
-  }, [orders, tab]);
+    const byTab =
+      tab === "vse" ? orders
+      : tab === "aktivni" ? orders.filter((o) => ACTIVE_STATUSES.includes(o.status))
+      : orders.filter((o) => o.status === tab);
+
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return byTab;
+    return byTab.filter(
+      (o) =>
+        o.customer.jmeno.toLowerCase().includes(q) ||
+        o.customer.email.toLowerCase().includes(q) ||
+        o.id.toLowerCase().includes(q)
+    );
+  }, [orders, tab, searchQuery]);
 
   if (loading) return <p className="text-xs text-zinc-400">Načítám objednávky…</p>;
   if (error) return <p className="text-xs text-red-500">{error}</p>;
@@ -153,6 +171,15 @@ export default function OrdersAdminList() {
 
   return (
     <div className="space-y-3">
+      {/* Hledání podle jména, e-mailu nebo čísla objednávky */}
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Hledat podle jména, e-mailu nebo čísla objednávky…"
+        className="w-full sm:w-80 text-xs border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:border-primary/50"
+      />
+
       {/* Záložky podle stavu */}
       <div className="flex gap-1.5 flex-wrap">
         {TABS.map((t) => {

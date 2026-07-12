@@ -24,9 +24,10 @@ function priceEquals(a: { CZK: number; EUR?: number; USD?: number }, b: { CZK: n
 type ProductsAdminListProps = {
   products: Product[];
   stock: Record<string, number>;
+  initialQuery?: string;
 };
 
-export default function ProductsAdminList({ products, stock }: ProductsAdminListProps) {
+export default function ProductsAdminList({ products, stock, initialQuery }: ProductsAdminListProps) {
   const buildInitialStock = () => {
     const initial: Record<string, number> = {};
     products.forEach((p) => {
@@ -63,7 +64,7 @@ export default function ProductsAdminList({ products, stock }: ProductsAdminList
   const [expandedSubKeys, setExpandedSubKeys] = useState<Record<string, boolean>>({});
   const [savingAll, setSavingAll] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery ?? "");
 
   const changedStockKeys = Object.keys(currentStock).filter((k) => currentStock[k] !== savedStock[k]);
   const changedPriceKeys = Object.keys(currentPrices).filter((k) => !priceEquals(currentPrices[k], savedPrices[k]));

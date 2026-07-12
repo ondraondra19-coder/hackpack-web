@@ -17,6 +17,7 @@ import AnalyticsPanel from './AnalyticsPanel';
 import OrdersAdminList from './OrdersAdminList';
 import MagazinAdminList from './MagazinAdminList';
 import DashboardHome from './DashboardHome';
+import AdminSearch from './AdminSearch';
 
 export type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'accounts';
 
@@ -47,6 +48,8 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [productsQuery, setProductsQuery] = useState<string | undefined>(undefined);
+  const [ordersFocusId, setOrdersFocusId] = useState<string | undefined>(undefined);
   const [reviews, setReviews] = useState(initialReviews);
   const [accounts, setAccounts] = useState(initialAccounts);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -54,6 +57,14 @@ export default function AdminDashboard({
 
   const hasPermission = (perm: Permission) => session.isMain || session.permissions.includes(perm);
   const canSeeMessages = hasPermission('messages');
+
+  // Jakmile admin odejde ze záložky, na kterou ho navedlo hledání, zapomeneme
+  // cílový produkt/objednávku — ať se při dalším příchodu na tab (přes menu,
+  // ne přes hledání) neotvírá pořád ten samý starý výsledek.
+  useEffect(() => {
+    if (activeTab !== 'products') setProductsQuery(undefined);
+    if (activeTab !== 'reservations') setOrdersFocusId(undefined);
+  }, [activeTab]);
 
   // Zprávy z chat widgetu — natáhnou se hned po přihlášení, ať se počet
   // nepřečtených v levém menu ukáže i bez otevření záložky "Zprávy".
@@ -258,16 +269,14 @@ export default function AdminDashboard({
             <Menu size={22} />
           </button>
 
-          <div className="relative hidden sm:block sm:w-48 lg:w-72">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            </span>
-            <input
-              type="text"
-              placeholder="Hledat v administraci..."
-              className="w-full bg-[#f1f1f3] border border-[#e5e7eb] rounded-xl pl-9 pr-4 py-2 text-xs text-[#0f0f10] placeholder-zinc-400 focus:outline-none focus:border-primary/50 focus:bg-white transition-all"
-            />
-          </div>
+          <AdminSearch
+            products={products}
+            canSeeOrders={hasPermission('reservations')}
+            canSeeMagazin={hasPermission('settings')}
+            onSelectProduct={(product) => { setProductsQuery(product.name); setActiveTab('products'); }}
+            onSelectOrder={(order) => { setOrdersFocusId(order.id); setActiveTab('reservations'); }}
+            onSelectPost={() => setActiveTab('settings')}
+          />
 
           <div className="relative">
             <button
@@ -329,12 +338,12 @@ export default function AdminDashboard({
                 {activeTab === 'reservations' && (
                   <div className="space-y-4">
                     <h3 className="text-base font-bold text-[#0f0f10]">Objednávky</h3>
-                    <OrdersAdminList />
+                    <OrdersAdminList initialExpandId={ordersFocusId} />
                   </div>
                 )}
 
                 {activeTab === 'products' && (
-                  <ProductsAdminList products={products} stock={initialStock} />
+                  <ProductsAdminList products={products} stock={initialStock} initialQuery={productsQuery} />
                 )}
 
                 {activeTab === 'reviews' && (

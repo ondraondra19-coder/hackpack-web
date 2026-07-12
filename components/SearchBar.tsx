@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import Fuse from "fuse.js";
 import { Search, X, ArrowUpRight } from "lucide-react";
 import { products as staticProducts } from "@/lib/products";
 import { useCurrency } from "@/lib/CurrencyContext";
@@ -108,54 +109,55 @@ function expandQuery(q: string): string {
   return Array.from(expanded).join(" ");
 }
 
-function scoreProduct(product: typeof staticProducts[0], q: string): number {
-  const expandedQ = expandQuery(q);
-  const words = normalize(expandedQ).split(/\s+/).filter(Boolean);
-
-  const name = normalize(product.name);
-  const nameEn = normalize(product.name_en ?? "");
-  const nameSk = normalize(product.name_sk ?? "");
-  const tags = (product.tags ?? []).map(normalize).join(" ");
-  const desc = normalize(product.description);
-
-  let total = 0;
-  let matchedWords = 0;
-  let missedWords = 0;
-
-  for (const word of words) {
-    const inName = name.includes(word) || nameEn.includes(word) || nameSk.includes(word);
-    const inTags = tags.includes(word);
-    const inDesc = desc.includes(word);
-
-    if (inName) { total += 4; matchedWords++; }
-    else if (inTags) { total += 2; matchedWords++; }
-    else if (inDesc) { total += 1; matchedWords++; }
-    else { missedWords++; }
-  }
-
-  total -= missedWords * 3;
-
-  if (words.length > 1 && matchedWords === words.length) {
-    total += words.length * 3;
-  }
-
-  const fullPhrase = normalize(q.trim());
-  if (name.includes(fullPhrase) || nameEn.includes(fullPhrase) || nameSk.includes(fullPhrase)) {
-    total += 10;
-  } else if (tags.includes(fullPhrase)) {
-    total += 6;
-  }
-
-  return total;
+// Fuse.js index — fuzzy matching (toleruje překlepy), na rozdíl od starého
+// scoreProduct() založeného na přesných podřetězcích. Skóre Fuse je 0=perfektní
+// shoda, 1=žádná — proto se níž invertuje na 1-score, ať vyšší číslo = lepší
+// shoda (stejná konvence jako měl původní ruční scoring).
+function buildFuse(products: typeof staticProducts) {
+  return new Fuse(products, {
+    keys: [
+      { name: "name", weight: 3 },
+      { name: "name_en", weight: 1.5 },
+      { name: "name_sk", weight: 1.5 },
+      { name: "tags", weight: 2 },
+      { name: "description", weight: 1 },
+    ],
+    threshold: 0.4,
+    ignoreLocation: true,
+    includeScore: true,
+    minMatchCharLength: 2,
+  });
 }
 
-// Určí, zda je výsledek dostatečně dominantní na "confident" zobrazení
+// Prohledá katalog dotazem i všemi jeho synonymy (expandQuery) — Fuse sám
+// o sobě vyžaduje shodu zadaných slov, synonyma (např. anglicko-české překlady)
+// mu bez tohohle rozšíření unikají. Pro každý produkt se bere nejlepší skóre
+// napříč variantami dotazu.
+function searchProducts(fuse: Fuse<typeof staticProducts[0]>, query: string): SearchResult[] {
+  const variants = Array.from(new Set([query, ...expandQuery(query).split(" ")])).filter((v) => v.length >= 2);
+  const best = new Map<string, SearchResult>();
+
+  for (const variant of variants) {
+    for (const r of fuse.search(variant)) {
+      const score = 1 - (r.score ?? 1);
+      const existing = best.get(r.item.slug);
+      if (!existing || score > existing.score) {
+        best.set(r.item.slug, { ...r.item, score });
+      }
+    }
+  }
+
+  return Array.from(best.values()).sort((a, b) => b.score - a.score).slice(0, 7);
+}
+
+// Určí, zda je výsledek dostatečně dominantní na "confident" zobrazení.
+// Škála skóre je teď 0–1 (invertované Fuse skóre), ne 0–20 jako u starého scoringu.
 function isConfidentResult(results: SearchResult[]): boolean {
   if (results.length === 0) return false;
   const top = results[0];
-  if (top.score < 8) return false;
+  if (top.score < 0.55) return false;
   if (results.length === 1) return true;
-  return top.score >= results[1].score * 2;
+  return top.score >= results[1].score * 1.4;
 }
 
 function highlightMatch(text: string, query: string) {
@@ -267,15 +269,11 @@ export default function SearchBar() {
       });
   }, []);
 
+  const fuse = useMemo(() => buildFuse(products), [products]);
+
   const trimmed = query.trim();
 
-  const results: SearchResult[] = trimmed.length > 1
-    ? products
-        .map(p => ({ ...p, score: scoreProduct(p, trimmed) }))
-        .filter(p => p.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 7)
-    : [];
+  const results: SearchResult[] = trimmed.length > 1 ? searchProducts(fuse, trimmed) : [];
 
   const confident = isConfidentResult(results);
 
