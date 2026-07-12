@@ -74,7 +74,8 @@ export default function CookiesPage() {
     { name: "last_visited", provider: "E-shop", purpose: "Ukládá naposled prohlížené produkty.", expiry: "30 dnů", type: "Preferenční" },
     { name: "remembere", provider: "E-shop", purpose: "Zapamatování přihlášení uživatele.", expiry: "1 rok", type: "Nezbyvnétě" },
     { name: "cartID", provider: "E-shop", purpose: "Ukládání zboží vloženého do košíku.", expiry: "1 rok", type: "Nezbytné" },
-    { name: "PHPSESSID", provider: "E-shop", purpose: "Dočasné úložiště dat nezbytných pro použití webu.", expiry: "Do zavření prohlížeče", type: "Nezbytné" }
+    { name: "PHPSESSID", provider: "E-shop", purpose: "Dočasné úložiště dat nezbytných pro použití webu.", expiry: "Do zavření prohlížeče", type: "Nezbytné" },
+    { name: "ph_*_posthog", provider: "PostHog", purpose: "Anonymní identifikátor návštěvníka pro analýzu návštěvnosti a chování na webu.", expiry: "1 rok", type: "Analytické" }
   ];
 
   return (
@@ -106,7 +107,7 @@ export default function CookiesPage() {
             <ul>
               <li><strong>Nezbytné (technické) cookies</strong> — Jsou klíčové pro správný chod e-shopu. Zajišťují ukládání produktů do nákupního košíku, funkčnost pokladny, přihlášení a bezpečnost. Bez nich by nebylo možné nákup dokončit a nelze je vypnout.</li>
               <li><strong>Preferenční cookies</strong> — Umožňují, aby si web zapamatoval informace, které mění vzhled nebo chování webu (např. historie naposledy prohlížených produktů).</li>
-              <li><strong>Analytické cookies</strong> (pokud budou nasazeny) — Pomáhají nám pochopit, jak web používáte (které stránky navštěvujete nejčastěji). Data jsou sbírána anonymně a slouží ke zlepšování chodu e-shopu.</li>
+              <li><strong>Analytické cookies</strong> — Pomáhají nám pochopit, jak web používáte (které stránky navštěvujete nejčastěji, odkud přicházíte). Zajišťuje je nástroj <strong>PostHog</strong> (PostHog Inc., zpracování dat v rámci EU) a ukládají se jen po vašem souhlasu.</li>
               <li><strong>Marketingové cookies</strong> (pokud budou nasazeny) — Slouží k profilování zájmů a zobrazování relevantní reklamy na sociálních sítích a partnerských webech.</li>
             </ul>
           </Section>

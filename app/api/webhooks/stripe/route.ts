@@ -2,7 +2,7 @@
 // Stripe webhook — zachytává checkout.session.completed a:
 //   1) povýší "pending" objednávku (uloženou při zahájení checkoutu)
 //      na potvrzenou — teprve TEĎ se objeví v admin panelu
-//   2) zapíše ji do analytiky (tržby, počet objednávek, top produkty)
+//   2) zapíše ji do PostHogu (tržby, počet objednávek, top produkty)
 //
 // Toto je nezávislé na cookie souhlasu — jde o transakční data nutná
 // ke zpracování/vyhodnocení objednávky, ne o sledování chování návštěvníka.
@@ -15,7 +15,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { products } from "@/lib/products";
-import { trackOrder } from "@/lib/analytics";
+import { createPostHogServerClient } from "@/lib/posthog-server";
 import { confirmPendingOrder } from "@/lib/orders";
 import { deductStockForItems } from "@/lib/stock";
 
@@ -69,7 +69,34 @@ export async function POST(req: Request) {
         };
       });
 
-      await trackOrder({ currency, amountTotal, items: resolvedItems });
+      const posthogClient = createPostHogServerClient();
+      if (posthogClient) {
+        const distinctId = session.id;
+        posthogClient.capture({
+          distinctId,
+          event: "order_completed",
+          properties: {
+            order_id: session.id,
+            currency,
+            revenue: amountTotal,
+            item_count: resolvedItems.reduce((s, i) => s + i.quantity, 0),
+          },
+        });
+        for (const item of resolvedItems) {
+          posthogClient.capture({
+            distinctId,
+            event: "product_purchased",
+            properties: {
+              order_id: session.id,
+              slug: item.slug,
+              name: item.name,
+              quantity: item.quantity,
+              currency,
+            },
+          });
+        }
+        await posthogClient.shutdown();
+      }
 
       // Povýšíme pending objednávku na potvrzenou — pokud ID chybí (starší
       // session bez pending záznamu), objednávka se v admin přehledu prostě

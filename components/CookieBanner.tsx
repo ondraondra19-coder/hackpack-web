@@ -61,6 +61,12 @@ export default function CookieBanner() {
       return;
     }
 
+    // V adminu se nic netrackuje (viz PostHogProvider), takže tam lišta nedává smysl.
+    if (pathname?.startsWith("/admin")) {
+      setState("gone");
+      return;
+    }
+
     if (getConsent()) {
       setState("gone");
       return;

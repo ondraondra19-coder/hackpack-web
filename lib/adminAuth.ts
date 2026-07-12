@@ -5,6 +5,10 @@
 // Token nese identitu přihlášeného účtu (hlavní účet, nebo id dílčího účtu z lib/accounts.ts).
 
 const COOKIE_NAME = "admin_session";
+// Nenese žádné oprávnění sama o sobě (autorizace je pořád jen COOKIE_NAME,
+// httpOnly a podepsaná) — je to jen čitelný "hint" pro klientský JS
+// (PostHogProvider), aby vlastní procházení webu admina nepočítal do statistik.
+const HINT_COOKIE_NAME = "admin_hint";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12; // session platná 12 hodin
 
 // Hlavní účet je pevně zadrátovaný — nemá záznam v Redisu, jen tady.
@@ -89,4 +93,5 @@ export function checkPassword(password: string): boolean {
 }
 
 export const ADMIN_COOKIE_NAME = COOKIE_NAME;
+export const ADMIN_HINT_COOKIE_NAME = HINT_COOKIE_NAME;
 export const ADMIN_COOKIE_MAX_AGE_SECONDS = SESSION_DURATION_MS / 1000;

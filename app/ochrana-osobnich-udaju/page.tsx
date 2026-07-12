@@ -79,6 +79,7 @@ export default function OchranaOsobnichUdajuPage() {
               <li><strong>Platební brána</strong> — zpracovatel plateb pro online platby kartou</li>
               <li><strong>Účetní software</strong> — pro vedení účetnictví a fakturace</li>
               <li><strong>E-mailový nástroj</strong> — pro rozesílání transakčních e-mailů a newsletteru</li>
+              <li><strong>PostHog</strong> — analytický nástroj pro měření návštěvnosti webu, data jsou zpracovávána v rámci EU a pouze na základě vašeho souhlasu s analytickými cookies</li>
             </ul>
             <p>Všichni příjemci jsou vázáni povinností mlčenlivosti a zpracovávají údaje pouze v rozsahu nezbytném pro plnění svých úkolů. Údaje nepředáváme do třetích zemí mimo EU/EHP.</p>
           </Section>

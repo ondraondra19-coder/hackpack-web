@@ -1,7 +1,7 @@
 // app/api/admin/analytics/route.ts
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/session";
-import { getAnalyticsSummary } from "@/lib/analytics";
+import { getAnalyticsSummary } from "@/lib/posthog-query";
 
 // GET /api/admin/analytics?days=30 — vrátí souhrn statistik pro admin panel.
 // Musí být přihlášený A mít oprávnění "analytics" (hlavní účet má vždy).

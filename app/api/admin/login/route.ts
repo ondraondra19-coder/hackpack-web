@@ -5,6 +5,7 @@ import {
   createSessionToken,
   ADMIN_COOKIE_NAME,
   ADMIN_COOKIE_MAX_AGE_SECONDS,
+  ADMIN_HINT_COOKIE_NAME,
   MAIN_ACCOUNT_ID,
   MAIN_ACCOUNT_NAME,
 } from "@/lib/adminAuth";
@@ -57,6 +58,15 @@ export async function POST(req: Request) {
     const res = NextResponse.json({ success: true });
     res.cookies.set(ADMIN_COOKIE_NAME, token, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: ADMIN_COOKIE_MAX_AGE_SECONDS,
+    });
+    // Čitelný hint pro klientský JS (PostHogProvider) — ať se vlastní
+    // procházení webu adminem nepočítá do statistik. Nenese autorizaci.
+    res.cookies.set(ADMIN_HINT_COOKIE_NAME, "1", {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",

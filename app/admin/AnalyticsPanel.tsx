@@ -1,9 +1,10 @@
 "use client";
 
 // app/admin/AnalyticsPanel.tsx
-// Záložka "Analytika" v admin panelu. Načítá souhrn z /api/admin/analytics.
+// Záložka "Analytika" v admin panelu. Načítá souhrn z /api/admin/analytics,
+// který data čte z PostHogu (HogQL Query API).
 //
-// Návštěvnost (page views, unikátní návštěvníci, zdroje, zařízení) obsahuje
+// Návštěvnost (pageviews, unikátní návštěvníci, zdroje, zařízení) obsahuje
 // jen data od návštěvníků, kteří odsouhlasili analytické cookies — pokud
 // jsou čísla nízká, je to prostě proto, že málo lidí souhlas dá, ne chyba.
 //
@@ -11,7 +12,7 @@
 // je to napojené na Stripe webhook, který zaznamená každou dokončenou platbu.
 
 import { useEffect, useState } from "react";
-import type { AnalyticsSummary } from "@/lib/analytics";
+import type { AnalyticsSummary } from "@/lib/posthog-query";
 
 const RANGE_OPTIONS = [
   { days: 7, label: "7 dní" },
@@ -156,11 +157,12 @@ export default function AnalyticsPanel() {
         <>
           {/* Souhrnné karty */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard label="Návštěvy" value={String(data.totalVisits)} hint={`za ${days} dní`} />
+            <StatCard label="Zobrazení stránek" value={String(data.totalVisits)} hint={`za ${days} dní`} />
+            <StatCard label="Unikátní návštěvníci" value={String(data.totalUniqueVisitors)} hint={`za ${days} dní`} />
             <StatCard label="Objednávky" value={String(data.totalOrders)} hint={`za ${days} dní`} />
             {Object.entries(data.revenueByCurrency)
               .filter(([, v]) => v > 0)
-              .slice(0, 2)
+              .slice(0, 1)
               .map(([cur, v]) => (
                 <StatCard key={cur} label={`Tržby (${cur})`} value={formatMoney(v, cur)} hint={`za ${days} dní`} />
               ))}
@@ -168,8 +170,8 @@ export default function AnalyticsPanel() {
 
           {/* Grafy návštěvnosti a objednávek */}
           <div className="grid md:grid-cols-2 gap-3">
-            <SectionCard title="Návštěvy" subtitle="Denní počet — jen se souhlasem cookies">
-              <BarChart data={data.visits} color="#2563eb" />
+            <SectionCard title="Návštěvnost" subtitle="Denní zobrazení stránek — jen se souhlasem cookies">
+              <BarChart data={data.visits.map((v) => ({ date: v.date, count: v.pageviews }))} color="#2563eb" />
             </SectionCard>
             <SectionCard title="Objednávky" subtitle="Denní počet dokončených plateb">
               <BarChart data={data.orders} color="#ea580c" />
@@ -177,13 +179,13 @@ export default function AnalyticsPanel() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-3">
-            <SectionCard title="Zařízení" subtitle="Od spuštění sledování, podle User-Agent">
+            <SectionCard title="Zařízení" subtitle={`Za ${days} dní, podle typu zařízení`}>
               <RankedTable
                 rows={data.devices.map((d) => ({ label: d.device, value: d.count }))}
                 emptyLabel="Zatím žádná data."
               />
             </SectionCard>
-            <SectionCard title="Odkud přichází návštěvnost" subtitle="Od spuštění sledování">
+            <SectionCard title="Odkud přichází návštěvnost" subtitle={`Weby, ze kterých na vás lidé klikli — za ${days} dní`}>
               <RankedTable
                 rows={data.topReferrers.map((r) => ({ label: r.host, value: r.count }))}
                 emptyLabel="Zatím žádná data."
@@ -191,10 +193,20 @@ export default function AnalyticsPanel() {
             </SectionCard>
           </div>
 
-          {/* Tabulky */}
-          <SectionCard title="Nejčastější vstupní stránky" subtitle="Kam lidé nejčastěji přichází — od spuštění sledování">
+          <SectionCard title="Reklamní kampaně" subtitle={`Návštěvy z odkazů označených jako reklama/kampaň — za ${days} dní`}>
             <RankedTable
-              rows={data.topLandingPages.map((p) => ({ label: p.path, value: p.count }))}
+              rows={data.topCampaigns.map((c) => ({
+                label: c.campaign ? `${c.source} / ${c.campaign}` : c.source,
+                value: c.count,
+              }))}
+              emptyLabel="Zatím žádná návštěva z označené reklamní kampaně."
+            />
+          </SectionCard>
+
+          {/* Tabulky */}
+          <SectionCard title="Nejnavštěvovanější stránky" subtitle={`Za ${days} dní`}>
+            <RankedTable
+              rows={data.topPages.map((p) => ({ label: p.path === "/" ? "Domovská stránka (/)" : p.path, value: p.count }))}
               emptyLabel="Zatím žádná data — buď málo návštěv, nebo nikdo nesouhlasil s cookies."
             />
           </SectionCard>
