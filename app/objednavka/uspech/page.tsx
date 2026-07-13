@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice } from "@/lib/currency";
+import { buildSpdString } from "@/lib/qrPlatba";
+import QRCode from "qrcode";
 
 const SNAPSHOT_KEY = "hackpack-order-snapshot";
 
@@ -77,7 +79,24 @@ function CopyButton({ value }: { value: string }) {
     );
 }
 
-function BankovniPrevod({ totalStr, vsymbol }: { totalStr: string; vsymbol: string }) {
+function BankovniPrevod({ totalStr, vsymbol, amount, currencyCode }: { totalStr: string; vsymbol: string; amount: number; currencyCode: string }) {
+    const accountDisplay = process.env.NEXT_PUBLIC_BANK_ACCOUNT_DISPLAY;
+    const iban = process.env.NEXT_PUBLIC_BANK_ACCOUNT_IBAN;
+    const bankName = process.env.NEXT_PUBLIC_BANK_NAME;
+    const showQr = Boolean(iban) && currencyCode === "CZK";
+
+    const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!showQr || !iban) return;
+        const spd = buildSpdString({ iban, amount, currency: currencyCode, variableSymbol: vsymbol, message: "HackPack objednavka" });
+        let cancelled = false;
+        QRCode.toDataURL(spd, { width: 200, margin: 1 })
+            .then(url => { if (!cancelled) setQrDataUrl(url); })
+            .catch(() => { if (!cancelled) setQrDataUrl(null); });
+        return () => { cancelled = true; };
+    }, [showQr, iban, amount, currencyCode, vsymbol]);
+
     return (
         <div>
             <div className="mb-8">
@@ -85,15 +104,21 @@ function BankovniPrevod({ totalStr, vsymbol }: { totalStr: string; vsymbol: stri
                 <h2 className="text-2xl font-extrabold text-text-base tracking-tight mb-2">Dokončete platbu převodem</h2>
                 <p className="text-text-muted text-sm leading-relaxed max-w-lg">Objednávku jsme zaevidovali. Prosíme o zaslání platby na níže uvedený účet — expedujeme ihned po připsání částky.</p>
             </div>
+            {!accountDisplay ? (
+                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                    <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-black text-white">!</div>
+                    <p className="text-xs text-amber-900 leading-relaxed">Platba převodem zatím není nastavena — chybí bankovní účet. Ozvěte se prosím na e-mail v hlavičce, domluvíme se individuálně.</p>
+                </div>
+            ) : (
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 bg-surface rounded-2xl border border-border p-6 space-y-5">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-1.5">Číslo účtu</p>
                         <div className="flex items-center justify-between bg-white border border-border rounded-xl px-4 py-3">
-                            <span className="font-mono font-black text-text-base text-lg tracking-wide">123456789 / 0800</span>
+                            <span className="font-mono font-black text-text-base text-lg tracking-wide">{accountDisplay}</span>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-bold text-text-subtle uppercase">Česká spořitelna</span>
-                                <CopyButton value="123456789/0800" />
+                                {bankName && <span className="text-[10px] font-bold text-text-subtle uppercase">{bankName}</span>}
+                                <CopyButton value={accountDisplay} />
                             </div>
                         </div>
                     </div>
@@ -118,16 +143,24 @@ function BankovniPrevod({ totalStr, vsymbol }: { totalStr: string; vsymbol: stri
                 <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-6 flex flex-col items-center justify-center gap-4">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle">Rychlá platba QR kódem</p>
                     <div className="bg-white border border-border rounded-2xl p-4 shadow-sm">
-                        <div className="w-40 h-40 bg-surface rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-2">
-                            <div className="w-10 h-10 border-2 border-dashed border-text-subtle/30 rounded-full flex items-center justify-center">
-                                <span className="text-primary font-extrabold text-[10px]">QR</span>
+                        {showQr && qrDataUrl ? (
+                            <Image src={qrDataUrl} alt="QR platba" width={160} height={160} className="w-40 h-40" unoptimized />
+                        ) : (
+                            <div className="w-40 h-40 bg-surface rounded-lg border border-dashed border-border flex flex-col items-center justify-center gap-2">
+                                <div className="w-10 h-10 border-2 border-dashed border-text-subtle/30 rounded-full flex items-center justify-center">
+                                    <span className="text-primary font-extrabold text-[10px]">QR</span>
+                                </div>
+                                <span className="text-[10px] font-bold text-text-subtle uppercase tracking-tight text-center px-2">
+                                    {showQr ? <>Generuji...</> : <>QR platba je dostupná<br />jen pro platby v CZK</>}
+                                </span>
                             </div>
-                            <span className="text-[10px] font-bold text-text-subtle uppercase tracking-tight text-center">Naskenujte<br />mobilní aplikací</span>
-                        </div>
+                        )}
                     </div>
                     <p className="text-xs text-text-muted text-center leading-relaxed">Kompatibilní s většinou českých bankovních aplikací</p>
                 </div>
             </div>
+            )}
+            {accountDisplay && (
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[
                     { icon: Banknote, label: "Odešlete platbu", desc: "Na výše uvedený účet s variabilním symbolem." },
@@ -145,6 +178,7 @@ function BankovniPrevod({ totalStr, vsymbol }: { totalStr: string; vsymbol: stri
                     </div>
                 ))}
             </div>
+            )}
         </div>
     );
 }
@@ -506,7 +540,7 @@ function SuccessContent() {
                         {/* Platební sekce */}
                         <div className="xl:col-span-2">
                             <div className="bg-white rounded-2xl border border-border shadow-sm p-8 lg:p-10">
-                                {method === "prevod" && <BankovniPrevod totalStr={celkemStr} vsymbol={vsymbol} />}
+                                {method === "prevod" && <BankovniPrevod totalStr={celkemStr} vsymbol={vsymbol} amount={celkem} currencyCode={currency.code} />}
                                 {method === "dobirka" && <Dobirka totalStr={celkemStr} isZasilkovnaBox={orderData?.doprava === "zasilkovna_box"} />}
                                 {method === "karta" && <KartaStripe totalStr={celkemStr} orderId={stableOrderId || "—"} />}
                             </div>

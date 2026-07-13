@@ -190,8 +190,8 @@
     "semantic_hash": "7749c7264c0f53625b1e831e691558a5"
   },
   "app/doprava/page.tsx": {
-    "mtime": 1783963922.7636507,
-    "ast_hash": "806ba20fdddfb15e0d4b793542d744fd",
+    "mtime": 1783964891.4255283,
+    "ast_hash": "57d90db633ae3ad672ee8694616dcb83",
     "semantic_hash": ""
   },
   "app/faq/page.tsx": {
@@ -200,8 +200,8 @@
     "semantic_hash": "13027186e2c94cab16a1e10690089289"
   },
   "app/informace/page.tsx": {
-    "mtime": 1783963853.0352745,
-    "ast_hash": "8b6f158a865649840568c6cdc9b7530b",
+    "mtime": 1783965992.2343476,
+    "ast_hash": "127d7dfb6f67302895d792d28e0d5c63",
     "semantic_hash": ""
   },
   "app/kategorie/[slug]/page.tsx": {
@@ -245,8 +245,8 @@
     "semantic_hash": ""
   },
   "app/objednavka/uspech/page.tsx": {
-    "mtime": 1783963857.5701754,
-    "ast_hash": "82bd7f73f7c21b3cf256ce8979456ba3",
+    "mtime": 1783976562.0492804,
+    "ast_hash": "7e01a3fd0fa87282e48b32488100035a",
     "semantic_hash": ""
   },
   "app/ochrana-osobnich-udaju/page.tsx": {
@@ -520,8 +520,8 @@
     "semantic_hash": "ccf2872467600fe3f046a836d02c4cf1"
   },
   "package.json": {
-    "mtime": 1783865446.142751,
-    "ast_hash": "f45f6397e4f258611bfe17c0e0e6d98a",
+    "mtime": 1783976328.9959128,
+    "ast_hash": "1b3d88f90a91c0eb214175dd3906b270",
     "semantic_hash": ""
   },
   "postcss.config.mjs": {
@@ -977,6 +977,11 @@
   "public/images/products/test3.mp4": {
     "mtime": 1774650874.4771998,
     "ast_hash": "4c1d2b8fa41598c01cb17060068b36e0",
+    "semantic_hash": ""
+  },
+  "lib/qrPlatba.ts": {
+    "mtime": 1783976379.3898926,
+    "ast_hash": "2598c4af914e383febba5a31ad6b71f9",
     "semantic_hash": ""
   }
 }

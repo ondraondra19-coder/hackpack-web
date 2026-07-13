@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
@@ -131,15 +131,22 @@ function SmartAddressBlock({
   const [mestoSuggestions, setMestoSuggestions] = useState<MestoResult[]>([]);
   const [adresaSuggestions, setAdresaSuggestions] = useState<AdresaResult[]>([]);
   const [activeField, setActiveField] = useState<"mesto" | "uliceCp" | null>(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const [loadingMesto, setLoadingMesto] = useState(false);
   const [loadingAdresa, setLoadingAdresa] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mestoReqRef = useRef(0);
+  const adresaReqRef = useRef(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const uid = useId();
+  const mestoListId = `${uid}-mesto`;
+  const adresaListId = `${uid}-adresa`;
 
   useEffect(() => {
     function handler(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setActiveField(null);
+        setActiveIndex(-1);
         setMestoSuggestions([]);
         setAdresaSuggestions([]);
       }
@@ -150,14 +157,18 @@ function SmartAddressBlock({
 
   async function searchMesto(query: string) {
     if (query.trim().length < 2) { setMestoSuggestions([]); return; }
+    const reqId = ++mestoReqRef.current;
     setLoadingMesto(true);
     const results = await fetchMesta(query);
+    if (reqId !== mestoReqRef.current) return;
     setLoadingMesto(false);
+    setActiveIndex(-1);
     setMestoSuggestions(results);
   }
 
   async function searchAdresa(query: string) {
     if (query.trim().length < 2) { setAdresaSuggestions([]); return; }
+    const reqId = ++adresaReqRef.current;
     const context = value.mestoRaw || value.mesto.split(" - ")[0].trim();
     const q = context ? `${query.trim()}, ${context}` : query.trim();
     setLoadingAdresa(true);
@@ -165,18 +176,45 @@ function SmartAddressBlock({
     if (results.length === 0 && context) {
       results = await fetchAdresy(query.trim());
     }
+    if (reqId !== adresaReqRef.current) return;
     setLoadingAdresa(false);
     const filtered = results.filter(r => {
       if (!context) return true;
       return stripDia(r.mesto) === stripDia(context);
     });
+    setActiveIndex(-1);
     setAdresaSuggestions((filtered.length > 0 ? filtered : results).slice(0, 7));
+  }
+
+  function handleListKeyDown<T>(
+    e: React.KeyboardEvent<HTMLInputElement>,
+    suggestions: T[],
+    onSelect: (r: T) => void,
+  ) {
+    if (e.key === "Escape") {
+      setActiveIndex(-1);
+      setMestoSuggestions([]);
+      setAdresaSuggestions([]);
+      return;
+    }
+    if (suggestions.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIndex(i => (i + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIndex(i => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      onSelect(suggestions[activeIndex >= 0 ? activeIndex : 0]);
+    }
   }
 
   function handleMestoInput(raw: string) {
     onChange({ ...emptyAddress(), mesto: raw, zeme: value.zeme });
     onConfirm(false);
     setActiveField("mesto");
+    setActiveIndex(-1);
     setAdresaSuggestions([]);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (raw.trim().length >= 2) {
@@ -198,6 +236,7 @@ function SmartAddressBlock({
     });
     onConfirm(false);
     setMestoSuggestions([]);
+    setActiveIndex(-1);
     setActiveField("uliceCp");
     if (vesnice) {
       setTimeout(() => searchAdresa(vesnice), 100);
@@ -208,6 +247,7 @@ function SmartAddressBlock({
     onChange({ ...value, uliceCp: raw });
     onConfirm(false);
     setActiveField("uliceCp");
+    setActiveIndex(-1);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (raw.trim().length >= 2) {
       debounceRef.current = setTimeout(() => searchAdresa(raw), 300);
@@ -226,6 +266,7 @@ function SmartAddressBlock({
     });
     onConfirm(true);
     setActiveField(null);
+    setActiveIndex(-1);
     setAdresaSuggestions([]);
   }
 
@@ -260,9 +301,15 @@ function SmartAddressBlock({
               setActiveField("mesto");
               if (value.mesto.trim().length >= 2) searchMesto(value.mesto);
             }}
+            onKeyDown={e => handleListKeyDown(e, mestoSuggestions, handleMestoSelect)}
             placeholder="Praha, Košťany, Vilémov - Košťany..."
             autoComplete="off"
             spellCheck={false}
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls={mestoListId}
+            aria-expanded={activeField === "mesto" && mestoSuggestions.length > 0}
+            aria-activedescendant={activeField === "mesto" && activeIndex >= 0 ? `${mestoListId}-opt-${activeIndex}` : undefined}
             className="flex-1 bg-surface px-3 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none"
           />
           {loadingMesto && <Loader2 size={13} className="mr-3 text-text-subtle animate-spin shrink-0" />}
@@ -278,12 +325,15 @@ function SmartAddressBlock({
 
         {/* Dropdown měst */}
         {activeField === "mesto" && mestoSuggestions.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-xl z-50 overflow-y-auto max-h-56">
+          <ul id={mestoListId} role="listbox" className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-xl z-50 overflow-y-auto max-h-56">
             {mestoSuggestions.map((r, i) => (
               <li key={i}>
                 <button type="button"
+                  id={`${mestoListId}-opt-${i}`}
+                  role="option"
+                  aria-selected={activeIndex === i}
                   onMouseDown={e => { e.preventDefault(); handleMestoSelect(r); }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition-colors flex items-center gap-3">
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-3 ${activeIndex === i ? "bg-primary/10" : "hover:bg-primary/5"}`}>
                   <MapPin size={12} className="text-primary shrink-0" />
                   <span className="flex-1 min-w-0">
                     <span className="text-text-base font-medium">
@@ -318,9 +368,15 @@ function SmartAddressBlock({
               setActiveField("uliceCp");
               if (value.uliceCp.trim().length >= 2) searchAdresa(value.uliceCp);
             }}
+            onKeyDown={e => handleListKeyDown(e, adresaSuggestions, handleAdresaSelect)}
             placeholder="Generálská 1135/14"
             autoComplete="off"
             spellCheck={false}
+            role="combobox"
+            aria-autocomplete="list"
+            aria-controls={adresaListId}
+            aria-expanded={activeField === "uliceCp" && adresaSuggestions.length > 0}
+            aria-activedescendant={activeField === "uliceCp" && activeIndex >= 0 ? `${adresaListId}-opt-${activeIndex}` : undefined}
             className="flex-1 bg-surface px-4 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none"
           />
           {loadingAdresa && <Loader2 size={13} className="mr-3 text-text-subtle animate-spin shrink-0" />}
@@ -329,12 +385,15 @@ function SmartAddressBlock({
 
         {/* Dropdown adres */}
         {activeField === "uliceCp" && adresaSuggestions.length > 0 && (
-          <ul className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-xl z-50 overflow-y-auto max-h-56">
+          <ul id={adresaListId} role="listbox" className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-xl z-50 overflow-y-auto max-h-56">
             {adresaSuggestions.map((r, i) => (
               <li key={i}>
                 <button type="button"
+                  id={`${adresaListId}-opt-${i}`}
+                  role="option"
+                  aria-selected={activeIndex === i}
                   onMouseDown={e => { e.preventDefault(); handleAdresaSelect(r); }}
-                  className="w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 transition-colors flex items-center gap-3">
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center gap-3 ${activeIndex === i ? "bg-primary/10" : "hover:bg-primary/5"}`}>
                   <MapPin size={12} className="text-primary shrink-0" />
                   <span className="flex-1 min-w-0">
                     <span className="text-text-base font-medium">
