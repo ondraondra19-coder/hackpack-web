@@ -1,8 +1,8 @@
 {
   ".claude/settings.local.json": {
-    "mtime": 1783855611.74185,
-    "ast_hash": "2657e42277f0c3b1810e796052011878",
-    "semantic_hash": "2657e42277f0c3b1810e796052011878"
+    "mtime": 1783858306.707102,
+    "ast_hash": "0d78015fd52ad3ced7a6002a8d00d997",
+    "semantic_hash": ""
   },
   "app/admin/AccountsAdminPanel.tsx": {
     "mtime": 1783581595.0072727,
@@ -10,14 +10,14 @@
     "semantic_hash": "57161014023de262f82b96d60ea9d696"
   },
   "app/admin/AdminDashboard.tsx": {
-    "mtime": 1783843325.4766064,
-    "ast_hash": "1abe75d7703bb5479e82a46684b46391",
-    "semantic_hash": "1abe75d7703bb5479e82a46684b46391"
+    "mtime": 1783865776.451837,
+    "ast_hash": "939ab3e76e35ef09b172de7461f98715",
+    "semantic_hash": ""
   },
   "app/admin/AnalyticsPanel.tsx": {
-    "mtime": 1783852756.9141035,
-    "ast_hash": "6d310b54ed86790396cb92cadd4fa69f",
-    "semantic_hash": "6d310b54ed86790396cb92cadd4fa69f"
+    "mtime": 1783860081.8129456,
+    "ast_hash": "76fbb14ca83cc055e3ef2e778cc9822b",
+    "semantic_hash": ""
   },
   "app/admin/LogoutButton.tsx": {
     "mtime": 1783237712.2793,
@@ -25,9 +25,9 @@
     "semantic_hash": "1db2fbb3e2747a59a796223754598832"
   },
   "app/admin/MagazinAdminList.tsx": {
-    "mtime": 1783774006.2333,
-    "ast_hash": "c4eb9fa2fa5ac364e535ebcba9122d04",
-    "semantic_hash": "c4eb9fa2fa5ac364e535ebcba9122d04"
+    "mtime": 1783858843.564576,
+    "ast_hash": "126dddbcd6f02fc0526d2c060cf7a6ba",
+    "semantic_hash": ""
   },
   "app/admin/MessagesAdminList.tsx": {
     "mtime": 1783412165.0753744,
@@ -35,14 +35,14 @@
     "semantic_hash": "1495988f26d718b0d51ad802ba876e5f"
   },
   "app/admin/OrdersAdminList.tsx": {
-    "mtime": 1783547880.035626,
-    "ast_hash": "2926fa939963239e1ed445a97daf9479",
-    "semantic_hash": "2926fa939963239e1ed445a97daf9479"
+    "mtime": 1783963935.8553238,
+    "ast_hash": "de5c631a754b56de8446beab15553bc0",
+    "semantic_hash": ""
   },
   "app/admin/ProductsAdminList.tsx": {
-    "mtime": 1783775625.5120015,
-    "ast_hash": "56f1d79bed20a3270b3f9984b71e6242",
-    "semantic_hash": "56f1d79bed20a3270b3f9984b71e6242"
+    "mtime": 1783865626.4522533,
+    "ast_hash": "334a5550ce387b0b2f820dbe5f9dd64e",
+    "semantic_hash": ""
   },
   "app/admin/login/page.tsx": {
     "mtime": 1783843336.3754334,
@@ -130,9 +130,9 @@
     "semantic_hash": "c61e6b398cfe654dbbac945193a7a039"
   },
   "app/api/checkout/route.ts": {
-    "mtime": 1783775675.8703003,
-    "ast_hash": "cb28a99992bd9ce8a000d161978a9bfd",
-    "semantic_hash": "cb28a99992bd9ce8a000d161978a9bfd"
+    "mtime": 1783963905.5277066,
+    "ast_hash": "1234303810fd7e1327dd9e09cbbfbec9",
+    "semantic_hash": ""
   },
   "app/api/checkout/session/route.ts": {
     "mtime": 1783506874.8851087,
@@ -145,9 +145,9 @@
     "semantic_hash": "fec1507e99c84777589fdb606d15303c"
   },
   "app/api/orders/route.ts": {
-    "mtime": 1783775689.20067,
-    "ast_hash": "cf9293e8023d823b65460f2788466000",
-    "semantic_hash": "cf9293e8023d823b65460f2788466000"
+    "mtime": 1783963898.3853524,
+    "ast_hash": "91bc2e931800e9ecb3cede2d7ed0abc7",
+    "semantic_hash": ""
   },
   "app/api/products/route.ts": {
     "mtime": 1783843810.5093048,
@@ -190,9 +190,9 @@
     "semantic_hash": "7749c7264c0f53625b1e831e691558a5"
   },
   "app/doprava/page.tsx": {
-    "mtime": 1783843379.8676078,
-    "ast_hash": "f601446854575213cf1ed4a41ca3d13d",
-    "semantic_hash": "f601446854575213cf1ed4a41ca3d13d"
+    "mtime": 1783963922.7636507,
+    "ast_hash": "806ba20fdddfb15e0d4b793542d744fd",
+    "semantic_hash": ""
   },
   "app/faq/page.tsx": {
     "mtime": 1783845232.3342211,
@@ -200,9 +200,9 @@
     "semantic_hash": "13027186e2c94cab16a1e10690089289"
   },
   "app/informace/page.tsx": {
-    "mtime": 1783844037.8238142,
-    "ast_hash": "b3256bf01bb3150c3a095ba6a4b84a0b",
-    "semantic_hash": "b3256bf01bb3150c3a095ba6a4b84a0b"
+    "mtime": 1783963853.0352745,
+    "ast_hash": "8b6f158a865649840568c6cdc9b7530b",
+    "semantic_hash": ""
   },
   "app/kategorie/[slug]/page.tsx": {
     "mtime": 1783775718.9923565,
@@ -215,9 +215,9 @@
     "semantic_hash": "293a8cf61e31e4bdf8f5fd06902a787d"
   },
   "app/kosik/page.tsx": {
-    "mtime": 1783843843.815041,
-    "ast_hash": "4a3c853c49ff9c71be56ee0b0ce05a1c",
-    "semantic_hash": "4a3c853c49ff9c71be56ee0b0ce05a1c"
+    "mtime": 1783858986.6209238,
+    "ast_hash": "248edeb3b64ae81d0ffd3d18e14260b2",
+    "semantic_hash": ""
   },
   "app/layout.tsx": {
     "mtime": 1783850858.7026572,
@@ -240,14 +240,14 @@
     "semantic_hash": "72fdeaf31adc53a10508e48d8fd99e99"
   },
   "app/objednavka/page.tsx": {
-    "mtime": 1783844065.9296587,
-    "ast_hash": "8cbf540fd8b701df08ca4539a12558a0",
-    "semantic_hash": "8cbf540fd8b701df08ca4539a12558a0"
+    "mtime": 1783963843.8476727,
+    "ast_hash": "2713bd1ea2874cc23c75645ccd20c65c",
+    "semantic_hash": ""
   },
   "app/objednavka/uspech/page.tsx": {
-    "mtime": 1783844072.6388102,
-    "ast_hash": "293fb888cb73632e85e0f80f1bebcaee",
-    "semantic_hash": "293fb888cb73632e85e0f80f1bebcaee"
+    "mtime": 1783963857.5701754,
+    "ast_hash": "82bd7f73f7c21b3cf256ce8979456ba3",
+    "semantic_hash": ""
   },
   "app/ochrana-osobnich-udaju/page.tsx": {
     "mtime": 1783852218.7176,
@@ -300,14 +300,14 @@
     "semantic_hash": "967cbdf6e5ff311349fb113621a102bc"
   },
   "components/Footer.tsx": {
-    "mtime": 1783845259.3387628,
-    "ast_hash": "7f98b93dbe07e458219cae9d16b2866d",
-    "semantic_hash": "7f98b93dbe07e458219cae9d16b2866d"
+    "mtime": 1783858910.8446238,
+    "ast_hash": "c4feef3b1e823bdf18ee789c0fd6cd8b",
+    "semantic_hash": ""
   },
   "components/Header.tsx": {
-    "mtime": 1783845264.9437337,
-    "ast_hash": "8c7fc722b1a40d7002cd518d9b139fba",
-    "semantic_hash": "8c7fc722b1a40d7002cd518d9b139fba"
+    "mtime": 1783858900.7545257,
+    "ast_hash": "642f3aba19c018cfee8825fd486f0f8b",
+    "semantic_hash": ""
   },
   "components/HomeSlider.tsx": {
     "mtime": 1777272244.0525684,
@@ -325,9 +325,9 @@
     "semantic_hash": "fa95f0bbcd2549586a19dc64a19b8d6e"
   },
   "components/KategorieClient.tsx": {
-    "mtime": 1776961449.1570227,
-    "ast_hash": "f145d0c771096eab818244376198552d",
-    "semantic_hash": "f145d0c771096eab818244376198552d"
+    "mtime": 1783859051.167894,
+    "ast_hash": "14947e1fcf841e8b2093ebc1423c8732",
+    "semantic_hash": ""
   },
   "components/Logo.tsx": {
     "mtime": 1783530565.0811374,
@@ -340,9 +340,9 @@
     "semantic_hash": "21b0e266f2ed507c7a44cb1b4a75f089"
   },
   "components/ProduktClient.tsx": {
-    "mtime": 1783236050.5876374,
-    "ast_hash": "e9a628cac47822df432ef86d04af4122",
-    "semantic_hash": "e9a628cac47822df432ef86d04af4122"
+    "mtime": 1783858942.7666283,
+    "ast_hash": "c8fbf1da0680a29960392dd5fbc4ba5c",
+    "semantic_hash": ""
   },
   "components/RatingWidget.tsx": {
     "mtime": 1783195712.853787,
@@ -355,9 +355,9 @@
     "semantic_hash": "d7e42041da5d40a26dfbb88da8affe03"
   },
   "components/SearchBar.tsx": {
-    "mtime": 1783843830.6919177,
-    "ast_hash": "db9dab3731c5ea9cfc8ba39a9b1e7d34",
-    "semantic_hash": "db9dab3731c5ea9cfc8ba39a9b1e7d34"
+    "mtime": 1783865484.9107816,
+    "ast_hash": "2e466070b39b2c55988b9fe81c09d4c7",
+    "semantic_hash": ""
   },
   "components/TrustBar.tsx": {
     "mtime": 1774168755.0693293,
@@ -430,9 +430,9 @@
     "semantic_hash": "272f0e8b1427a0a5ac7c12429d2f5928"
   },
   "lib/orders.ts": {
-    "mtime": 1783547166.9083078,
-    "ast_hash": "eff8c7eacc9e41a91c36e68d4940ecea",
-    "semantic_hash": "eff8c7eacc9e41a91c36e68d4940ecea"
+    "mtime": 1783963863.9973533,
+    "ast_hash": "58ef1efb167073092c20d12a6d9cda12",
+    "semantic_hash": ""
   },
   "lib/parseUserAgent.ts": {
     "mtime": 1783240352.8390026,
@@ -445,9 +445,9 @@
     "semantic_hash": "40cc47395e0b2b9cc04070a134ef4d64"
   },
   "lib/posthog-query.ts": {
-    "mtime": 1783852747.6882083,
-    "ast_hash": "89664bec2298fa6d1eb8ff78c944c7bc",
-    "semantic_hash": "89664bec2298fa6d1eb8ff78c944c7bc"
+    "mtime": 1783856741.487381,
+    "ast_hash": "d105e827d23684ca0cf84a845a54c955",
+    "semantic_hash": ""
   },
   "lib/posthog-server.ts": {
     "mtime": 1783850884.602924,
@@ -460,9 +460,9 @@
     "semantic_hash": "d065b21ff55437301501288e27496632"
   },
   "lib/products.ts": {
-    "mtime": 1777272330.7759483,
-    "ast_hash": "2b9d83b77cb006fe10cbbbc22a5175d4",
-    "semantic_hash": "2b9d83b77cb006fe10cbbbc22a5175d4"
+    "mtime": 1783860027.6642344,
+    "ast_hash": "768004114778e5be87cdbffa8b544f4a",
+    "semantic_hash": ""
   },
   "lib/redis.ts": {
     "mtime": 1783195623.1380742,
@@ -520,9 +520,9 @@
     "semantic_hash": "ccf2872467600fe3f046a836d02c4cf1"
   },
   "package.json": {
-    "mtime": 1783849877.3219192,
-    "ast_hash": "583b2d6745800193665e72b0e56ad4e2",
-    "semantic_hash": "583b2d6745800193665e72b0e56ad4e2"
+    "mtime": 1783865446.142751,
+    "ast_hash": "f45f6397e4f258611bfe17c0e0e6d98a",
+    "semantic_hash": ""
   },
   "postcss.config.mjs": {
     "mtime": 1773679505.007101,
@@ -558,5 +558,425 @@
     "mtime": 1773679504.9211333,
     "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  ".claude/settings.json": {
+    "mtime": 1783856257.5112374,
+    "ast_hash": "5c6a0223974a2aef3b403e530e137f15",
+    "semantic_hash": ""
+  },
+  "app/admin/AdminSearch.tsx": {
+    "mtime": 1783865593.8873937,
+    "ast_hash": "dba3cace32a623920e0e3a6ab9995c8a",
+    "semantic_hash": ""
+  },
+  "app/admin/DashboardHome.tsx": {
+    "mtime": 1783860155.6084452,
+    "ast_hash": "7077188a7fed97e40ed30c605995802f",
+    "semantic_hash": ""
+  },
+  "app/admin/adminWidgets.tsx": {
+    "mtime": 1783860065.863761,
+    "ast_hash": "6ff913f8d0bdc1306503a0ecaaa21357",
+    "semantic_hash": ""
+  },
+  "app/api/admin/orders/[id]/shipment/route.ts": {
+    "mtime": 1783955980.9687443,
+    "ast_hash": "bdde6f66a65f4fcd2011897c01596da4",
+    "semantic_hash": ""
+  },
+  "app/robots.ts": {
+    "mtime": 1783857655.2912507,
+    "ast_hash": "f807ee3a58270080d8ee3428ed4c3530",
+    "semantic_hash": ""
+  },
+  "app/sitemap.ts": {
+    "mtime": 1783857646.9839685,
+    "ast_hash": "ea93230b5507fe886039c491efaf1f60",
+    "semantic_hash": ""
+  },
+  "lib/shipping/index.ts": {
+    "mtime": 1783963875.8155494,
+    "ast_hash": "875a3f69aa4339065b2506b460ef5470",
+    "semantic_hash": ""
+  },
+  "lib/shipping/types.ts": {
+    "mtime": 1783955923.1541944,
+    "ast_hash": "5bb7317e0dfae057be173f0768893d75",
+    "semantic_hash": ""
+  },
+  "lib/shipping/zasilkovna.ts": {
+    "mtime": 1783963892.398655,
+    "ast_hash": "6c01be3ba2c75a28ffb46fc2aee0c129",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1783856257.5022733,
+    "ast_hash": "8a6643a420fdad6bfb583523bc6cef16",
+    "semantic_hash": ""
+  },
+  "public/file.svg": {
+    "mtime": 1773679505.0212376,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": ""
+  },
+  "public/globe.svg": {
+    "mtime": 1773679505.0391214,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": ""
+  },
+  "public/images/blog/apple.jpg": {
+    "mtime": 1774120182.8939912,
+    "ast_hash": "85c6700a793f29f202476cf5970b315c",
+    "semantic_hash": ""
+  },
+  "public/images/blog/cip.jpg": {
+    "mtime": 1774778137.175248,
+    "ast_hash": "af2f3aab79ee9b21bcbdb2630ee8b0cb",
+    "semantic_hash": ""
+  },
+  "public/images/blog/ipad.jpg": {
+    "mtime": 1774285276.3841946,
+    "ast_hash": "c190dca501fe8c113ef32e693f053055",
+    "semantic_hash": ""
+  },
+  "public/images/blog/iphone.jpg": {
+    "mtime": 1774285420.8623228,
+    "ast_hash": "632e4074a4441fe8b045c7661295b87f",
+    "semantic_hash": ""
+  },
+  "public/images/blog/magsafe.jpg": {
+    "mtime": 1774284680.521132,
+    "ast_hash": "0cedaf52484b36e47d94bbc62927cdbf",
+    "semantic_hash": ""
+  },
+  "public/images/blog/pencil.jpg": {
+    "mtime": 1774284780.582233,
+    "ast_hash": "96cf9ce9a96d2fc18593766e123db90d",
+    "semantic_hash": ""
+  },
+  "public/images/blog/ropa.jpg": {
+    "mtime": 1774777624.572767,
+    "ast_hash": "70ee01a9730284487af022a322e5d7c8",
+    "semantic_hash": ""
+  },
+  "public/images/help/airpod.png": {
+    "mtime": 1774466574.306026,
+    "ast_hash": "324e94f323cff41b4b0d542dfd798b62",
+    "semantic_hash": ""
+  },
+  "public/images/main/Cookies banner.jpg": {
+    "mtime": 1782990153.0613246,
+    "ast_hash": "dbcdc083cc03924ff7586c1a157574b3",
+    "semantic_hash": ""
+  },
+  "public/images/main/Cookies banner.png": {
+    "mtime": 1782990070.6183348,
+    "ast_hash": "1648d5701233690363e59d3ff3809b15",
+    "semantic_hash": ""
+  },
+  "public/images/main/logo-black.png": {
+    "mtime": 1783269808.3532126,
+    "ast_hash": "1755aa107744c465678fb30caf0aecc0",
+    "semantic_hash": ""
+  },
+  "public/images/main/logo-white.png": {
+    "mtime": 1783530099.9350529,
+    "ast_hash": "c894a8909568548adca3c3fc625c9b2d",
+    "semantic_hash": ""
+  },
+  "public/images/page/hero-product.jpg": {
+    "mtime": 1774202835.7731743,
+    "ast_hash": "94bdb86ac246312bb2401ac3819c8345",
+    "semantic_hash": ""
+  },
+  "public/images/page/hero-product.png": {
+    "mtime": 1772377215.8596838,
+    "ast_hash": "153fe904c2f374769bf30da759740b2a",
+    "semantic_hash": ""
+  },
+  "public/images/page/panak.png": {
+    "mtime": 1774043834.2515602,
+    "ast_hash": "4606ebb7bc8a344b08666ac06736d0c5",
+    "semantic_hash": ""
+  },
+  "public/images/page/setup.jpg": {
+    "mtime": 1772370891.1054409,
+    "ast_hash": "c235ba01b44565770d894c672a7047e8",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/beige.jpg": {
+    "mtime": 1771681491.361511,
+    "ast_hash": "4d5504ad7c864171cf77b6fba970187a",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/black.jpg": {
+    "mtime": 1771679831.3025148,
+    "ast_hash": "46217b502e6bbb42e1f9d798f8ed647b",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/darkblue.jpg": {
+    "mtime": 1771681221.0414705,
+    "ast_hash": "5a0fa0d8315a6c84a475b14a42da638a",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/grey.jpg": {
+    "mtime": 1771681227.1382575,
+    "ast_hash": "156a05c3d36390b16d6ed0b043dd61eb",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/pink.jpg": {
+    "mtime": 1771681212.395527,
+    "ast_hash": "6d9d5004d586b1e1fb6e3724b000f6c7",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/purple.jpg": {
+    "mtime": 1771681626.7183592,
+    "ast_hash": "6ce0e793b8709233c3c8d3449832f392",
+    "semantic_hash": ""
+  },
+  "public/images/products/airpods/white.jpg": {
+    "mtime": 1771681199.4380953,
+    "ast_hash": "fe4afe3c97eea07345f9cb875194b7fd",
+    "semantic_hash": ""
+  },
+  "public/images/products/airtag-holder.png": {
+    "mtime": 1772039433.0339718,
+    "ast_hash": "87941534fae6b44e9a2d505af37873f7",
+    "semantic_hash": ""
+  },
+  "public/images/products/airtag-keychain.png": {
+    "mtime": 1774037106.9241636,
+    "ast_hash": "5616bb38d385a569a990855a997ec83e",
+    "semantic_hash": ""
+  },
+  "public/images/products/airtag/black.jpg": {
+    "mtime": 1774634093.9840796,
+    "ast_hash": "520330596141713915d541a7f9cfc9cf",
+    "semantic_hash": ""
+  },
+  "public/images/products/airtag/white.jpg": {
+    "mtime": 1774634109.020077,
+    "ast_hash": "4d59e4e5589a5cee81999dfe29359e38",
+    "semantic_hash": ""
+  },
+  "public/images/products/krytka-konektoru.jpg": {
+    "mtime": 1772041537.7899578,
+    "ast_hash": "dd57af15373dd786488d031947844ffe",
+    "semantic_hash": ""
+  },
+  "public/images/products/organizer-black.jpg": {
+    "mtime": 1771950063.8232667,
+    "ast_hash": "fb48cc8a00f16f5837dd0cb91eb0effe",
+    "semantic_hash": ""
+  },
+  "public/images/products/other/brush.png": {
+    "mtime": 1772040127.569789,
+    "ast_hash": "cd4408ac8f97dc71b708f88c55896987",
+    "semantic_hash": ""
+  },
+  "public/images/products/paperfeel/main.png": {
+    "mtime": 1771946573.874539,
+    "ast_hash": "c6d4d2e92883ec7dab652987810d4877",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-armygreen.jpg": {
+    "mtime": 1771678564.8156662,
+    "ast_hash": "563c98ea282f3d38635d718ab7a72f22",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-black.jpg": {
+    "mtime": 1771665147.8330164,
+    "ast_hash": "c3eccee208f1c395060c3f015c750aa2",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-darkblue.jpg": {
+    "mtime": 1771678608.2993498,
+    "ast_hash": "10e17050167ba25dc49a3a886adb0c18",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-green.jpg": {
+    "mtime": 1771678623.8007789,
+    "ast_hash": "4895babcfd637d104703a99cb9d6839f",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-grey.jpg": {
+    "mtime": 1771678584.8171866,
+    "ast_hash": "01b19080f874a817ab535a391cdfd5cd",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-pink.jpg": {
+    "mtime": 1771665088.723071,
+    "ast_hash": "3f337701054d300ac1e7519aa61217db",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/pro-white.jpg": {
+    "mtime": 1771665170.0711725,
+    "ast_hash": "2994d22ad4ff8f394666124f4c636558",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/test1.jpg": {
+    "mtime": 1774650463.8490214,
+    "ast_hash": "ec4919d905ef99b214f04609663ada4a",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/test2.jpg": {
+    "mtime": 1774650476.3706028,
+    "ast_hash": "9a9ff3899b275ae208b923495996cba9",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-black.jpg": {
+    "mtime": 1772289235.796137,
+    "ast_hash": "0d8dd5ec3139851a92c5c0e955b3ac4b",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-body-black.png": {
+    "mtime": 1772352374.272498,
+    "ast_hash": "8a2ae5b30f47b9ca1e112017da7aa73c",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-body-grey.png": {
+    "mtime": 1772354398.3628287,
+    "ast_hash": "8713dd7edeb363437713eff4e0f1c1dd",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-cap-black.png": {
+    "mtime": 1772352577.1057582,
+    "ast_hash": "64be6a8c4d2876f41f9521f82951b8cb",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-cap-grey.png": {
+    "mtime": 1772354517.5447164,
+    "ast_hash": "27511bb7026df9d3f33e631c10588072",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-grey.jpg": {
+    "mtime": 1772289255.8231518,
+    "ast_hash": "bdcb0cb3129fc8532042af5229f5910a",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-pink.jpg": {
+    "mtime": 1772289270.8694975,
+    "ast_hash": "66287f475625f3757af1bd2c7d2b0335",
+    "semantic_hash": ""
+  },
+  "public/images/products/pencil/usb-purple.jpg": {
+    "mtime": 1772289282.0131595,
+    "ast_hash": "5ef03b71651fdd12f16aebaf7e0968ce",
+    "semantic_hash": ""
+  },
+  "public/images/products/sliz.jpg": {
+    "mtime": 1772041940.0918908,
+    "ast_hash": "87f48bbd9a96b9ac9f5cb49f20c60121",
+    "semantic_hash": ""
+  },
+  "public/images/products/sprej.jpg": {
+    "mtime": 1772042277.375655,
+    "ast_hash": "25074ab75b160c5b6bef435778e1517d",
+    "semantic_hash": ""
+  },
+  "public/images/products/spunty.jpg": {
+    "mtime": 1772042806.4470124,
+    "ast_hash": "1ef42c4229a573d5d793caf912211252",
+    "semantic_hash": ""
+  },
+  "public/images/products/tip/lightblue.jpg": {
+    "mtime": 1774632868.5530913,
+    "ast_hash": "883b89e76e7fdb57d4a21507a2a732f4",
+    "semantic_hash": ""
+  },
+  "public/images/products/tip/pink.jpg": {
+    "mtime": 1774632815.7825155,
+    "ast_hash": "28be5f44c1d1ff915668700246b731b5",
+    "semantic_hash": ""
+  },
+  "public/images/products/tip/purple.jpg": {
+    "mtime": 1774632879.5249214,
+    "ast_hash": "cdb3d1914c6deb98ac934120ae191be3",
+    "semantic_hash": ""
+  },
+  "public/images/products/tip/white.jpg": {
+    "mtime": 1772038806.0740225,
+    "ast_hash": "16e3bb4f7c4d3d9e2073729195c48f2b",
+    "semantic_hash": ""
+  },
+  "public/images/products/wallet/black.jpg": {
+    "mtime": 1772040801.170875,
+    "ast_hash": "0642472ed3be7df1fafc60ad53d13629",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/beige.jpg": {
+    "mtime": 1772038988.601056,
+    "ast_hash": "1c1add309acf9eb0e9267405033d5a98",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/blue.jpg": {
+    "mtime": 1774633334.938701,
+    "ast_hash": "11d988b052dc3ff8b747085fe6c485f0",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/darkblue.jpg": {
+    "mtime": 1774633232.9649866,
+    "ast_hash": "881719a7e38280f5090ace793a556f22",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/darkgreen.jpg": {
+    "mtime": 1774633247.6586244,
+    "ast_hash": "14b474c46d4dfc13f7297c329d8c44c6",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/grey.jpg": {
+    "mtime": 1774633320.146585,
+    "ast_hash": "6940b814a62b824c431b2a1872d395bf",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/pink.jpg": {
+    "mtime": 1774633265.9020593,
+    "ast_hash": "8f10e0a082caf961f5721d3af180f04e",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/purple.jpg": {
+    "mtime": 1774633278.00814,
+    "ast_hash": "31872118a2021fef4bfa19169f3e1e8b",
+    "semantic_hash": ""
+  },
+  "public/images/products/watch/white.jpg": {
+    "mtime": 1774633302.9125328,
+    "ast_hash": "624090c629948a6dab79bf611308f0c1",
+    "semantic_hash": ""
+  },
+  "public/images/products/webcam-cover.jpg": {
+    "mtime": 1772040472.960896,
+    "ast_hash": "09a4af7976dcbe13401c893ee458ed21",
+    "semantic_hash": ""
+  },
+  "public/images/shipping/hero.jpg": {
+    "mtime": 1774976563.830179,
+    "ast_hash": "7288516f963a553e4ed352fa74307fe4",
+    "semantic_hash": ""
+  },
+  "public/images/shipping/zasilkovna.png": {
+    "mtime": 1774976400.947645,
+    "ast_hash": "1c8eac137a7bb77565815879f74e2c86",
+    "semantic_hash": ""
+  },
+  "public/next.svg": {
+    "mtime": 1773679505.068231,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": ""
+  },
+  "public/vercel.svg": {
+    "mtime": 1773679505.0882933,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": ""
+  },
+  "public/window.svg": {
+    "mtime": 1773679505.1049821,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  },
+  "public/images/products/test3.mp4": {
+    "mtime": 1774650874.4771998,
+    "ast_hash": "4c1d2b8fa41598c01cb17060068b36e0",
+    "semantic_hash": ""
   }
 }

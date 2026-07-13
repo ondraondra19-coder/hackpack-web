@@ -13,36 +13,28 @@ export const metadata = {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
+// Ceny a dopravci ZDE musí odpovídat dopravyOptions v app/objednavka/page.tsx —
+// jsou to jediné dopravce, které checkout skutečně nabízí.
 const shippingMethods = [
   {
     icon: MapPin,
-    title: "Zásilkovna — výdejní místa",
+    title: "Zásilkovna — výdejní místo",
     tag: "Nejoblíbenější",
     tagColor: "text-primary bg-primary/10",
-    desc: "Vyzvedněte si balíček na jednom z tisíců poboček Z-Point a Z-Box po celé ČR a SR. Čekací e-mail zašleme obratem.",
-    price: "79 Kč",
-    freeOver: 1500,
+    desc: "Vyzvedněte si balíček na jednom z tisíců Z-Boxů a výdejních míst po celé ČR a SR. Čekací e-mail zašleme obratem.",
+    price: "89 Kč",
+    freeOver: 0,
     detail: "Více než 7 000 výdejních míst",
   },
   {
     icon: Truck,
-    title: "PPL — doručení na adresu",
+    title: "Zásilkovna — na adresu",
     tag: "Komfortní",
     tagColor: "text-text-base bg-secondary",
-    desc: "Kurýr přiveze zásilku přímo ke dveřím. Ráno obdržíte SMS s časovým oknem doručení.",
-    price: "109 Kč",
-    freeOver: 1500,
-    detail: "Doručení 1–2 pracovní dny",
-  },
-  {
-    icon: Building2,
-    title: "Osobní odběr — Praha",
-    tag: "Zdarma",
-    tagColor: "text-text-base bg-secondary",
-    desc: "Vyzvednutí na naší pobočce v Praze. Zboží bude připraveno do 2 hodin od objednávky — vyčkejte na potvrzovací e-mail.",
-    price: "Zdarma",
+    desc: "Kurýr Zásilkovny přiveze zásilku přímo ke dveřím. Doručení 1–2 pracovní dny.",
+    price: "129 Kč",
     freeOver: 0,
-    detail: "Václavské nám. 1, Praha 1",
+    detail: "Doručení 1–2 pracovní dny",
   },
 ];
 
@@ -71,8 +63,8 @@ const paymentMethods = [
   {
     icon: Banknote,
     title: "Dobírka",
-    desc: "Zaplatíte hotově nebo kartou přímo u přepravce při převzetí zásilky.",
-    price: "+ 49 Kč",
+    desc: "Při doručení na adresu platíte hotově nebo kartou kurýrovi. U výdejního Z-BOXu se dobírka platí předem v aplikaci Zásilkovna nebo přes odkaz z e-mailu.",
+    price: "+ 39 Kč",
     isFree: false,
   },
 ];

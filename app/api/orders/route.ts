@@ -77,6 +77,7 @@ export async function POST(req: Request) {
       deliveryAddress: orderData?.jineDorucenoAdresa ? orderData?.dorAdresa ?? null : null,
       poznamka: orderData?.poznamka ?? "",
       shippingName: orderData?.dopravaName ?? "Doprava",
+      shippingProviderId: ["zasilkovna_box", "zasilkovna_adresa"].includes(orderData?.doprava) ? "zasilkovna" : null,
       shippingPrice,
       isDobirka: paymentMethod === "dobirka",
       dobirkaFee,

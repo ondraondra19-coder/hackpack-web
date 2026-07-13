@@ -33,6 +33,10 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   prevod: "Bankovní převod",
 };
 
+const SHIPPING_PROVIDER_LABELS: Record<string, string> = {
+  zasilkovna: "Zásilkovna",
+};
+
 const CURRENCY_SYMBOLS: Record<string, string> = { CZK: "Kč", EUR: "€", USD: "$" };
 
 function formatMoney(amount: number, currency: string): string {
@@ -128,6 +132,20 @@ export default function OrdersAdminList({ initialQuery, initialExpandId }: Order
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, paymentStatus: "zaplaceno" } : o)));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Změna se nezdařila.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleCreateShipment(order: Order) {
+    setBusyId(order.id);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}/shipment`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Vytvoření zásilky se nezdařilo.");
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? data.order : o)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Vytvoření zásilky se nezdařilo.");
     } finally {
       setBusyId(null);
     }
@@ -251,6 +269,16 @@ export default function OrdersAdminList({ initialQuery, initialExpandId }: Order
                         {(order.deliveryAddress ?? order.address).uliceCp}, {(order.deliveryAddress ?? order.address).mesto} {(order.deliveryAddress ?? order.address).psc}
                       </p>
                       <p className="text-zinc-500">{order.shippingName}{order.zboxId ? ` — výdejní místo ${order.zboxId}` : ""}</p>
+                      {order.shipment ? (
+                        <p className="text-emerald-700 mt-1">
+                          Zásilka vytvořena — tracking {order.shipment.trackingNumber}
+                          {order.shipment.labelUrl && (
+                            <> · <a href={order.shipment.labelUrl} target="_blank" rel="noreferrer" className="underline">štítek</a></>
+                          )}
+                        </p>
+                      ) : order.shippingProviderId ? (
+                        <p className="text-zinc-400 mt-1">Zásilka u {SHIPPING_PROVIDER_LABELS[order.shippingProviderId] ?? order.shippingProviderId} zatím nevytvořena</p>
+                      ) : null}
                     </div>
                   </div>
 
@@ -290,6 +318,16 @@ export default function OrdersAdminList({ initialQuery, initialExpandId }: Order
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                       >
                         Označit jako zaplaceno
+                      </button>
+                    )}
+
+                    {order.shippingProviderId && !order.shipment && (
+                      <button
+                        onClick={() => handleCreateShipment(order)}
+                        disabled={busyId === order.id}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-800 text-white hover:bg-zinc-900 disabled:opacity-50 transition-colors"
+                      >
+                        Vytvořit zásilku ({SHIPPING_PROVIDER_LABELS[order.shippingProviderId] ?? order.shippingProviderId})
                       </button>
                     )}
                   </div>

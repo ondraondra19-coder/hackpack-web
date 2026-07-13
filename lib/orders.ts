@@ -59,6 +59,7 @@ export type OrderInput = {
   deliveryAddress?: AddressBlock | null;
   poznamka?: string;
   shippingName: string;
+  shippingProviderId?: ShippingProviderId | null;
   shippingPrice: number;
   isDobirka: boolean;
   dobirkaFee?: number;
@@ -71,12 +72,23 @@ export type OrderInput = {
   zboxId?: string | null;
 };
 
+export type ShippingProviderId = "zasilkovna";
+
+export type ShipmentInfo = {
+  provider: ShippingProviderId;
+  carrierShipmentId: string;
+  trackingNumber: string;
+  labelUrl?: string;
+  createdAt: number;
+};
+
 export type Order = OrderInput & {
   id: string;
   createdAt: number;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   stripeSessionId?: string;
+  shipment?: ShipmentInfo;
 };
 
 const PENDING_TTL_SECONDS = 24 * 60 * 60; // 24 h — kdyby zákazník platbu nedokončil
@@ -198,6 +210,14 @@ export async function updatePaymentStatus(id: string, paymentStatus: PaymentStat
   const order = await getOrder(id);
   if (!order) return null;
   const updated: Order = { ...order, paymentStatus };
+  await getRedis().set(`orders:data:${id}`, JSON.stringify(updated));
+  return updated;
+}
+
+export async function setOrderShipment(id: string, shipment: ShipmentInfo): Promise<Order | null> {
+  const order = await getOrder(id);
+  if (!order) return null;
+  const updated: Order = { ...order, shipment };
   await getRedis().set(`orders:data:${id}`, JSON.stringify(updated));
   return updated;
 }

@@ -8,7 +8,7 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import {
     CheckCircle2, ShoppingBag, Mail, Clock, Banknote, Package,
-    ArrowRight, MapPin, Truck, ShieldCheck, Phone, Building2, Copy, Check, Tag,
+    ArrowRight, MapPin, Truck, ShieldCheck, Phone, Building2, Copy, Check, Tag, Smartphone,
 } from "lucide-react";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice } from "@/lib/currency";
@@ -149,21 +149,35 @@ function BankovniPrevod({ totalStr, vsymbol }: { totalStr: string; vsymbol: stri
     );
 }
 
-function Dobirka({ totalStr }: { totalStr: string }) {
+function Dobirka({ totalStr, isZasilkovnaBox }: { totalStr: string; isZasilkovnaBox: boolean }) {
+    const steps = isZasilkovnaBox
+        ? [
+            { step: "1", icon: Package, title: "Balíme", desc: "Sklad expeduje vaši objednávku do 24 hodin.", active: true },
+            { step: "2", icon: Smartphone, title: "Zaplatíte předem", desc: "Dobírku uhradíte v aplikaci Zásilkovna nebo přes odkaz v e-mailu — Z-BOX nemá terminál ani nepřijímá hotovost.", active: false },
+            { step: "3", icon: MapPin, title: "Vyzvednete v Z-BOXu", desc: "Po zaplacení vám přijde kód pro vyzvednutí zásilky.", active: false },
+        ]
+        : [
+            { step: "1", icon: Package, title: "Balíme", desc: "Sklad expeduje vaši objednávku do 24 hodin.", active: true },
+            { step: "2", icon: Truck, title: "Kurýr dorazí", desc: "Den před doručením dostanete SMS s časovým oknem.", active: false },
+            { step: "3", icon: Banknote, title: "Zaplatíte", desc: "Hotovost nebo karta — kurýři akceptují oboje.", active: false },
+        ];
+
     return (
         <div>
             <div className="mb-8">
                 <SectionLabel>Způsob úhrady</SectionLabel>
-                <h2 className="text-2xl font-extrabold text-text-base tracking-tight mb-2">Platba při doručení</h2>
-                <p className="text-text-muted text-sm leading-relaxed max-w-lg">Nemusíte dělat nic — zásilku právě balíme. Zaplatíte až kurýrovi při předání.</p>
+                <h2 className="text-2xl font-extrabold text-text-base tracking-tight mb-2">
+                    {isZasilkovnaBox ? "Platba dobírky předem" : "Platba při doručení"}
+                </h2>
+                <p className="text-text-muted text-sm leading-relaxed max-w-lg">
+                    {isZasilkovnaBox
+                        ? "Zásilku právě balíme. Než si ji vyzvednete v Z-BOXu, uhraďte dobírku online v aplikaci Zásilkovna nebo přes odkaz z e-mailu."
+                        : "Nemusíte dělat nic — zásilku právě balíme. Zaplatíte až kurýrovi při předání."}
+                </p>
             </div>
             <div className="bg-surface rounded-2xl border border-border p-6 lg:p-8 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                        { step: "1", icon: Package, title: "Balíme", desc: "Sklad expeduje vaši objednávku do 24 hodin.", active: true },
-                        { step: "2", icon: Truck, title: "Kurýr dorazí", desc: "Den před doručením dostanete SMS s časovým oknem.", active: false },
-                        { step: "3", icon: Banknote, title: "Zaplatíte", desc: "Hotovost nebo karta — kurýři akceptují oboje.", active: false },
-                    ].map((s) => (
+                    {steps.map((s) => (
                         <div key={s.step} className="flex items-start gap-4">
                             <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm ${s.active ? "bg-primary text-dark shadow-lg shadow-primary/20" : "bg-white border border-border text-text-subtle"}`}>{s.step}</div>
                             <div>
@@ -183,7 +197,11 @@ function Dobirka({ totalStr }: { totalStr: string }) {
             </div>
             <div className="flex items-center gap-3 bg-surface rounded-xl border border-border px-5 py-4">
                 <Phone size={16} className="text-text-muted shrink-0" />
-                <p className="text-xs text-text-muted leading-relaxed">Kurýr vás bude kontaktovat <strong className="text-text-base">SMS zprávou</strong> v den doručení.</p>
+                <p className="text-xs text-text-muted leading-relaxed">
+                    {isZasilkovnaBox
+                        ? <>Odkaz k platbě dobírky vám přijde <strong className="text-text-base">e-mailem</strong> spolu se sledováním zásilky.</>
+                        : <>Kurýr vás bude kontaktovat <strong className="text-text-base">SMS zprávou</strong> v den doručení.</>}
+                </p>
             </div>
         </div>
     );
@@ -244,7 +262,7 @@ function KartaStripe({ totalStr, orderId }: { totalStr: string; orderId: string 
 // ── Adresní blok — zobrazí kam se balík posílá ──────────────────────────────
 
 function DeliveryAddressBlock({ info, orderData }: { info: SnapshotInfo; orderData: Snapshot["orderData"] }) {
-    const isZasilkovna = orderData?.doprava === "zasilkovna";
+    const isZasilkovna = orderData?.doprava === "zasilkovna_box";
 
     // Doručovací adresa = jiná adresa pokud zaškrtnuta, jinak fakturační
     const deliveryAddr = (info.jineDorucenoAdresa && info.dorAdresa?.uliceCp)
@@ -489,7 +507,7 @@ function SuccessContent() {
                         <div className="xl:col-span-2">
                             <div className="bg-white rounded-2xl border border-border shadow-sm p-8 lg:p-10">
                                 {method === "prevod" && <BankovniPrevod totalStr={celkemStr} vsymbol={vsymbol} />}
-                                {method === "dobirka" && <Dobirka totalStr={celkemStr} />}
+                                {method === "dobirka" && <Dobirka totalStr={celkemStr} isZasilkovnaBox={orderData?.doprava === "zasilkovna_box"} />}
                                 {method === "karta" && <KartaStripe totalStr={celkemStr} orderId={stableOrderId || "—"} />}
                             </div>
                         </div>

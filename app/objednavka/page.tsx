@@ -31,9 +31,8 @@ const ZBOX_KEY = "hackpack-zbox";
 export const ORDER_KEY = "hackpack-order";
 
 const dopravyOptions = [
-  { id: "ppl",        name: "PPL",        desc: "Doručení do 1–2 pracovních dní", price: { CZK: 129, EUR: 4.99, USD: 5.49 }, hasPickup: false },
-  { id: "zasilkovna", name: "Zásilkovna", desc: "Výdejní místo dle výběru",        price: { CZK: 89,  EUR: 3.49, USD: 3.79 }, hasPickup: true  },
-  { id: "dpd",        name: "DPD",        desc: "Doručení do 1–2 pracovních dní", price: { CZK: 119, EUR: 4.69, USD: 4.99 }, hasPickup: false },
+  { id: "zasilkovna_box",    name: "Zásilkovna — výdejní místo", desc: "Vyzvednutí na Z-BOXu nebo výdejním místě", price: { CZK: 89,  EUR: 3.49, USD: 3.79 }, hasPickup: true  },
+  { id: "zasilkovna_adresa", name: "Zásilkovna — na adresu",     desc: "Doručení kurýrem do 1–2 pracovních dní",   price: { CZK: 129, EUR: 4.99, USD: 5.49 }, hasPickup: false },
 ];
 
 const platbyOptions = [
@@ -112,8 +111,13 @@ export default function ObjednavkaPage() {
   }, []);
 
   function openPacketaWidget() {
+    const apiKey = process.env.NEXT_PUBLIC_PACKETA_API_KEY;
+    if (!apiKey) {
+      alert("Výběr výdejního místa Zásilkovny není nakonfigurován (chybí NEXT_PUBLIC_PACKETA_API_KEY). Kontaktujte prosím podporu.");
+      return;
+    }
     if (!window.Packeta?.Widget) { alert("Widget se načítá, zkuste za chvíli."); return; }
-    window.Packeta.Widget.pick("YOUR_API_KEY", (point) => {
+    window.Packeta.Widget.pick(apiKey, (point) => {
       if (point) {
         setSelectedZbox(point);
         setErrors(prev => ({ ...prev, zasilkovna: "" }));
@@ -133,7 +137,7 @@ export default function ObjednavkaPage() {
   function handleSubmit() {
     const e: Record<string, string> = {};
     if (!doprava) e.doprava = "Vyberte způsob dopravy";
-    if (doprava === "zasilkovna" && !selectedZbox) e.zasilkovna = "Vyberte výdejní místo";
+    if (doprava === "zasilkovna_box" && !selectedZbox) e.zasilkovna = "Vyberte výdejní místo";
     if (!platba) e.platba = "Vyberte způsob platby";
     setErrors(e);
     if (Object.keys(e).length > 0) return;
@@ -193,7 +197,7 @@ export default function ObjednavkaPage() {
                         onClick={() => {
                           setDoprava(opt.id);
                           setErrors(prev => ({ ...prev, doprava: "", zasilkovna: "" }));
-                          if (opt.id !== "zasilkovna") setSelectedZbox(null);
+                          if (opt.id !== "zasilkovna_box") setSelectedZbox(null);
                         }}
                         className={`w-full flex items-center gap-4 p-4 rounded-xl border text-left transition-all duration-150 ${
                           doprava === opt.id ? "border-primary bg-primary/5" : "border-border hover:border-border-strong bg-dark"

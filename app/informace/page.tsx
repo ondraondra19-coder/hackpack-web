@@ -590,7 +590,7 @@ export default function InformacePage() {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             items, currency: currency.code,
-            orderData: { ...dataToSave, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, isDobirka: parsedOrder?.isDobirka || false, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
+            orderData: { ...dataToSave, doprava: parsedOrder?.doprava ?? null, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, isDobirka: parsedOrder?.isDobirka || false, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
           }),
         });
         const d = await res.json();
@@ -607,7 +607,7 @@ export default function InformacePage() {
           body: JSON.stringify({
             items, currency: currency.code,
             paymentMethod: metoda.includes("dobirka") ? "dobirka" : "prevod",
-            orderData: { ...dataToSave, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
+            orderData: { ...dataToSave, doprava: parsedOrder?.doprava ?? null, dopravaName: parsedOrder?.dopravaName || "Doprava", dopravaPrice: parsedOrder?.dopravaPrices || 0, discountCode: appliedDiscount?.code ?? null, discountLabel: appliedDiscount?.label ?? null, discountAmountCZK: discountAmountCZK > 0 ? discountAmountCZK : 0, zbox: parsedOrder?.zbox ?? null },
           }),
         });
         if (!res.ok) {
@@ -642,7 +642,7 @@ export default function InformacePage() {
   const currentDopravaPrice = orderData?.dopravaPrices ? getPrice(orderData.dopravaPrices, currency) : 0;
   const currentDobirkaExtra = orderData?.isDobirka ? getPrice({ CZK: 39, EUR: 1.59, USD: 1.79 }, currency) : 0;
   const celkem = getFinalPrice(currency) + currentDopravaPrice + currentDobirkaExtra;
-  const isZasilkovna = orderData?.doprava === "zasilkovna";
+  const isZasilkovna = orderData?.doprava === "zasilkovna_box";
 
   return (
     <>
