@@ -1,7 +1,7 @@
-# Graph Report - hackpack-web  (2026-07-13)
+# Graph Report - hackpack-web  (2026-07-14)
 
 ## Corpus Check
-- 124 files · ~305,705 words
+- 124 files · ~305,889 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f7338438`
+- Built from commit: `3167e388`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

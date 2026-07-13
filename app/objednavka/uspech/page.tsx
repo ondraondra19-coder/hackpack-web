@@ -83,13 +83,15 @@ function BankovniPrevod({ totalStr, vsymbol, amount, currencyCode }: { totalStr:
     const accountDisplay = process.env.NEXT_PUBLIC_BANK_ACCOUNT_DISPLAY;
     const iban = process.env.NEXT_PUBLIC_BANK_ACCOUNT_IBAN;
     const bankName = process.env.NEXT_PUBLIC_BANK_NAME;
-    const showQr = Boolean(iban) && currencyCode === "CZK";
+    // USD nemá smysl — bankovní převod se pro USD vůbec nenabízí (viz
+    // /objednavka), takže sem se dostane jen CZK/EUR.
+    const showQr = Boolean(iban) && (currencyCode === "CZK" || currencyCode === "EUR");
 
     const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (!showQr || !iban) return;
-        const spd = buildSpdString({ iban, amount, currency: currencyCode, variableSymbol: vsymbol, message: "HackPack objednavka" });
+        const spd = buildSpdString({ iban, amount, currency: currencyCode, variableSymbol: vsymbol, message: "Dekujeme za objednavku" });
         let cancelled = false;
         QRCode.toDataURL(spd, { width: 200, margin: 1 })
             .then(url => { if (!cancelled) setQrDataUrl(url); })
@@ -135,10 +137,6 @@ function BankovniPrevod({ totalStr, vsymbol, amount, currencyCode }: { totalStr:
                             <div className="bg-white border border-primary/20 rounded-xl px-4 py-3 font-mono font-black text-primary text-lg">{totalStr}</div>
                         </div>
                     </div>
-                    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                        <div className="shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center text-[10px] font-black text-white">!</div>
-                        <p className="text-xs text-amber-900 leading-relaxed">Nezapomeňte uvést <strong>variabilní symbol</strong>. Bez něj nemůžeme platbu automaticky spárovat s vaší objednávkou.</p>
-                    </div>
                 </div>
                 <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-6 flex flex-col items-center justify-center gap-4">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle">Rychlá platba QR kódem</p>
@@ -151,7 +149,7 @@ function BankovniPrevod({ totalStr, vsymbol, amount, currencyCode }: { totalStr:
                                     <span className="text-primary font-extrabold text-[10px]">QR</span>
                                 </div>
                                 <span className="text-[10px] font-bold text-text-subtle uppercase tracking-tight text-center px-2">
-                                    {showQr ? <>Generuji...</> : <>QR platba je dostupná<br />jen pro platby v CZK</>}
+                                    {showQr ? <>Generuji...</> : <>QR platba není<br />pro tuto měnu dostupná</>}
                                 </span>
                             </div>
                         )}

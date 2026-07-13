@@ -20,6 +20,13 @@ export async function POST(req: Request) {
 
     const currencyCode: string = typeof currency === "object" ? currency.code : currency;
 
+    // Bankovní převod v USD by znamenal mezinárodní SWIFT převod, který
+    // pro tenhle e-shop nedává smysl — nabízíme ho jen v CZK/EUR (viz i
+    // filtrování platebních metod na /objednavka).
+    if (paymentMethod === "prevod" && currencyCode === "USD") {
+      return NextResponse.json({ error: "Bankovní převod není v USD dostupný." }, { status: 400 });
+    }
+
     // Katalog s aplikovanými přepisy cen z admina — viz stejná poznámka
     // v /api/checkout/route.ts.
     const effectiveProducts = await getProductsWithPriceOverrides();

@@ -102,6 +102,19 @@ export default function ObjednavkaPage() {
     } catch {}
   }, []);
 
+  // Bankovní převod v USD by reálně znamenal drahý a pomalý mezinárodní
+  // SWIFT převod (žádné IBAN/SEPA jako u EUR) — pro malý e-shop to nedává
+  // smysl, takže tuhle možnost pro USD vůbec nenabízíme.
+  const availablePlatbyOptions = platbyOptions.filter(o => !(o.id === "prevod" && currency.code === "USD"));
+
+  // Zruší dřív vybraný převod, pokud zákazník mezitím přepnul měnu na USD
+  // (adjust-state-during-render vzor, ne efekt — viz React docs).
+  const [prevCurrencyCode, setPrevCurrencyCode] = useState(currency.code);
+  if (currency.code !== prevCurrencyCode) {
+    setPrevCurrencyCode(currency.code);
+    if (currency.code === "USD" && platba === "prevod") setPlatba(null);
+  }
+
   useEffect(() => {
     if (document.getElementById("packeta-script")) return;
     const script = document.createElement("script");
@@ -256,7 +269,7 @@ export default function ObjednavkaPage() {
                       <AlertCircle size={12} /> {errors.platba}
                     </p>
                   )}
-                  {platbyOptions.map((opt) => (
+                  {availablePlatbyOptions.map((opt) => (
                     <button
                       key={opt.id}
                       onClick={() => { setPlatba(opt.id); setErrors(prev => ({ ...prev, platba: "" })); }}

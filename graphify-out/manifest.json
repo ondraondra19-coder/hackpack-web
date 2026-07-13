@@ -145,8 +145,8 @@
     "semantic_hash": "fec1507e99c84777589fdb606d15303c"
   },
   "app/api/orders/route.ts": {
-    "mtime": 1783963898.3853524,
-    "ast_hash": "91bc2e931800e9ecb3cede2d7ed0abc7",
+    "mtime": 1783979819.571387,
+    "ast_hash": "b562ea2cdbd89e98d1aa4e4136c8cf88",
     "semantic_hash": ""
   },
   "app/api/products/route.ts": {
@@ -200,8 +200,8 @@
     "semantic_hash": "13027186e2c94cab16a1e10690089289"
   },
   "app/informace/page.tsx": {
-    "mtime": 1783965992.2343476,
-    "ast_hash": "127d7dfb6f67302895d792d28e0d5c63",
+    "mtime": 1783979836.4589894,
+    "ast_hash": "9661478145fb6f03377b7254cd7a5dec",
     "semantic_hash": ""
   },
   "app/kategorie/[slug]/page.tsx": {
@@ -240,13 +240,13 @@
     "semantic_hash": "72fdeaf31adc53a10508e48d8fd99e99"
   },
   "app/objednavka/page.tsx": {
-    "mtime": 1783963843.8476727,
-    "ast_hash": "2713bd1ea2874cc23c75645ccd20c65c",
+    "mtime": 1783979388.1796415,
+    "ast_hash": "e09fb8f9558cd0a6a80860fe75449d86",
     "semantic_hash": ""
   },
   "app/objednavka/uspech/page.tsx": {
-    "mtime": 1783976562.0492804,
-    "ast_hash": "7e01a3fd0fa87282e48b32488100035a",
+    "mtime": 1783980036.0357287,
+    "ast_hash": "84130bafa4a618a2ebad27758ca4f49f",
     "semantic_hash": ""
   },
   "app/ochrana-osobnich-udaju/page.tsx": {

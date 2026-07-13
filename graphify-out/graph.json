@@ -2492,7 +2492,7 @@
       "label": "Dobirka()",
       "file_type": "code",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L186",
+      "source_location": "L184",
       "_origin": "ast",
       "id": "app_objednavka_uspech_page_dobirka",
       "community": 23,
@@ -2502,7 +2502,7 @@
       "label": "KartaStripe()",
       "file_type": "code",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L244",
+      "source_location": "L242",
       "_origin": "ast",
       "id": "app_objednavka_uspech_page_kartastripe",
       "community": 23,
@@ -2512,7 +2512,7 @@
       "label": "DeliveryAddressBlock()",
       "file_type": "code",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L298",
+      "source_location": "L296",
       "_origin": "ast",
       "id": "app_objednavka_uspech_page_deliveryaddressblock",
       "community": 23,
@@ -2522,7 +2522,7 @@
       "label": "SuccessContent()",
       "file_type": "code",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L394",
+      "source_location": "L392",
       "_origin": "ast",
       "id": "app_objednavka_uspech_page_successcontent",
       "community": 27,
@@ -2532,7 +2532,7 @@
       "label": "UspechPage()",
       "file_type": "code",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L704",
+      "source_location": "L702",
       "_origin": "ast",
       "id": "app_objednavka_uspech_page_uspechpage",
       "community": 23,
@@ -11710,7 +11710,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/api/orders/route.ts",
-      "source_location": "L93",
+      "source_location": "L100",
       "weight": 1.0,
       "source": "app_api_orders_route_post",
       "target": "lib_orders_createorderdirect"
@@ -11721,7 +11721,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/api/orders/route.ts",
-      "source_location": "L25",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "app_api_orders_route_post",
       "target": "lib_priceoverrides_getproductswithpriceoverrides"
@@ -11732,7 +11732,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/api/orders/route.ts",
-      "source_location": "L30",
+      "source_location": "L37",
       "weight": 1.0,
       "source": "app_api_orders_route_post",
       "target": "lib_priceoverrides_resolveitemunitprice"
@@ -11743,7 +11743,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/api/orders/route.ts",
-      "source_location": "L98",
+      "source_location": "L105",
       "weight": 1.0,
       "source": "app_api_orders_route_post",
       "target": "lib_stock_deductstockforitems"
@@ -12974,7 +12974,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/informace/page.tsx",
-      "source_location": "L831",
+      "source_location": "L840",
       "weight": 1.0,
       "source": "app_informace_page_informacepage",
       "target": "lib_currency_formatprice"
@@ -12985,7 +12985,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/informace/page.tsx",
-      "source_location": "L701",
+      "source_location": "L710",
       "weight": 1.0,
       "source": "app_informace_page_informacepage",
       "target": "lib_currency_getprice"
@@ -13007,7 +13007,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/informace/page.tsx",
-      "source_location": "L857",
+      "source_location": "L866",
       "weight": 1.0,
       "source": "app_informace_page_informacepage",
       "target": "lib_discounts_approxconvert"
@@ -14029,7 +14029,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/page.tsx",
-      "source_location": "L216",
+      "source_location": "L229",
       "weight": 1.0,
       "source": "app_objednavka_page_objednavkapage",
       "target": "lib_currency_formatprice"
@@ -14040,7 +14040,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/page.tsx",
-      "source_location": "L130",
+      "source_location": "L143",
       "weight": 1.0,
       "source": "app_objednavka_page_objednavkapage",
       "target": "lib_currency_getprice"
@@ -14080,7 +14080,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L298",
+      "source_location": "L296",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page",
       "target": "app_objednavka_uspech_page_deliveryaddressblock",
@@ -14090,7 +14090,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L186",
+      "source_location": "L184",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page",
       "target": "app_objednavka_uspech_page_dobirka",
@@ -14100,7 +14100,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L244",
+      "source_location": "L242",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page",
       "target": "app_objednavka_uspech_page_kartastripe",
@@ -14160,7 +14160,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L394",
+      "source_location": "L392",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page",
       "target": "app_objednavka_uspech_page_successcontent",
@@ -14170,7 +14170,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L704",
+      "source_location": "L702",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page",
       "target": "app_objednavka_uspech_page_uspechpage",
@@ -14281,7 +14281,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L92",
+      "source_location": "L94",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page_bankovniprevod",
       "target": "lib_qrplatba_buildspdstring"
@@ -14292,7 +14292,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L94",
+      "source_location": "L96",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page_bankovniprevod",
       "target": "package_dependencies_qrcode"
@@ -14303,7 +14303,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L487",
+      "source_location": "L485",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page_successcontent",
       "target": "lib_currency_formatprice"
@@ -14314,7 +14314,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L483",
+      "source_location": "L481",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page_successcontent",
       "target": "lib_currency_getprice"
@@ -14325,7 +14325,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "app/objednavka/uspech/page.tsx",
-      "source_location": "L396",
+      "source_location": "L394",
       "weight": 1.0,
       "source": "app_objednavka_uspech_page_successcontent",
       "target": "lib_currencycontext_usecurrency"
@@ -22017,5 +22017,5 @@
       "source_file": "README-stock.md"
     }
   ],
-  "built_at_commit": "f73384384300a3b16b4d434415e6add5a1af2f63"
+  "built_at_commit": "3167e388cb9847869a0ee07b952571f6d092be20"
 }

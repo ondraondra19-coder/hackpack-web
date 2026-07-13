@@ -640,6 +640,15 @@ export default function InformacePage() {
     const rawOrder = localStorage.getItem(ORDER_KEY);
     const parsedOrder = rawOrder ? JSON.parse(rawOrder) : null;
     const metoda = (parsedOrder?.paymentMethod || parsedOrder?.platba || "").toLowerCase();
+
+    // Měnu jde přepnout i tady na poslední straně (přepínač je v hlavičce),
+    // takže bankovní převod + USD musíme odchytit znovu, ne jen na /objednavka.
+    if (metoda.includes("prevod") && currency.code === "USD") {
+      alert("Bankovní převod není v USD dostupný. Vraťte se prosím na krok Doprava a platba a vyberte jiný způsob platby.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const dataToSave = { ...form, nakupNaFirmu, jineDorucenoAdresa };
       sessionStorage.setItem(INFO_KEY, JSON.stringify(dataToSave));
