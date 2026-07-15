@@ -187,7 +187,11 @@ async function bankTransferBlock(order: Order): Promise<{ html: string; attachme
   if (showQr && iban) {
     const spd = buildSpdString({ iban, amount: order.total, currency: order.currency, variableSymbol: vs, message: "Dekujeme za objednavku" });
     const png = await QRCode.toBuffer(spd, { width: 320, margin: 1 });
-    attachment = { content: png, filename: "qr-platba.png", contentType: "image/png", contentId: QR_CONTENT_ID };
+    // Resend SDK content pole jen předá dál do JSON.stringify() beze změny —
+    // syrový Buffer se tak serializuje jako {type:"Buffer",data:[...]}, ne
+    // jako base64 string, takže API dostane nepoužitelná data. Musí se
+    // zakódovat na base64 string RUČNĚ, ne spoléhat na to, že to udělá SDK.
+    attachment = { content: png.toString("base64"), filename: "qr-platba.png", contentType: "image/png", contentId: QR_CONTENT_ID };
     qrBlock = `
       <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
         <img
