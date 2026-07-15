@@ -10,6 +10,7 @@ import { sendOrderConfirmationEmail } from "@/lib/email";
 import { getShippingPrice } from "@/lib/shipping/pricing";
 import { getDobirkaFee } from "@/lib/fees";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { isBankTransferEnabled } from "@/lib/featureFlags";
 
 // Strop na množství jedné položky — brání zneužití (záporné/obří množství
 // rozbíjí cenu i odečet skladu, viz deductStockForItems).
@@ -35,6 +36,12 @@ export async function POST(req: Request) {
     }
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Košík je prázdný." }, { status: 400 });
+    }
+
+    // Dočasně vypnuto v produkci (viz lib/featureFlags.ts) — nekontrolovat
+    // jen na frontendu, ať to nejde obejít přímým voláním API.
+    if (paymentMethod === "prevod" && !isBankTransferEnabled()) {
+      return NextResponse.json({ error: "Platba bankovním převodem je dočasně nedostupná." }, { status: 400 });
     }
 
     const currencyCode: string = typeof currency === "object" ? currency.code : currency;

@@ -11,6 +11,7 @@ import DiscountWidget from "@/components/DiscountWidget";
 import { SHIPPING_PRICES } from "@/lib/shipping/pricing";
 import { DOBIRKA_FEE } from "@/lib/fees";
 import { trackEvent } from "@/lib/analytics";
+import { isBankTransferEnabled } from "@/lib/featureFlags";
 
 declare global {
   interface Window {
@@ -98,7 +99,9 @@ export default function ObjednavkaPage() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.doprava) setDoprava(parsed.doprava);
-        if (parsed.platba) setPlatba(parsed.platba);
+        // Nenačteme "prevod" ze staršího uloženého výběru, pokud je teď
+        // dočasně vypnutý (jinak by šel vybraný, i když v nabídce vůbec není).
+        if (parsed.platba && (parsed.platba !== "prevod" || isBankTransferEnabled())) setPlatba(parsed.platba);
       }
       const zbox = localStorage.getItem(ZBOX_KEY);
       if (zbox) setSelectedZbox(JSON.parse(zbox));
@@ -107,8 +110,12 @@ export default function ObjednavkaPage() {
 
   // Bankovní převod v USD by reálně znamenal drahý a pomalý mezinárodní
   // SWIFT převod (žádné IBAN/SEPA jako u EUR) — pro malý e-shop to nedává
-  // smysl, takže tuhle možnost pro USD vůbec nenabízíme.
-  const availablePlatbyOptions = platbyOptions.filter(o => !(o.id === "prevod" && currency.code === "USD"));
+  // smysl, takže tuhle možnost pro USD vůbec nenabízíme. Dočasně (viz
+  // lib/featureFlags.ts) je pro USD i mimo lokální vývoj vypnutý úplně —
+  // účtenka ještě není hotová naostro (chybí IČO).
+  const availablePlatbyOptions = platbyOptions.filter(
+    (o) => !(o.id === "prevod" && (currency.code === "USD" || !isBankTransferEnabled())),
+  );
 
   // Zruší dřív vybraný převod, pokud zákazník mezitím přepnul měnu na USD
   // (adjust-state-during-render vzor, ne efekt — viz React docs).
