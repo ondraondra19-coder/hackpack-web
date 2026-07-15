@@ -145,6 +145,33 @@ end
 return {}
 `;
 
+// Opak deductStockForItems — vrátí kusy zpět na sklad (zrušená objednávka).
+// Na rozdíl od odečtu tu není potřeba atomický Lua check-and-decrement: sčítání
+// zpátky nemůže sklad poslat do záporu, takže stačí prosté HINCRBY v pipeline.
+export async function restockItems(items: StockDeductionItem[]): Promise<void> {
+  const redis = getRedis();
+  const totals = new Map<string, number>();
+
+  for (const item of items) {
+    if (!item.stockKey) continue;
+    const keys = Array.isArray(item.stockKey) ? item.stockKey : [item.stockKey];
+    for (const keyPart of keys) {
+      const field = `${item.slug}|${keyPart}`;
+      totals.set(field, (totals.get(field) ?? 0) + item.quantity);
+    }
+  }
+
+  if (totals.size === 0) return;
+
+  const pipeline = redis.pipeline();
+  for (const [field, amount] of totals.entries()) {
+    pipeline.hincrby(HASH_KEY, field, amount);
+  }
+  await pipeline.exec();
+
+  cache = null;
+}
+
 export async function deductStockForItems(
   items: StockDeductionItem[],
 ): Promise<{ ok: true } | { ok: false; insufficientFields: string[] }> {

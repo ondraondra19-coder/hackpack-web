@@ -2,9 +2,10 @@
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/session";
 import { getOrder, updateOrderStatus, updatePaymentStatus, type OrderStatus, type PaymentStatus } from "@/lib/orders";
-import { sendOrderShippedEmail, sendOrderDeliveredEmail } from "@/lib/email";
+import { sendOrderShippedEmail, sendOrderDeliveredEmail, sendPaymentReceivedEmail } from "@/lib/email";
+import { restockItems } from "@/lib/stock";
 
-const VALID_STATUSES: OrderStatus[] = ["nova", "zabalena", "odeslana", "na_ceste", "dorucena"];
+const VALID_STATUSES: OrderStatus[] = ["nova", "zabalena", "odeslana", "na_ceste", "dorucena", "zrusena"];
 const VALID_PAYMENT_STATUSES: PaymentStatus[] = ["zaplaceno", "ceka_na_platbu", "zaplatit_pri_prevzeti"];
 
 // PATCH /api/admin/orders/:id  { status?: OrderStatus, paymentStatus?: PaymentStatus }
@@ -36,6 +37,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (previous && previous.status !== updated.status) {
         if (updated.status === "odeslana") await sendOrderShippedEmail(updated);
         if (updated.status === "dorucena") await sendOrderDeliveredEmail(updated);
+        // Zrušení vrací odečtené kusy zpět na sklad — deduktovaly se hned při
+        // vzniku objednávky (karta při potvrzení webhookem, dobírka/převod
+        // při založení), takže se musí vrátit stejně tak explicitně.
+        if (updated.status === "zrusena") await restockItems(updated.items);
       }
 
       return NextResponse.json({ order: updated });
@@ -45,8 +50,19 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       if (!VALID_PAYMENT_STATUSES.includes(body.paymentStatus)) {
         return NextResponse.json({ error: "Neplatný stav platby." }, { status: 400 });
       }
+
+      // Předchozí stav zjistíme PŘED přepisem — účtenku chceme poslat jen při
+      // skutečném přechodu na "zaplaceno", ne při každém uložení (stejný vzorec
+      // jako u e-mailů o odeslání/doručení výše).
+      const previous = await getOrder(id);
+
       const updated = await updatePaymentStatus(id, body.paymentStatus);
       if (!updated) return NextResponse.json({ error: "Objednávka nenalezena." }, { status: 404 });
+
+      if (previous && previous.paymentStatus !== "zaplaceno" && updated.paymentStatus === "zaplaceno") {
+        await sendPaymentReceivedEmail(updated);
+      }
+
       return NextResponse.json({ order: updated });
     }
 

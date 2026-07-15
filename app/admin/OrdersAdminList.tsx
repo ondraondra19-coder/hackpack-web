@@ -14,6 +14,7 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
   odeslana: "bg-blue-50 text-blue-700 border-blue-200",
   na_ceste: "bg-indigo-50 text-indigo-700 border-indigo-200",
   dorucena: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  zrusena: "bg-red-50 text-red-700 border-red-200",
 };
 
 // Barvy zvýrazněné i na tlačítku záložky, ať jde stav poznat na první pohled.
@@ -24,6 +25,7 @@ const TAB_ACTIVE_STYLES: Record<string, string> = {
   odeslana: "bg-blue-600 text-white",
   na_ceste: "bg-indigo-600 text-white",
   dorucena: "bg-emerald-600 text-white",
+  zrusena: "bg-red-600 text-white",
   vse: "bg-zinc-700 text-white",
 };
 
@@ -59,6 +61,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "odeslana", label: "Odeslaná" },
   { id: "na_ceste", label: "Na cestě" },
   { id: "dorucena", label: "Doručené" },
+  { id: "zrusena", label: "Zrušené" },
   { id: "vse", label: "Vše" },
 ];
 
@@ -132,6 +135,24 @@ export default function OrdersAdminList({ initialQuery, initialExpandId }: Order
       setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, paymentStatus: "zaplaceno" } : o)));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Změna se nezdařila.");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function handleCancelOrder(order: Order) {
+    if (!confirm(`Opravdu zrušit objednávku ${order.customer.jmeno || order.id}? Odečtené kusy se vrátí zpět na sklad.`)) return;
+    setBusyId(order.id);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "zrusena" as OrderStatus }),
+      });
+      if (!res.ok) throw new Error("Zrušení se nezdařilo.");
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "zrusena" } : o)));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Zrušení se nezdařilo.");
     } finally {
       setBusyId(null);
     }
@@ -325,6 +346,16 @@ export default function OrdersAdminList({ initialQuery, initialExpandId }: Order
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
                       >
                         Označit jako zaplaceno
+                      </button>
+                    )}
+
+                    {(order.status === "nova" || order.status === "zabalena") && (
+                      <button
+                        onClick={() => handleCancelOrder(order)}
+                        disabled={busyId === order.id}
+                        className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white text-red-700 border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                      >
+                        Zrušit objednávku
                       </button>
                     )}
 

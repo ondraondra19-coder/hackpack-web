@@ -256,6 +256,37 @@ export async function sendOrderConfirmationEmail(order: Order): Promise<boolean>
   return send(order.customer.email, subject, html, attachments);
 }
 
+// ── 1b) Přijetí platby (admin ručně označí bankovní převod jako zaplacený) ──
+// Na rozdíl od potvrzovací objednávky (ta jde vždy, hned) tenhle e-mail se
+// posílá jen při přechodu paymentStatus → "zaplaceno" — viz
+// app/api/admin/orders/[id]/route.ts, kde se to hlídá stejně jako u
+// odeslané/doručené objednávky (jen na SKUTEČNÝ přechod stavu).
+
+export function renderPaymentReceivedEmail(order: Order): { subject: string; html: string } {
+  const currency = currencyOf(order.currency);
+  const vs = orderNumber(order);
+
+  const html = layout(
+    `Platba za objednávku ${vs} přijata`,
+    `
+    ${h1("Platbu jsme přijali! ✅")}
+    ${p(`Ahoj ${order.customer.jmeno}, potvrzujeme, že platba za objednávku <strong>#${vs}</strong> ve výši <strong>${formatPrice(order.total, currency)}</strong> nám přišla na účet. Teď ji zabalíme a pošleme.`)}
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Účtenka</p>
+    ${itemsTable(order.items, currency)}
+    ${priceSummary(order)}
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Doručovací adresa</p>
+    ${addressBlock(order)}
+    `,
+  );
+  return { subject: `Platba za objednávku #${vs} přijata — HackPack`, html };
+}
+
+export async function sendPaymentReceivedEmail(order: Order): Promise<boolean> {
+  if (!order.customer.email) return false;
+  const { subject, html } = renderPaymentReceivedEmail(order);
+  return send(order.customer.email, subject, html);
+}
+
 // ── 2) Odeslání zásilky ──────────────────────────────────────────────────────
 
 function trackingBlock(order: Order): string {

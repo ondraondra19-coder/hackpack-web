@@ -18,7 +18,7 @@
 import { randomBytes } from "crypto";
 import { getRedis } from "./redis";
 
-export type OrderStatus = "nova" | "zabalena" | "odeslana" | "na_ceste" | "dorucena";
+export type OrderStatus = "nova" | "zabalena" | "odeslana" | "na_ceste" | "dorucena" | "zrusena";
 export type PaymentMethod = "karta" | "dobirka" | "prevod";
 export type PaymentStatus = "zaplaceno" | "ceka_na_platbu" | "zaplatit_pri_prevzeti";
 
@@ -28,6 +28,7 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   odeslana: "Odeslaná",
   na_ceste: "Na cestě",
   dorucena: "Doručená",
+  zrusena: "Zrušená",
 };
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
