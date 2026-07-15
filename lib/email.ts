@@ -2,11 +2,12 @@
 // Transakční e-maily přes Resend. Odesílání NIKDY nesmí shodit akci, která ho
 // spouští (vytvoření objednávky, změna stavu, recenze…) — proto každá veřejná
 // send* funkce chyby jen zaloguje a tiše vrátí false, nikdy nevyhodí výjimku.
-import { Resend } from "resend";
+import { Resend, type Attachment } from "resend";
+import QRCode from "qrcode";
 import type { Order, OrderItem } from "./orders";
 import { CURRENCIES, formatPrice, type Currency, type CurrencyCode } from "./currency";
 import { approxConvert } from "./discounts";
-import { orderIdToVariableSymbol } from "./qrPlatba";
+import { buildSpdString, orderIdToVariableSymbol } from "./qrPlatba";
 
 const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? "HackPack <info@hackpack.cz>";
 const SUPPORT_EMAIL = "info@hackpack.cz";
@@ -26,7 +27,7 @@ function getResendClient(): Resend | null {
   return client;
 }
 
-async function send(to: string, subject: string, html: string): Promise<boolean> {
+async function send(to: string, subject: string, html: string, attachments?: Attachment[]): Promise<boolean> {
   const resend = getResendClient();
   if (!resend) return false;
 
@@ -37,6 +38,7 @@ async function send(to: string, subject: string, html: string): Promise<boolean>
       replyTo: SUPPORT_EMAIL,
       subject,
       html,
+      attachments,
     });
     if (error) {
       console.error("Resend odmítl e-mail:", error);
@@ -160,34 +162,44 @@ function orderNumber(order: Order): string {
 
 // ── 1) Potvrzení objednávky ─────────────────────────────────────────────────
 
-function bankTransferBlock(order: Order): string {
+const QR_CONTENT_ID = "qr-platba";
+
+async function bankTransferBlock(order: Order): Promise<{ html: string; attachment?: Attachment }> {
   const account = process.env.NEXT_PUBLIC_BANK_ACCOUNT_DISPLAY;
   const bankName = process.env.NEXT_PUBLIC_BANK_NAME;
   if (!account) {
-    return p(`Ozvěte se nám prosím na ${SUPPORT_EMAIL}, domluvíme platbu individuálně.`);
+    return { html: p(`Ozvěte se nám prosím na ${SUPPORT_EMAIL}, domluvíme platbu individuálně.`) };
   }
   const vs = orderNumber(order);
   const currency = currencyOf(order.currency);
 
   // QR Platba jen pro CZK/EUR (stejná podmínka jako na /objednavka/uspech —
   // bankovní převod se pro USD vůbec nenabízí, viz /objednavka). Obrázek jde
-  // přes hostovanou URL (/api/qr), ne přes base64 data: URI — to Gmail a
-  // spousta dalších e-mailových klientů v HTML mailu prostě nezobrazí.
+  // jako INLINE PŘÍLOHA (cid:), ne jako hostovaná URL/base64 data: URI —
+  // obojí se v Gmailu ukázalo nespolehlivé (externí obrázek se vůbec
+  // nenačetl). CID příloha je standardní způsob pro obrázky v e-mailech,
+  // co e-mailový klient stáhne rovnou s doručenou zprávou.
   const iban = process.env.NEXT_PUBLIC_BANK_ACCOUNT_IBAN;
   const showQr = Boolean(iban) && (order.currency === "CZK" || order.currency === "EUR");
-  const qrBlock = showQr
-    ? `
+
+  let attachment: Attachment | undefined;
+  let qrBlock = "";
+  if (showQr && iban) {
+    const spd = buildSpdString({ iban, amount: order.total, currency: order.currency, variableSymbol: vs, message: "Dekujeme za objednavku" });
+    const png = await QRCode.toBuffer(spd, { width: 320, margin: 1 });
+    attachment = { content: png, filename: "qr-platba.png", contentType: "image/png", contentId: QR_CONTENT_ID };
+    qrBlock = `
       <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;">
         <img
-          src="${SITE_URL}/api/qr?amount=${order.total}&amp;currency=${encodeURIComponent(order.currency)}&amp;vs=${encodeURIComponent(vs)}"
+          src="cid:${QR_CONTENT_ID}"
           width="160" height="160" alt="QR platba"
           style="display:block;margin:0 auto 6px;border-radius:8px;border:1px solid #e5e7eb;"
         />
         <p style="margin:0;font-size:11px;color:#9ca3af;">Naskenujte QR kód v bankovní aplikaci</p>
-      </div>`
-    : "";
+      </div>`;
+  }
 
-  return `
+  const html = `
     <div style="background:#f7f6f4;border-radius:12px;padding:16px 20px;margin:0 0 20px;">
       <p style="margin:0 0 10px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Platební instrukce</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
@@ -199,18 +211,28 @@ function bankTransferBlock(order: Order): string {
     </div>
     ${p("Zásilku odešleme ihned po připsání platby na účet — obvykle do 1 pracovního dne.")}
   `;
+
+  return { html, attachment };
 }
 
-export function renderOrderConfirmationEmail(order: Order): { subject: string; html: string } {
+export async function renderOrderConfirmationEmail(
+  order: Order,
+): Promise<{ subject: string; html: string; attachments?: Attachment[] }> {
   const currency = currencyOf(order.currency);
   const vs = orderNumber(order);
 
-  const paymentBlock =
-    order.paymentMethod === "prevod"
-      ? bankTransferBlock(order)
-      : order.paymentMethod === "dobirka"
-        ? p(`Zaplatíte při doručení: <strong>${formatPrice(order.total, currency)}</strong>.`)
-        : p("Platba kartou proběhla v pořádku, děkujeme.");
+  let paymentBlock: string;
+  let attachments: Attachment[] | undefined;
+
+  if (order.paymentMethod === "prevod") {
+    const bankBlock = await bankTransferBlock(order);
+    paymentBlock = bankBlock.html;
+    if (bankBlock.attachment) attachments = [bankBlock.attachment];
+  } else if (order.paymentMethod === "dobirka") {
+    paymentBlock = p(`Zaplatíte při doručení: <strong>${formatPrice(order.total, currency)}</strong>.`);
+  } else {
+    paymentBlock = p("Platba kartou proběhla v pořádku, děkujeme.");
+  }
 
   const html = layout(
     `Objednávka ${vs} přijata`,
@@ -226,13 +248,13 @@ export function renderOrderConfirmationEmail(order: Order): { subject: string; h
     `,
   );
 
-  return { subject: `Objednávka #${vs} přijata — HackPack`, html };
+  return { subject: `Objednávka #${vs} přijata — HackPack`, html, attachments };
 }
 
 export async function sendOrderConfirmationEmail(order: Order): Promise<boolean> {
   if (!order.customer.email) return false;
-  const { subject, html } = renderOrderConfirmationEmail(order);
-  return send(order.customer.email, subject, html);
+  const { subject, html, attachments } = await renderOrderConfirmationEmail(order);
+  return send(order.customer.email, subject, html, attachments);
 }
 
 // ── 2) Odeslání zásilky ──────────────────────────────────────────────────────
