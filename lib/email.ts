@@ -269,9 +269,10 @@ export function renderPaymentReceivedEmail(order: Order): { subject: string; htm
   const html = layout(
     `Platba za objednávku ${vs} přijata`,
     `
-    ${h1("Platbu jsme přijali! ✅")}
+    ${h1("Platbu jsme přijali")}
     ${p(`Ahoj ${order.customer.jmeno}, potvrzujeme, že platba za objednávku <strong>#${vs}</strong> ve výši <strong>${formatPrice(order.total, currency)}</strong> nám přišla na účet. Teď ji zabalíme a pošleme.`)}
-    <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Účtenka</p>
+    <div style="display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;font-size:12px;font-weight:700;letter-spacing:0.02em;padding:6px 14px;border-radius:999px;margin:0 0 20px;">Zaplaceno</div>
+    <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Přehled objednávky</p>
     ${itemsTable(order.items, currency)}
     ${priceSummary(order)}
     <p style="margin:0 0 8px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Doručovací adresa</p>
