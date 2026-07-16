@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Send, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { Users, Send, AlertTriangle, CheckCircle2 } from "lucide-react";
 
 type CampaignSummary = {
   id: string;
@@ -22,7 +22,7 @@ export default function CampaignsPanel() {
   const [previewText, setPreviewText] = useState("");
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
-  const [notice, setNotice] = useState<{ kind: "success" | "error" | "domain"; text: string } | null>(null);
+  const [notice, setNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   async function loadContext() {
     try {
@@ -65,8 +65,6 @@ export default function CampaignsPanel() {
         setPreviewText("");
         setBody("");
         loadContext();
-      } else if (data?.reason === "domain_unverified") {
-        setNotice({ kind: "domain", text: data.error });
       } else {
         setNotice({ kind: "error", text: data?.error ?? "Odeslání se nezdařilo." });
       }
@@ -176,30 +174,17 @@ export default function CampaignsPanel() {
             className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2.5 ${
               notice.kind === "success"
                 ? "bg-green-50 text-green-700 border border-green-200"
-                : notice.kind === "domain"
-                ? "bg-amber-50 text-amber-800 border border-amber-200"
                 : "bg-red-50 text-primary border border-red-200"
             }`}
           >
             {notice.kind === "success" ? (
               <CheckCircle2 size={14} className="mt-0.5 shrink-0" />
-            ) : notice.kind === "domain" ? (
-              <AlertTriangle size={14} className="mt-0.5 shrink-0" />
             ) : (
               <AlertTriangle size={14} className="mt-0.5 shrink-0" />
             )}
             <span>{notice.text}</span>
           </div>
         )}
-      </div>
-
-      {/* Info o doméně */}
-      <div className="flex items-start gap-2 text-[11px] text-zinc-500 bg-zinc-50 border border-[#e5e7eb] rounded-xl px-4 py-3">
-        <Info size={13} className="mt-0.5 shrink-0 text-zinc-400" />
-        <span>
-          Rozesílání funguje až po ověření odesílací domény v Resendu. Do té doby ti tlačítko
-          vrátí upozornění a nic se neodešle.
-        </span>
       </div>
 
       {/* Poslední kampaně */}

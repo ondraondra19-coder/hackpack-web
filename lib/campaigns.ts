@@ -141,13 +141,16 @@ export async function sendCampaign(params: {
     });
 
     if (error) {
-      // Nejčastější stav před spuštěním: neověřená doména. Rozlišíme ho, ať
-      // panel ukáže návod místo obecné chyby.
+      // Nejčastější stav před spuštěním je neověřená doména. Navenek ho ale
+      // NEROZLIŠUJEME zvláštní hláškou (web má působit hotově) — jen to
+      // zalogujeme na server pro diagnostiku a uživateli vrátíme neutrální
+      // chybu. reason zůstává kvůli případnému budoucímu použití.
       if (/domain is not verified|not verified/i.test(error.message ?? "")) {
+        console.error("Kampaň neodeslána — odesílací doména není v Resendu ověřená.");
         return {
           ok: false,
           reason: "domain_unverified",
-          message: "Odesílací doména není v Resendu ověřená — kampaně půjde posílat až po jejím ověření.",
+          message: "Kampaň se teď nepodařilo odeslat. Zkus to prosím znovu.",
         };
       }
       return { ok: false, reason: "error", message: error.message ?? "Odeslání kampaně se nezdařilo." };
