@@ -5,10 +5,29 @@
 //
 // Odhlašování neřešíme tady: Resend do každého Broadcastu vloží unsubscribe
 // odkaz/hlavičky a odhlášené kontakty z rozesílky sám vynechá.
-import { getResendClient } from "./email";
+import { Resend } from "resend";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_EMAIL_LENGTH = 150;
+
+// Přidávání kontaktů (contacts API) vyžaduje klíč s "Full access" — odesílací
+// (sending-only) klíč Resend odmítne s 401 "restricted_api_key". Proto tu
+// máme VLASTNÍHO klienta, oddělený od transakčních e-mailů: kontakty jedou
+// přes RESEND_CONTACTS_API_KEY (full access), zatímco RESEND_API_KEY může
+// zůstat sending-only pro transakční poštu (princip nejmenších oprávnění —
+// transakční cesta běží při každé objednávce). Když RESEND_CONTACTS_API_KEY
+// není nastavené, spadneme na RESEND_API_KEY (ten pak ale musí být full access).
+let contactsClient: Resend | null = null;
+
+function getContactsClient(): Resend | null {
+  const key = process.env.RESEND_CONTACTS_API_KEY ?? process.env.RESEND_API_KEY;
+  if (!key) {
+    console.error("❌ Chybí RESEND_CONTACTS_API_KEY i RESEND_API_KEY — kontakt se neuloží.");
+    return null;
+  }
+  if (!contactsClient) contactsClient = new Resend(key);
+  return contactsClient;
+}
 
 export type SubscribeResult =
   | { ok: true }
@@ -24,21 +43,20 @@ export async function subscribeToNewsletter(rawEmail: string): Promise<Subscribe
   const email = rawEmail.trim().toLowerCase();
   if (!isValidNewsletterEmail(email)) return { ok: false, reason: "invalid" };
 
-  const audienceId = process.env.RESEND_AUDIENCE_ID;
-  if (!audienceId) {
-    console.error("❌ RESEND_AUDIENCE_ID chybí — kontakt se neuloží.");
-    return { ok: false, reason: "not_configured" };
-  }
-
-  const resend = getResendClient();
+  const resend = getContactsClient();
   if (!resend) return { ok: false, reason: "not_configured" };
 
+  // RESEND_AUDIENCE_ID je VOLITELNÉ:
+  //  - novější Resend účty mají jedinou výchozí Audience bez zobrazeného ID —
+  //    kontakt se přidá přes POST /contacts (bez audienceId) rovnou do ní,
+  //  - starší účty s více Audiences potřebují konkrétní ID (POST
+  //    /audiences/{id}/contacts). Pokud je proměnná vyplněná, použije se ono.
+  const audienceId = process.env.RESEND_AUDIENCE_ID;
+
   try {
-    const { error } = await resend.contacts.create({
-      audienceId,
-      email,
-      unsubscribed: false,
-    });
+    const { error } = audienceId
+      ? await resend.contacts.create({ audienceId, email, unsubscribed: false })
+      : await resend.contacts.create({ email, unsubscribed: false });
 
     // Už existující kontakt Resend hlásí jako chybu — pro nás to není chyba,
     // uživatel prostě "je přihlášený". Navenek to nerozlišujeme: neprozrazovat,

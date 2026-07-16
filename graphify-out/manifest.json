@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "lib/email.ts": {
-    "mtime": 1784205022.6372726,
-    "ast_hash": "2fe34c762e5757763ff2ca184256dd40",
+    "mtime": 1784206416.6033335,
+    "ast_hash": "50cf384089b27be420d54c652c32d1b1",
     "semantic_hash": ""
   },
   "lib/analytics.ts": {
@@ -1070,8 +1070,8 @@
     "semantic_hash": ""
   },
   "lib/newsletter.ts": {
-    "mtime": 1784205038.0484862,
-    "ast_hash": "32dfdb6ce3de5074f9aeab82e298d848",
+    "mtime": 1784206431.370174,
+    "ast_hash": "eb541abccbcccdf47e2960d16c10cd33",
     "semantic_hash": ""
   }
 }
