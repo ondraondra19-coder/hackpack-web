@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ChevronRight, Shield, Eye, BarChart3, Check } from "lucide-react";
-
-const STORAGE_KEY = "hackpack-cookie-consent";
-const SESSION_KEY = "hackpack-cookie-visited-details";
+import {
+  acceptAll,
+  clearConsent,
+  getConsentPreferences,
+  saveConsent,
+} from "@/lib/consent";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -20,68 +22,180 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+// Soupis musí odpovídat tomu, co web SKUTEČNĚ ukládá. Když přibyde nebo zmizí
+// nějaký nástroj, patří změna i sem — nepřesný soupis je porušení GDPR samo
+// o sobě, i kdyby zbytek webu byl v pořádku.
+type StorageEntry = {
+  name: string;
+  storage: string;
+  provider: string;
+  purpose: string;
+  expiry: string;
+  type: "Nezbytné" | "Preferenční" | "Analytické";
+};
+
+const storageList: StorageEntry[] = [
+  {
+    name: "hackpack-cookie-consent",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Uchovává vaši volbu souhlasu s cookies, aby se vás web neptal znovu.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-cookie-visited-details",
+    storage: "sessionStorage",
+    provider: "HackPack",
+    purpose: "Poznamená si, že jste viděli tuto stránku s detaily, a zmenší podle toho lištu se souhlasem.",
+    expiry: "Do zavření karty",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-cart",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Obsah nákupního košíku, aby vám zboží nezmizelo mezi stránkami ani po zavření prohlížeče.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-discount",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Uplatněný slevový kód, aby platil i po přechodu na další stránku.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-order",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Rozpracovaná objednávka (zboží, doprava, platba) mezi kroky pokladny.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-order-snapshot",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Shrnutí dokončené objednávky pro zobrazení na stránce s poděkováním.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-info",
+    storage: "sessionStorage",
+    provider: "HackPack",
+    purpose: "Údaje vyplněné v pokladně (jméno, adresa, kontakt), abyste je nemuseli psát znovu při návratu o krok zpět. Zůstávají jen ve vašem prohlížeči.",
+    expiry: "Do zavření karty",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-zbox",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Vámi zvolené výdejní místo Zásilkovny.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-last-review",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Čas vašeho posledního odeslaného hodnocení — brání opakovanému rozesílání recenzí.",
+    expiry: "Dokud ji nesmažete",
+    type: "Nezbytné",
+  },
+  {
+    name: "hackpack-currency",
+    storage: "localStorage",
+    provider: "HackPack",
+    purpose: "Měna, kterou jste si sami zvolili pro zobrazení cen.",
+    expiry: "Dokud ji nesmažete",
+    type: "Preferenční",
+  },
+  {
+    name: "googtrans",
+    storage: "Cookie",
+    provider: "Google",
+    purpose:
+      "Jazyk zvolený v překladači. Nastaví se pouze tehdy, když si sami přepnete jazyk na jiný než češtinu — do té doby se překladač vůbec nenačítá.",
+    expiry: "Do zavření prohlížeče",
+    type: "Preferenční",
+  },
+  {
+    name: "admin_session",
+    storage: "Cookie (httpOnly)",
+    provider: "HackPack",
+    purpose: "Přihlášení do administrace e-shopu. Vzniká pouze správci obchodu, běžnému návštěvníkovi nikdy.",
+    expiry: "12 hodin",
+    type: "Nezbytné",
+  },
+  {
+    name: "admin_hint",
+    storage: "Cookie",
+    provider: "HackPack",
+    purpose: "Označuje přihlášeného správce, aby se jeho vlastní procházení e-shopu nezapočítávalo do statistik.",
+    expiry: "12 hodin",
+    type: "Nezbytné",
+  },
+  {
+    name: "ph_*_posthog",
+    storage: "Cookie + localStorage",
+    provider: "PostHog",
+    purpose: "Anonymní identifikátor návštěvníka pro měření návštěvnosti. Vzniká výhradně po vašem souhlasu s analytikou.",
+    expiry: "1 rok",
+    type: "Analytické",
+  },
+  {
+    name: "__ph_opt_in_out_*",
+    storage: "Cookie",
+    provider: "PostHog",
+    purpose: "Pamatuje si, že jste analytiku odmítli, aby se měření nespustilo ani omylem.",
+    expiry: "1 rok",
+    type: "Nezbytné",
+  },
+];
+
 export default function CookiesPage() {
-  const router = useRouter();
   const [analytics, setAnalytics] = useState(false);
   const [marketing, setMarketing] = useState(false);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
 
-  // Načtení uloženého stavu cookies při načtení stránky
+  // Uloženou volbu čteme až po mountu — na serveru localStorage neexistuje.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && saved !== "accepted") {
-          const parsed = JSON.parse(saved);
-          setAnalytics(!!parsed.analytics);
-          setMarketing(!!parsed.marketing);
-        } else if (saved === "accepted") {
-          setAnalytics(true);
-          setMarketing(true);
-        }
-      } catch {}
-    }
+    const prefs = getConsentPreferences();
+    if (!prefs) return;
+    setAnalytics(prefs.analytics);
+    setMarketing(prefs.marketing);
   }, []);
 
+  // Zápis jde přes lib/consent, který zároveň rozešle CONSENT_CHANGED_EVENT —
+  // díky tomu se PostHog vypne/zapne hned, ne až po obnovení stránky.
   function handleAcceptAll() {
-    try {
-      localStorage.setItem(STORAGE_KEY, "accepted");
-      sessionStorage.removeItem(SESSION_KEY);
-      setAnalytics(true);
-      setMarketing(true);
-    } catch {}
-    router.refresh();
+    acceptAll();
+    setAnalytics(true);
+    setMarketing(true);
+    setSavedNote("Povolili jste všechny cookies.");
   }
 
   function handleSaveCustom() {
-    try {
-      const customConsent = {
-        essential: true,
-        analytics,
-        marketing
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customConsent));
-      sessionStorage.removeItem(SESSION_KEY);
-    } catch {}
-    router.refresh();
+    saveConsent({ analytics, marketing });
+    setSavedNote("Vaše předvolby byly uloženy.");
   }
 
-  const cookieList = [
-    { name: "hackpack-cookie-consent", provider: "E-shop", purpose: "Zvolení souhlasů s ukládáním cookies.", expiry: "2 roky", type: "Nezbytné" },
-    { name: "hackpack-cookie-visited-details", provider: "E-shop", purpose: "Nastavuje přepnutí vzhledu lišty po návštěvě detailů.", expiry: "Do zavření prohlížeče", type: "Nezbytné" },
-    { name: "cat_show", provider: "E-shop", purpose: "Nastavuje styl zobrazení produktů v sekci.", expiry: "30 dnů", type: "Nezbytné" },
-    { name: "filter_onpage", provider: "E-shop", purpose: "Nastavuje počet produktů na stránce.", expiry: "30 dnů", type: "Nezbytné" },
-    { name: "web_version", provider: "E-shop", purpose: "Nastavuje preferenci pro desktopovou verzi na mobilu.", expiry: "Do zavření prohlížeče", type: "Nezbytné" },
-    { name: "last_visited", provider: "E-shop", purpose: "Ukládá naposled prohlížené produkty.", expiry: "30 dnů", type: "Preferenční" },
-    { name: "remembere", provider: "E-shop", purpose: "Zapamatování přihlášení uživatele.", expiry: "1 rok", type: "Nezbyvnétě" },
-    { name: "cartID", provider: "E-shop", purpose: "Ukládání zboží vloženého do košíku.", expiry: "1 rok", type: "Nezbytné" },
-    { name: "PHPSESSID", provider: "E-shop", purpose: "Dočasné úložiště dat nezbytných pro použití webu.", expiry: "Do zavření prohlížeče", type: "Nezbytné" },
-    { name: "ph_*_posthog", provider: "PostHog", purpose: "Anonymní identifikátor návštěvníka pro analýzu návštěvnosti a chování na webu.", expiry: "1 rok", type: "Analytické" }
-  ];
+  function handleRevoke() {
+    clearConsent();
+    setAnalytics(false);
+    setMarketing(false);
+    setSavedNote("Souhlas byl odvolán a analytická data z tohoto prohlížeče smazána.");
+  }
 
   return (
     <>
       <title>Používání souborů cookies | HackPack</title>
-      
+
       <Header />
       <main className="min-h-screen bg-dark">
         <div className="max-w-5xl mx-auto px-6 lg:px-12 py-12">
@@ -100,16 +214,22 @@ export default function CookiesPage() {
             <p>
               Cookies jsou krátké textové soubory, které navštívená webová stránka odešle do vašeho prohlížeče. Umožňují webu zaznamenat informace o vaší návštěvě, například preferovaný jazyk, obsah nákupního košíku a další nastavení. Příští návštěva stránek tak může být snazší a produktivnější. Bez cookies by prohlížení webu bylo složitější, protože by si e-shop nepamatoval vaše kroky a stav nákupu.
             </p>
+            <p>
+              Vedle cookies používáme i podobná úložiště prohlížeče (<strong>localStorage</strong> a <strong>sessionStorage</strong>). Fungují prakticky stejně, jen data neputují s každým požadavkem na server — v soupisu níže je proto uvádíme společně a vždy označujeme, o které úložiště jde.
+            </p>
           </Section>
 
           <Section title="2. Jaké druhy cookies využíváme">
             <p>Na našem e-shopu rozdělujeme soubory cookie do následujících kategorií:</p>
             <ul>
-              <li><strong>Nezbytné (technické) cookies</strong> — Jsou klíčové pro správný chod e-shopu. Zajišťují ukládání produktů do nákupního košíku, funkčnost pokladny, přihlášení a bezpečnost. Bez nich by nebylo možné nákup dokončit a nelze je vypnout.</li>
-              <li><strong>Preferenční cookies</strong> — Umožňují, aby si web zapamatoval informace, které mění vzhled nebo chování webu (např. historie naposledy prohlížených produktů).</li>
-              <li><strong>Analytické cookies</strong> — Pomáhají nám pochopit, jak web používáte (které stránky navštěvujete nejčastěji, odkud přicházíte). Zajišťuje je nástroj <strong>PostHog</strong> (PostHog Inc., zpracování dat v rámci EU) a ukládají se jen po vašem souhlasu.</li>
-              <li><strong>Marketingové cookies</strong> (pokud budou nasazeny) — Slouží k profilování zájmů a zobrazování relevantní reklamy na sociálních sítích a partnerských webech.</li>
+              <li><strong>Nezbytné (technické)</strong> — Jsou klíčové pro správný chod e-shopu. Zajišťují obsah nákupního košíku, funkčnost pokladny, přihlášení do administrace a zapamatování vaší volby souhlasu. Bez nich by nebylo možné nákup dokončit a nelze je vypnout.</li>
+              <li><strong>Preferenční</strong> — Pamatují si nastavení, které jste si sami zvolili. Konkrétně jde o jazyk v překladači (cookie <strong>googtrans</strong>), který vzniká až ve chvíli, kdy si překlad sami vyžádáte.</li>
+              <li><strong>Analytické</strong> — Pomáhají nám pochopit, jak web používáte (které stránky navštěvujete nejčastěji, odkud přicházíte). Zajišťuje je nástroj <strong>PostHog</strong> a ukládají se výhradně po vašem souhlasu. Dokud souhlas nedáte, na PostHog se neodešle žádný požadavek.</li>
+              <li><strong>Marketingové</strong> — <strong>Žádné zatím nepoužíváme.</strong> Volbu níže si ukládáme dopředu, aby platila okamžitě, kdyby v budoucnu nějaký takový nástroj přibyl.</li>
             </ul>
+            <p>
+              Vaše údaje <strong>neprodáváme</strong> a nepředáváme je reklamním sítím ani provozovatelům sociálních sítí.
+            </p>
           </Section>
 
           <Section title="3. Správa souhlasu a nastavení preferencí">
@@ -117,9 +237,9 @@ export default function CookiesPage() {
               Zpracování technických cookies je nezbytné pro plnění smlouvy (uskutečnění nákupu) a je prováděno na základě oprávněného zájmu. Ostatní kategorie cookies zpracováváme pouze na základě vašeho <strong>dobrovolného souhlasu</strong>.
             </p>
             <p>
-              Své preference můžete kdykoliv bezplatně změnit a uložit přímo prostřednictvím níže přiloženého formuláře:
+              Své preference můžete kdykoliv bezplatně změnit a uložit přímo prostřednictvím níže přiloženého formuláře. Změna se projeví okamžitě — odvoláním souhlasu se měření zastaví a analytické údaje se z tohoto prohlížeče smažou.
             </p>
-            
+
             {/* ROZTAŽENÝ PANEL SE ZAŠKRTÁVÁTKY */}
             <div className="w-full border border-border bg-dark/20 rounded-xl p-6 mt-6 max-w-none">
               <h3 className="text-text-base font-bold text-base mb-4">
@@ -142,7 +262,7 @@ export default function CookiesPage() {
                 </div>
 
                 {/* Analytické */}
-                <label 
+                <label
                   htmlFor="page-analytics"
                   className="p-4 bg-dark/40 border border-border hover:border-border/80 rounded-xl flex items-start justify-between cursor-pointer transition-colors"
                 >
@@ -150,20 +270,20 @@ export default function CookiesPage() {
                     <BarChart3 size={18} className="text-text-muted mt-0.5 shrink-0" />
                     <div>
                       <span className="font-bold text-sm text-text-base block">Analytické cookies</span>
-                      <span className="text-text-muted text-xs block mt-1">Umožňují nám sledovat anonymní statistiky návštěvnosti a zlepšovat e-shop.</span>
+                      <span className="text-text-muted text-xs block mt-1">Umožňují nám sledovat anonymní statistiky návštěvnosti a zlepšovat e-shop (PostHog).</span>
                     </div>
                   </div>
                   <input
                     id="page-analytics"
                     type="checkbox"
                     checked={analytics}
-                    onChange={(e) => setAnalytics(e.target.checked)}
+                    onChange={(e) => { setAnalytics(e.target.checked); setSavedNote(null); }}
                     className="mt-1 h-4 w-4 rounded border-border bg-dark text-primary focus:ring-0 cursor-pointer accent-primary shrink-0"
                   />
                 </label>
 
                 {/* Marketingové */}
-                <label 
+                <label
                   htmlFor="page-marketing"
                   className="p-4 bg-dark/40 border border-border hover:border-border/80 rounded-xl flex items-start justify-between cursor-pointer transition-colors"
                 >
@@ -171,21 +291,21 @@ export default function CookiesPage() {
                     <Eye size={18} className="text-text-muted mt-0.5 shrink-0" />
                     <div>
                       <span className="font-bold text-sm text-text-base block">Marketingové cookies</span>
-                      <span className="text-text-muted text-xs block mt-1">Slouží k zobrazení relevantní reklamy a nabídek na sociálních sítích a partnerských webech.</span>
+                      <span className="text-text-muted text-xs block mt-1">Zatím žádné nepoužíváme — volba se uplatní, až nějaký takový nástroj nasadíme.</span>
                     </div>
                   </div>
                   <input
                     id="page-marketing"
                     type="checkbox"
                     checked={marketing}
-                    onChange={(e) => setMarketing(e.target.checked)}
+                    onChange={(e) => { setMarketing(e.target.checked); setSavedNote(null); }}
                     className="mt-1 h-4 w-4 rounded border-border bg-dark text-primary focus:ring-0 cursor-pointer accent-primary shrink-0"
                   />
                 </label>
               </div>
 
               {/* Tlačítka akcí */}
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAcceptAll}
                   className="flex-1 py-2.5 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white font-bold text-xs tracking-wide transition-colors cursor-pointer text-center"
@@ -198,20 +318,34 @@ export default function CookiesPage() {
                 >
                   Uložit mé preference
                 </button>
+                <button
+                  onClick={handleRevoke}
+                  className="flex-1 py-2.5 px-4 rounded-lg border border-border hover:border-text-muted text-text-muted font-medium text-xs tracking-wide transition-colors cursor-pointer text-center bg-transparent"
+                >
+                  Odvolat souhlas
+                </button>
               </div>
+
+              {savedNote && (
+                <p role="status" className="mt-4 inline-flex items-center gap-2 text-primary text-xs font-medium">
+                  <Check size={13} className="stroke-[3]" />
+                  {savedNote}
+                </p>
+              )}
             </div>
           </Section>
 
           {/* Tabulka cookies */}
           <Section title="4. Podrobný soupis ukládaných souborů">
-            <p className="mb-2">Níže naleznete přesný přehled cookies, které náš e-shop v prohlížeči ukládá:</p>
-            
+            <p className="mb-2">Níže naleznete přesný přehled toho, co náš e-shop v prohlížeči ukládá:</p>
+
             <div className="w-full border border-border rounded-xl overflow-hidden bg-dark/40 mt-2">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
                     <tr className="bg-dark/80 border-b border-border text-text-base font-bold">
                       <th className="p-4">Jméno</th>
+                      <th className="p-4">Úložiště</th>
                       <th className="p-4">Poskytovatel</th>
                       <th className="p-4">Účel</th>
                       <th className="p-4">Vypršení</th>
@@ -219,17 +353,18 @@ export default function CookiesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border text-text-muted">
-                    {cookieList.map((cookie, idx) => (
-                      <tr key={idx} className="hover:bg-dark/20 transition-colors">
-                        <td className="p-4 font-mono text-text-base whitespace-nowrap">{cookie.name}</td>
-                        <td className="p-4 whitespace-nowrap">{cookie.provider}</td>
-                        <td className="p-4 min-w-[220px] leading-relaxed">{cookie.purpose}</td>
-                        <td className="p-4 whitespace-nowrap">{cookie.expiry}</td>
+                    {storageList.map((item) => (
+                      <tr key={item.name} className="hover:bg-dark/20 transition-colors">
+                        <td className="p-4 font-mono text-text-base whitespace-nowrap">{item.name}</td>
+                        <td className="p-4 whitespace-nowrap">{item.storage}</td>
+                        <td className="p-4 whitespace-nowrap">{item.provider}</td>
+                        <td className="p-4 min-w-[220px] leading-relaxed">{item.purpose}</td>
+                        <td className="p-4 whitespace-nowrap">{item.expiry}</td>
                         <td className="p-4 whitespace-nowrap">
                           <span className={`inline-block px-2.5 py-0.5 rounded text-xs font-semibold ${
-                            cookie.type === "Nezbytné" ? "bg-primary/10 text-primary border border-primary/20" : "bg-border/40 text-text-muted"
+                            item.type === "Nezbytné" ? "bg-primary/10 text-primary border border-primary/20" : "bg-border/40 text-text-muted"
                           }`}>
-                            {cookie.type}
+                            {item.type}
                           </span>
                         </td>
                       </tr>

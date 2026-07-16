@@ -1,13 +1,12 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
+import { readGoogtransLang } from "@/lib/googleTranslate";
 
 type Locale = "cs" | "sk" | "en";
 
 function readLocale(): Locale {
-  if (typeof document === "undefined") return "cs";
-  const match = document.cookie.match(/googtrans=\/\w+\/(\w+)/);
-  const code = match?.[1];
+  const code = readGoogtransLang();
   if (code === "en" || code === "sk") return code;
   return "cs";
 }

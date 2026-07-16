@@ -10,6 +10,7 @@ import SearchBar from "./SearchBar";
 import { products, categories } from "@/lib/products";
 import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
+import { clearGoogtransCookie, loadGoogleTranslate, readGoogtransLang } from "@/lib/googleTranslate";
 import Logo from "@/components/Logo";
 
 const languages = [
@@ -25,19 +26,28 @@ const navRight = [
 ];
 
 function readLangFromCookie(): typeof languages[0] {
-  if (typeof document === "undefined") return languages[0];
-  const match = document.cookie.match(/googtrans=\/\w+\/(\w+)/);
-  if (!match) return languages[0];
-  return languages.find(l => l.gtCode === match[1]) ?? languages[0];
+  const code = readGoogtransLang();
+  if (!code) return languages[0];
+  return languages.find(l => l.gtCode === code) ?? languages[0];
 }
 
-function switchGoogleTranslate(langCode: string) {
+// Widget se objeví až chvíli po stažení skriptu — než se dole vyrobí <select>,
+// musíme počkat. Pokus je omezený (~10 s): když Google nedojede (blokovaný
+// skript, výpadek), nemá smysl zkoušet donekonečna na pozadí.
+const GT_SELECT_RETRY_MS = 500;
+const GT_SELECT_MAX_ATTEMPTS = 20;
+
+function switchGoogleTranslate(langCode: string, attempt = 0) {
   if (langCode === "cs") {
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=" + location.hostname;
+    clearGoogtransCookie();
     window.location.reload();
     return;
   }
+
+  // Až tady se skript z translate.google.com vůbec stáhne — návštěvník si
+  // překlad výslovně vyžádal kliknutím na jazyk.
+  loadGoogleTranslate();
+
   const select = document.querySelector<HTMLSelectElement>(
     ".goog-te-combo, #google_translate_element select"
   );
@@ -46,7 +56,8 @@ function switchGoogleTranslate(langCode: string) {
     select.dispatchEvent(new Event("change"));
     return;
   }
-  setTimeout(() => switchGoogleTranslate(langCode), 500);
+  if (attempt >= GT_SELECT_MAX_ATTEMPTS) return;
+  setTimeout(() => switchGoogleTranslate(langCode, attempt + 1), GT_SELECT_RETRY_MS);
 }
 
 export default function Header() {

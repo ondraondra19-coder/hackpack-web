@@ -179,10 +179,15 @@
     "ast_hash": "9381bebff539fca765a6ddabb0b91c8d",
     "semantic_hash": "9381bebff539fca765a6ddabb0b91c8d"
   },
+  "app/cookies/Resetconsentbutton.tsx": {
+    "mtime": 1783844019.6637218,
+    "ast_hash": "b9c4ae14bde77163aaaa25d6c1c0b0c9",
+    "semantic_hash": "b9c4ae14bde77163aaaa25d6c1c0b0c9"
+  },
   "app/cookies/page.tsx": {
-    "mtime": 1784202837.0824232,
-    "ast_hash": "55c188b6413b15db575dbf9eb34b474f",
-    "semantic_hash": ""
+    "mtime": 1783852201.5826764,
+    "ast_hash": "7749c7264c0f53625b1e831e691558a5",
+    "semantic_hash": "7749c7264c0f53625b1e831e691558a5"
   },
   "app/doprava/page.tsx": {
     "mtime": 1783985495.2930152,
@@ -215,9 +220,9 @@
     "semantic_hash": ""
   },
   "app/layout.tsx": {
-    "mtime": 1784202837.0904453,
-    "ast_hash": "552f00454b9d3a70d4461a5307a6f8fc",
-    "semantic_hash": ""
+    "mtime": 1783850858.7026572,
+    "ast_hash": "6ebc4605033b56225e23aef27ac54584",
+    "semantic_hash": "6ebc4605033b56225e23aef27ac54584"
   },
   "app/napsat-recenzi/page.tsx": {
     "mtime": 1783844050.8722034,
@@ -280,9 +285,9 @@
     "semantic_hash": "126ee26014d48be757e6c9c887272eea"
   },
   "components/CookieBanner.tsx": {
-    "mtime": 1784202837.1004455,
-    "ast_hash": "2bb8bd8a4f9ab891e0a6a568cac2bb49",
-    "semantic_hash": ""
+    "mtime": 1783853438.7242062,
+    "ast_hash": "251e568a6a84e5e766a1b30003cea6ca",
+    "semantic_hash": "251e568a6a84e5e766a1b30003cea6ca"
   },
   "components/DiscountWidget.tsx": {
     "mtime": 1784037061.8064327,
@@ -300,8 +305,8 @@
     "semantic_hash": ""
   },
   "components/Header.tsx": {
-    "mtime": 1784202837.1084807,
-    "ast_hash": "9d160b22b0e57151d133a33a66de8836",
+    "mtime": 1783858900.7545257,
+    "ast_hash": "642f3aba19c018cfee8825fd486f0f8b",
     "semantic_hash": ""
   },
   "components/HomeSlider.tsx": {
@@ -330,8 +335,8 @@
     "semantic_hash": "da261c81505ca4eada24c21d54830478"
   },
   "components/PostHogProvider.tsx": {
-    "mtime": 1784202837.1176794,
-    "ast_hash": "2a0934f4ca4f598933388f1087cf83db",
+    "mtime": 1784069296.93577,
+    "ast_hash": "16de9db6df940ce7678268ad8f2f4316",
     "semantic_hash": ""
   },
   "components/ProduktClient.tsx": {
@@ -380,9 +385,9 @@
     "semantic_hash": "41cd250eda32dba67a8199a59bee1b38"
   },
   "lib/LangContext.tsx": {
-    "mtime": 1784202837.12369,
-    "ast_hash": "46526a45775a2d6d6cfa63eb69f3522a",
-    "semantic_hash": ""
+    "mtime": 1776808187.367,
+    "ast_hash": "6d49412f83c15d6e89cb47762a326722",
+    "semantic_hash": "6d49412f83c15d6e89cb47762a326722"
   },
   "lib/accounts.ts": {
     "mtime": 1783282438.754909,
@@ -1042,21 +1047,6 @@
   "lib/featureFlags.ts": {
     "mtime": 1784129494.6911266,
     "ast_hash": "62becc7c7ae68434f1c0308d821bb5e4",
-    "semantic_hash": ""
-  },
-  "components/GoogleTranslate.tsx": {
-    "mtime": 1784202837.222339,
-    "ast_hash": "b3f0f956b9ab63b79ceb39b9e7ceb205",
-    "semantic_hash": ""
-  },
-  "lib/consent.ts": {
-    "mtime": 1784202837.2451115,
-    "ast_hash": "4c1db0db262adcd2ea0ee3cea8815752",
-    "semantic_hash": ""
-  },
-  "lib/googleTranslate.ts": {
-    "mtime": 1784202837.2519574,
-    "ast_hash": "718e29d6e07cfbff155e1782cf7277e7",
     "semantic_hash": ""
   }
 }

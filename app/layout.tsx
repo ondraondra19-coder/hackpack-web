@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next"; // Přidán import Viewport
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart";
 import { CurrencyProvider } from "@/lib/CurrencyContext";
 import ChatWidget from "@/components/ChatWidget";
 import CookieBanner from "@/components/CookieBanner";
 import PostHogProvider from "@/components/PostHogProvider";
+import GoogleTranslate from "@/components/GoogleTranslate";
 import { LangProvider } from "@/lib/LangContext";
 
 const geistSans = Geist({
@@ -58,29 +58,9 @@ export default function RootLayout({
         <CookieBanner />
         <PostHogProvider />
 
-        {/* Google Translate — skrytý widget, ovládaný z Headeru */}
-        <div id="google_translate_element" className="hidden" />
-
-        <Script id="gt-init" strategy="afterInteractive">{`
-          function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-              pageLanguage: 'cs',
-              includedLanguages: 'cs,sk,en',
-              autoDisplay: false,
-            }, 'google_translate_element');
-          }
-        `}</Script>
-        <Script
-          src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-          strategy="afterInteractive"
-        />
-
-        {/* Skryj Google Translate lištu nahoře a tooltipy */}
-        <style>{`
-          .goog-te-banner-frame, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
-          body { top: 0 !important; }
-          .skiptranslate { display: none !important; }
-        `}</style>
+        {/* Google Translate — skrytý widget, ovládaný z Headeru. Skript se
+            načte až když si návštěvník sám zvolí jazyk (viz lib/googleTranslate.ts). */}
+        <GoogleTranslate />
       </body>
     </html>
   );

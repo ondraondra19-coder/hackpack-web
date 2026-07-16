@@ -1,61 +1,42 @@
 "use client";
 
+// components/CookieBanner.tsx
+// Lišta se souhlasem. Čtení/zápis volby řeší lib/consent.ts — tady je jen UI.
+//
+// "Odmítnout vše" musí zůstat stejně dostupné jako "Povolit vše" (jeden klik,
+// stejná úroveň): souhlas, který jde dát snadněji než odmítnout, není podle
+// GDPR svobodný. Nedávejte odmítnutí do modálu ani ho neschovávejte do odkazu.
 import { useState, useEffect } from "react";
 import { ChevronRight, X } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-
-const STORAGE_KEY = "hackpack-cookie-consent";
-const SESSION_KEY = "hackpack-cookie-visited-details";
-
-export function getConsent(): "accepted" | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return (localStorage.getItem(STORAGE_KEY) as "accepted") ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export const CONSENT_CHANGED_EVENT = "hackpack-consent-changed";
-
-/** True, pokud uživatel povolil analytické cookies (buď "Povolit vše", nebo vlastní výběr). */
-export function hasAnalyticsConsent(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    if (raw === "accepted") return true;
-    const parsed = JSON.parse(raw);
-    return parsed?.analytics === true;
-  } catch {
-    return false;
-  }
-}
+import {
+  acceptAll,
+  hasDecided,
+  hasVisitedDetails as readVisitedDetails,
+  markDetailsVisited,
+  rejectAll,
+  saveConsent,
+} from "@/lib/consent";
 
 export default function CookieBanner() {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   type State = "idle" | "blocking" | "visible" | "leaving" | "gone";
   const [state, setState] = useState<State>("idle");
-  
+
   const [hasVisitedDetails, setHasVisitedDetails] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
   const [marketingAllowed, setMarketingAllowed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const visited = sessionStorage.getItem(SESSION_KEY);
-      if (visited === "true") {
-        setHasVisitedDetails(true);
-      }
+    if (readVisitedDetails()) {
+      setHasVisitedDetails(true);
     }
 
     if (pathname === "/cookies") {
-      try {
-        sessionStorage.setItem(SESSION_KEY, "true");
-      } catch {}
+      markDetailsVisited();
       setHasVisitedDetails(true);
       setState("gone");
       return;
@@ -67,7 +48,7 @@ export default function CookieBanner() {
       return;
     }
 
-    if (getConsent()) {
+    if (hasDecided()) {
       setState("gone");
       return;
     }
@@ -76,30 +57,25 @@ export default function CookieBanner() {
     return () => clearTimeout(t);
   }, [pathname]);
 
-  function accept() {
-    try {
-      localStorage.setItem(STORAGE_KEY, "accepted");
-      sessionStorage.removeItem(SESSION_KEY);
-      window.dispatchEvent(new Event(CONSENT_CHANGED_EVENT));
-    } catch {}
+  function dismiss() {
+    setIsModalOpen(false);
     setState("leaving");
     setTimeout(() => setState("gone"), 500);
   }
 
-  function saveCustomSettings() {
-    try {
-      const customConsent = {
-        essential: true,
-        analytics: analyticsAllowed,
-        marketing: marketingAllowed
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customConsent));
-      sessionStorage.removeItem(SESSION_KEY);
-      window.dispatchEvent(new Event(CONSENT_CHANGED_EVENT));
-    } catch {}
-    setIsModalOpen(false);
-    setState("leaving");
-    setTimeout(() => setState("gone"), 500);
+  function handleAcceptAll() {
+    acceptAll();
+    dismiss();
+  }
+
+  function handleRejectAll() {
+    rejectAll();
+    dismiss();
+  }
+
+  function handleSaveCustom() {
+    saveConsent({ analytics: analyticsAllowed, marketing: marketingAllowed });
+    dismiss();
   }
 
   if (state === "idle" || state === "gone") return null;
@@ -120,13 +96,13 @@ export default function CookieBanner() {
             ? "opacity-0 pointer-events-auto"
             : "opacity-100"
         } ${
-          hasVisitedDetails 
-            ? "pointer-events-none" 
+          hasVisitedDetails
+            ? "pointer-events-none"
             : "pointer-events-auto"
         }`}
-        style={{ 
-          background: hasVisitedDetails ? "rgba(0,0,0,0)" : "rgba(0,0,0,0.6)", 
-          backdropFilter: hasVisitedDetails ? "none" : "blur(4px)" 
+        style={{
+          background: hasVisitedDetails ? "rgba(0,0,0,0)" : "rgba(0,0,0,0.6)",
+          backdropFilter: hasVisitedDetails ? "none" : "blur(4px)"
         }}
       />
 
@@ -146,14 +122,14 @@ export default function CookieBanner() {
         }`}
       >
         {/* DYNAMICKÉ TĚLO BANNERU */}
-        <div 
+        <div
           className={`bg-[#121212] shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between transition-all duration-300 ${
             hasVisitedDetails
-              ? "border-t border-white/10 w-full p-4 md:py-4 md:px-8 gap-4 md:gap-8 rounded-none" 
-              : "border border-white/5 rounded-2xl p-6 md:p-8 gap-6 md:gap-12" 
+              ? "border-t border-white/10 w-full p-4 md:py-4 md:px-8 gap-4 md:gap-8 rounded-none"
+              : "border border-white/5 rounded-2xl p-6 md:p-8 gap-6 md:gap-12"
           }`}
         >
-          
+
           {/* Levá textová část */}
           <div className={`flex-1 min-w-0 flex flex-col justify-between h-full ${hasVisitedDetails ? "md:flex-row md:items-center gap-2 md:gap-6" : ""}`}>
             <div>
@@ -161,15 +137,15 @@ export default function CookieBanner() {
                 Tato webová stránka používá cookies
               </h2>
               <p className={`text-[#a3a3a3] leading-relaxed ${hasVisitedDetails ? "text-[11px] md:text-xs max-w-5xl" : "text-xs md:text-sm max-w-4xl"}`}>
-                K personalizaci obsahu a reklam, poskytování funkcí sociálních médií a analýze naší návštěvnosti využíváme soubory cookie. 
-                Informace o tom, jak náš web používáte, sdílíme se svými partnery pro sociální média, inzerci a analýzy.
-                {!hasVisitedDetails && " Partneři tyto údaje mohou zkombinovat s dalšími informacemi, které jste jim poskytli nebo které získali v důsledku toho, že používáte jejich služby."}
+                Technické cookies potřebujeme k fungování košíku a pokladny — ty nejdou vypnout.
+                Analytické cookies používáme jen s vaším souhlasem k měření návštěvnosti v nástroji PostHog.
+                {!hasVisitedDetails && " Data neprodáváme ani nepředáváme reklamním sítím a bez souhlasu se na PostHog neodešle nic."}
               </p>
             </div>
-            
+
             {/* Odkaz Zobrazit detaily */}
             <div className={`shrink-0 ${hasVisitedDetails ? "mt-1 md:mt-0" : "mt-4 md:mt-6"}`}>
-              <button 
+              <button
                 onClick={() => router.push('/cookies')}
                 className={`text-primary hover:text-primary/80 font-medium inline-flex items-center transition-colors duration-200 bg-transparent border-none p-0 cursor-pointer whitespace-nowrap ${
                   hasVisitedDetails ? "text-xs gap-1" : "text-xs md:text-sm gap-1.5"
@@ -181,32 +157,43 @@ export default function CookieBanner() {
             </div>
           </div>
 
-          {/* Pravá tlačítková část — správné pořadí tlačítek */}
+          {/* Pravá tlačítková část */}
           <div className={`shrink-0 flex items-center ${
-            hasVisitedDetails 
-              ? "flex-row gap-3 w-full md:w-auto justify-end" 
-              : "flex-col gap-3 w-full md:w-auto min-w-[200px]" 
+            hasVisitedDetails
+              ? "flex-row gap-2 w-full md:w-auto justify-end"
+              : "flex-col gap-3 w-full md:w-auto min-w-[200px]"
           }`}>
-            
-            {/* Tlačítko Povolit vše — nyní je na prvním místě */}
+
             <button
-              onClick={accept}
+              onClick={handleAcceptAll}
               className={`bg-primary hover:bg-primary/80 text-black font-bold tracking-wide transition-colors duration-200 cursor-pointer text-center whitespace-nowrap ${
                 hasVisitedDetails
-                  ? "flex-1 md:flex-none py-2 px-5 rounded-lg text-xs" 
-                  : "w-full md:w-48 py-3 px-6 rounded-xl text-sm" 
+                  ? "flex-1 md:flex-none py-2 px-5 rounded-lg text-xs"
+                  : "w-full md:w-48 py-3 px-6 rounded-xl text-sm"
               }`}
             >
               Povolit vše
             </button>
 
-            {/* Tlačítko Upravit */}
-            <button 
+            {/* Odmítnutí musí být stejně snadné jako souhlas — proto tlačítko
+                hned vedle, ne až v modálu za "Upravit". */}
+            <button
+              onClick={handleRejectAll}
+              className={`font-bold tracking-wide transition-colors duration-200 cursor-pointer whitespace-nowrap border-white/25 hover:bg-white/10 text-white flex items-center justify-center ${
+                hasVisitedDetails
+                  ? "flex-1 md:flex-none py-2 px-4 rounded-lg border text-xs"
+                  : "w-full md:w-48 py-3 px-6 rounded-xl border-2 text-sm"
+              }`}
+            >
+              Odmítnout vše
+            </button>
+
+            <button
               onClick={() => setIsModalOpen(true)}
               className={`font-bold tracking-wide transition-colors duration-200 cursor-pointer whitespace-nowrap border-primary hover:bg-primary/10 text-white flex items-center justify-center ${
                 hasVisitedDetails
-                  ? "flex-1 md:flex-none py-2 px-4 rounded-lg border text-xs" 
-                  : "w-full md:w-48 py-3 px-6 rounded-xl border-2 text-sm gap-1" 
+                  ? "flex-1 md:flex-none py-2 px-4 rounded-lg border text-xs"
+                  : "w-full md:w-48 py-3 px-6 rounded-xl border-2 text-sm gap-1"
               }`}
             >
               <span>Upravit</span>
@@ -221,10 +208,11 @@ export default function CookieBanner() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[300] backdrop-blur-md">
           <div className="bg-[#121212] border border-white/5 text-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            
-            <button 
+
+            <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-[#a3a3a3] hover:text-white transition-colors"
+              aria-label="Zavřít nastavení cookies"
             >
               <X size={20} />
             </button>
@@ -253,7 +241,7 @@ export default function CookieBanner() {
               <div className="flex items-start justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
                 <div className="pr-4">
                   <label htmlFor="modal-analytics" className="font-bold text-xs block text-white cursor-pointer">Analytické cookies</label>
-                  <span className="text-[#a3a3a3] text-[11px] block mt-0.5">Pomáhají nám analyzovat návštěvnost e-shopu.</span>
+                  <span className="text-[#a3a3a3] text-[11px] block mt-0.5">Pomáhají nám analyzovat návštěvnost e-shopu (PostHog).</span>
                 </div>
                 <input
                   id="modal-analytics"
@@ -267,7 +255,7 @@ export default function CookieBanner() {
               <div className="flex items-start justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
                 <div className="pr-4">
                   <label htmlFor="modal-marketing" className="font-bold text-xs block text-white cursor-pointer">Marketingové cookies</label>
-                  <span className="text-[#a3a3a3] text-[11px] block mt-0.5">Umožňují nám zobrazovat vám relevantní reklamu.</span>
+                  <span className="text-[#a3a3a3] text-[11px] block mt-0.5">Zatím žádné nepoužíváme — volba se uplatní, až nějaké nasadíme.</span>
                 </div>
                 <input
                   id="modal-marketing"
@@ -281,7 +269,7 @@ export default function CookieBanner() {
 
             <div className="flex justify-end pt-1">
               <button
-                onClick={saveCustomSettings}
+                onClick={handleSaveCustom}
                 className="w-full sm:w-auto py-2 px-5 rounded-lg bg-primary hover:bg-primary/80 text-black font-bold text-xs tracking-wide transition-colors duration-200 cursor-pointer text-center"
               >
                 Uložit výběr
