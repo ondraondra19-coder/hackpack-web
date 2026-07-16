@@ -60,15 +60,34 @@ const trustItems = [
 function Newsletter() {
   const [email,     setEmail]     = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [error,     setError]     = useState(false);
+  const [error,     setError]     = useState<string | null>(null);
+  const [loading,   setLoading]   = useState(false);
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    if (loading) return;
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError(true);
+      setError("Zadejte platný e-mail");
       return;
     }
-    setError(false);
-    setSubmitted(true);
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Přihlášení se nezdařilo. Zkuste to prosím znovu.");
+      }
+    } catch {
+      setError("Přihlášení se nezdařilo. Zkontrolujte připojení.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -99,25 +118,27 @@ function Newsletter() {
                   <input
                     type="email"
                     value={email}
-                    onChange={e => { setEmail(e.target.value); setError(false); }}
+                    onChange={e => { setEmail(e.target.value); setError(null); }}
                     onKeyDown={e => e.key === "Enter" && handleSubmit()}
+                    disabled={loading}
                     placeholder="váš@email.cz"
-                    className={`w-full sm:w-64 bg-white/6 border rounded-full px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-primary/60 transition-colors ${
+                    className={`w-full sm:w-64 bg-white/6 border rounded-full px-4 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:border-primary/60 transition-colors disabled:opacity-60 ${
                       error ? "border-red-500/60" : "border-white/12"
                     }`}
                   />
                   {error && (
                     <p className="absolute -bottom-5 left-4 text-red-400 text-[10px]">
-                      Zadejte platný e-mail
+                      {error}
                     </p>
                   )}
                 </div>
                 <button
                   onClick={handleSubmit}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary text-dark font-bold text-sm hover:brightness-105 active:scale-[0.98] transition-all shrink-0 w-full sm:w-auto"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-primary text-dark font-bold text-sm hover:brightness-105 active:scale-[0.98] transition-all shrink-0 w-full sm:w-auto disabled:opacity-70 disabled:active:scale-100"
                 >
-                  <span>Odebírat</span>
-                  <ArrowRight size={14} />
+                  <span>{loading ? "Odesílám…" : "Odebírat"}</span>
+                  {!loading && <ArrowRight size={14} />}
                 </button>
               </div>
             )}

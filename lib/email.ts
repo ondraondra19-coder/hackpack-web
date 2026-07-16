@@ -32,7 +32,9 @@ function esc(value: unknown): string {
 
 let client: Resend | null = null;
 
-function getResendClient(): Resend | null {
+// Exportováno i pro lib/newsletter.ts (přidávání kontaktů do Audience), ať
+// existuje jen jedna inicializace Resend klienta.
+export function getResendClient(): Resend | null {
   const key = process.env.RESEND_API_KEY;
   if (!key) {
     console.error("❌ RESEND_API_KEY chybí — e-mail se neodešle.");

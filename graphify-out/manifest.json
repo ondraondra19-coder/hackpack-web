@@ -295,8 +295,8 @@
     "semantic_hash": "967cbdf6e5ff311349fb113621a102bc"
   },
   "components/Footer.tsx": {
-    "mtime": 1783858910.8446238,
-    "ast_hash": "c4feef3b1e823bdf18ee789c0fd6cd8b",
+    "mtime": 1784205083.555601,
+    "ast_hash": "7c1d83238e7adcb8c6ab5dd1b00876cf",
     "semantic_hash": ""
   },
   "components/Header.tsx": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "lib/email.ts": {
-    "mtime": 1784203881.824906,
-    "ast_hash": "50cf384089b27be420d54c652c32d1b1",
+    "mtime": 1784205022.6372726,
+    "ast_hash": "2fe34c762e5757763ff2ca184256dd40",
     "semantic_hash": ""
   },
   "lib/analytics.ts": {
@@ -1062,6 +1062,16 @@
   "lib/clientIp.ts": {
     "mtime": 1784203926.887739,
     "ast_hash": "fdf1fc99f61f88271489fdd4508193a8",
+    "semantic_hash": ""
+  },
+  "app/api/newsletter/route.ts": {
+    "mtime": 1784205052.62135,
+    "ast_hash": "854d1542b1db20f167f171286457f125",
+    "semantic_hash": ""
+  },
+  "lib/newsletter.ts": {
+    "mtime": 1784205038.0484862,
+    "ast_hash": "32dfdb6ce3de5074f9aeab82e298d848",
     "semantic_hash": ""
   }
 }
