@@ -5,13 +5,13 @@
     "semantic_hash": ""
   },
   "app/admin/AccountsAdminPanel.tsx": {
-    "mtime": 1784037061.7611918,
-    "ast_hash": "3c1d73e0e29085cf78843d6fb8a7f4f2",
+    "mtime": 1784208274.6328125,
+    "ast_hash": "fdb958d9dca214943be3fe3e9776f1a0",
     "semantic_hash": ""
   },
   "app/admin/AdminDashboard.tsx": {
-    "mtime": 1784037061.7689588,
-    "ast_hash": "4cb0185cc3d7e272eeb3e97b5ebb7838",
+    "mtime": 1784208421.3052285,
+    "ast_hash": "23b23c86bcedf509b00ade571ccc8622",
     "semantic_hash": ""
   },
   "app/admin/AnalyticsPanel.tsx": {
@@ -435,8 +435,8 @@
     "semantic_hash": "3cfaedc372712f1d159e48608891c043"
   },
   "lib/permissions.ts": {
-    "mtime": 1784037061.8282387,
-    "ast_hash": "ad19242b9a2a565db0b24981055e7fa4",
+    "mtime": 1784208269.5808716,
+    "ast_hash": "6d85bfe8be1171e0eed446701c9d471c",
     "semantic_hash": ""
   },
   "lib/posthog-query.ts": {
@@ -1020,8 +1020,8 @@
     "semantic_hash": ""
   },
   "lib/email.ts": {
-    "mtime": 1784206416.6033335,
-    "ast_hash": "50cf384089b27be420d54c652c32d1b1",
+    "mtime": 1784208286.9458296,
+    "ast_hash": "42674b9e3a3a2a5a394dc00d10d4099c",
     "semantic_hash": ""
   },
   "lib/analytics.ts": {
@@ -1070,8 +1070,23 @@
     "semantic_hash": ""
   },
   "lib/newsletter.ts": {
-    "mtime": 1784206431.370174,
-    "ast_hash": "eb541abccbcccdf47e2960d16c10cd33",
+    "mtime": 1784208295.700963,
+    "ast_hash": "44c219f89f25ffe3f853e04c9a6314be",
+    "semantic_hash": ""
+  },
+  "app/admin/CampaignsPanel.tsx": {
+    "mtime": 1784208389.2444534,
+    "ast_hash": "9a186245767f16d85c265e788b878a2d",
+    "semantic_hash": ""
+  },
+  "app/api/admin/campaigns/route.ts": {
+    "mtime": 1784208346.4775746,
+    "ast_hash": "d22f222c1ece8eb085025c74d17edec2",
+    "semantic_hash": ""
+  },
+  "lib/campaigns.ts": {
+    "mtime": 1784208332.0500574,
+    "ast_hash": "06cd4abd2389360656e943f66f76d54f",
     "semantic_hash": ""
   }
 }

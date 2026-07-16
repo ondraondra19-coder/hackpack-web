@@ -19,7 +19,9 @@ const MAX_EMAIL_LENGTH = 150;
 // není nastavené, spadneme na RESEND_API_KEY (ten pak ale musí být full access).
 let contactsClient: Resend | null = null;
 
-function getContactsClient(): Resend | null {
+// Exportováno i pro lib/campaigns.ts (Broadcasts API vyžaduje stejný
+// full-access klíč jako přidávání kontaktů).
+export function getContactsClient(): Resend | null {
   const key = process.env.RESEND_CONTACTS_API_KEY ?? process.env.RESEND_API_KEY;
   if (!key) {
     console.error("❌ Chybí RESEND_CONTACTS_API_KEY i RESEND_API_KEY — kontakt se neuloží.");

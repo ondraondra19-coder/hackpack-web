@@ -199,6 +199,37 @@ function sellerBlock(): string {
     </div>`;
 }
 
+// ── Marketingová kampaň (newsletter) ────────────────────────────────────────
+// Tělo píše admin jako prostý text (viz CampaignsPanel). Převedeme ho na HTML
+// odstavce a VŠECHNO escapujeme přes esc() — do těla se nesmí dostat žádné
+// vlastní HTML, i když ho admin do textu napíše. Prázdný řádek = nový odstavec,
+// jednoduchý zlom řádku = <br />.
+function campaignBodyToHtml(body: string): string {
+  return body
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((para) => para.trim())
+    .filter(Boolean)
+    .map((para) => p(esc(para).replace(/\n/g, "<br />")))
+    .join("");
+}
+
+export function renderCampaignEmail(params: {
+  subject: string;
+  previewText?: string;
+  body: string;
+}): { subject: string; html: string } {
+  const { subject, previewText, body } = params;
+  const html = layout(
+    previewText?.trim() || subject,
+    `
+    ${h1(esc(subject))}
+    ${campaignBodyToHtml(body)}
+    `,
+  );
+  return { subject, html };
+}
+
 // ── 1) Potvrzení objednávky ─────────────────────────────────────────────────
 
 async function bankTransferBlock(order: Order): Promise<{ html: string; attachment?: Attachment }> {

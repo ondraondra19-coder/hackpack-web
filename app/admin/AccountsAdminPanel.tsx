@@ -12,6 +12,7 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   settings: "Magazín",
   analytics: "Analytika",
   discounts: "Slevové kódy",
+  campaigns: "Kampaně",
 };
 
 type AccountsAdminPanelProps = {

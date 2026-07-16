@@ -16,12 +16,13 @@ import DiscountsAdminPanel from './DiscountsAdminPanel';
 import ProductsAdminList from './ProductsAdminList';
 import MessagesAdminList from './MessagesAdminList';
 import AnalyticsPanel from './AnalyticsPanel';
+import CampaignsPanel from './CampaignsPanel';
 import OrdersAdminList from './OrdersAdminList';
 import MagazinAdminList from './MagazinAdminList';
 import DashboardHome from './DashboardHome';
 import AdminSearch from './AdminSearch';
 
-export type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'discounts' | 'accounts';
+export type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'discounts' | 'campaigns' | 'accounts';
 
 function getInitials(name: string): string {
   return name
@@ -164,6 +165,14 @@ export default function AdminDashboard({
       visible: hasPermission('discounts'),
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z" /></svg>
+      ),
+    },
+    {
+      id: 'campaigns',
+      label: 'Kampaně',
+      visible: hasPermission('campaigns'),
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" /></svg>
       ),
     },
     {
@@ -345,7 +354,7 @@ export default function AdminDashboard({
 
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 min-h-[400px] flex flex-col justify-between shadow-sm relative overflow-hidden">
 
-              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'discounts' || activeTab === 'messages' ? 'w-full' : undefined}>
+              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'discounts' || activeTab === 'messages' || activeTab === 'campaigns' ? 'w-full' : undefined}>
                 {activeTab === 'dashboard' && (
                   <DashboardHome
                     products={products}
@@ -410,6 +419,13 @@ export default function AdminDashboard({
                       minimem objednávky a datem platnosti.
                     </p>
                     <DiscountsAdminPanel discounts={discounts} onChange={setDiscounts} />
+                  </div>
+                )}
+
+                {activeTab === 'campaigns' && hasPermission('campaigns') && (
+                  <div className="space-y-4">
+                    <h3 className="text-base font-bold text-[#0f0f10]">Kampaně</h3>
+                    <CampaignsPanel />
                   </div>
                 )}
 

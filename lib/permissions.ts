@@ -11,6 +11,7 @@ export const GRANTABLE_PERMISSIONS = [
   "settings",
   "analytics",
   "discounts",
+  "campaigns",
 ] as const;
 
 export type Permission = (typeof GRANTABLE_PERMISSIONS)[number];
