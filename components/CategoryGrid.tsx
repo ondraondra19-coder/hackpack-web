@@ -1,5 +1,7 @@
-"use client";
-
+// Serverová komponenta — žádný "use client". Nejsou tu hooky ani handlery,
+// jen statické bloky, takže do prohlížeče nemusí odejít žádný JS.
+// Nepřidávej sem "use client" kvůli ikoně ani kvůli next/image — obojí
+// v serverové komponentě funguje.
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
 
