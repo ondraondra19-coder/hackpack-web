@@ -1,7 +1,12 @@
 // lib/messages.ts
-// Zprávy odeslané z chat widgetu na e-shopu — uložené v Upstash Redis,
-// viditelné jen v adminu (stejný vzor jako lib/reviews.ts).
+// Zprávy odeslané z chat widgetu a z formuláře na /kontakt — uložené v Upstash
+// Redis, viditelné jen v adminu (stejný vzor jako lib/reviews.ts).
 import { getRedis } from "./redis";
+
+// Odkud zpráva přišla. Volitelné kvůli zpětné kompatibilitě: záznamy uložené
+// dřív, než formulář na /kontakt začal posílat doopravdy, žádný `source`
+// nemají — čtou se jako "chat", protože tehdy jiný zdroj neexistoval.
+export type MessageSource = "chat" | "kontakt";
 
 export type Message = {
   id: string;
@@ -10,12 +15,14 @@ export type Message = {
   text: string;
   date: string; // ISO string, formátování na klientu
   read: boolean;
+  source?: MessageSource;
 };
 
 export type NewMessageInput = {
   name: string;
   email: string;
   text: string;
+  source?: MessageSource;
 };
 
 const LIST_KEY = "messages:list";
@@ -55,6 +62,7 @@ export async function addMessage(input: NewMessageInput): Promise<Message> {
     text: input.text.trim(),
     date: new Date().toISOString(),
     read: false,
+    source: input.source ?? "chat",
   };
 
   await redis.lpush(LIST_KEY, JSON.stringify(message));

@@ -1,6 +1,6 @@
 // app/api/stock/route.ts
-// Read-only endpoint — vrací aktuální sklad ze Sheets pro daný produkt.
-// Žádný Redis, žádné rezervace.
+// Read-only endpoint — vrací aktuální sklad pro daný produkt z Upstash Redis
+// (viz lib/stock.ts). Žádné rezervace.
 import { NextResponse } from "next/server";
 import { getProductStock } from "@/lib/stock";
 

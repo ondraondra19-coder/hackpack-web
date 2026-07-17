@@ -8,6 +8,7 @@ export const GRANTABLE_PERMISSIONS = [
   "products",
   "reviews",
   "messages",
+  "claims",
   "settings",
   "analytics",
   "discounts",

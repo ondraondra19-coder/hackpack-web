@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { ShoppingCart, Check, ChevronRight, Package, RefreshCw, ShieldCheck, ChevronLeft, Bell, Play, X } from "lucide-react";
 import type { Product, ModelColor, ModelColorLayered } from "@/lib/products";
-import { useCart } from "@/lib/cart";
+import { useCart, type PriceRaw } from "@/lib/cart";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice, CURRENCIES } from "@/lib/currency";
 import { useStockPolling } from "@/lib/useStockPolling";
@@ -175,8 +176,19 @@ function Gallery({
   const [active, setActive] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Při výměně galerie (jiná barva/model) se vracíme na první snímek. Dřív to
+  // dělal useEffect, jenže ten běží až PO renderu: jeden snímek se stihl
+  // vykreslit se starým indexem proti novým položkám. Mezi vrstveným a
+  // nevrstveným modelem se navíc mění i POČET položek (viz galleryItems), takže
+  // index mohl ukázat mimo pole a hlavní obrázek na jeden render zmizel.
+  // Úprava stavu přímo v renderu je na tohle doporučený postup Reactu —
+  // komponenta se přepočítá hned, bez commitu mezikroku.
   const itemKey = items.map(i => i.src).join("|");
-  useEffect(() => { setActive(0); }, [itemKey]);
+  const [prevItemKey, setPrevItemKey] = useState(itemKey);
+  if (itemKey !== prevItemKey) {
+    setPrevItemKey(itemKey);
+    setActive(0);
+  }
 
   const current = items[active];
 
@@ -340,10 +352,59 @@ function AddedModal({ productName, productImg, onClose }: {
 
 // ── Notify modal ──────────────────────────────────────────────────────────────
 
-function NotifyModal({ onClose }: { onClose: () => void }) {
+function NotifyModal({
+  onClose,
+  slug,
+  stockKeys,
+}: {
+  onClose: () => void;
+  slug: string;
+  stockKeys: string | string[];
+}) {
   const t = useT("product");
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canSubmit = !!email.trim() && !sending;
+
+  // API vrací kód, ne hotovou větu — text vybíráme tady podle jazyka. Neznámý
+  // kód spadne na obecné "nepovedlo se", ať nikdy neukážeme "product.neco".
+  function messageForCode(code: unknown): string {
+    switch (code) {
+      case "invalid_email":   return t("notifyErrorInvalidEmail");
+      case "invalid_product": return t("notifyErrorFailed");
+      case "rate_limited":    return t("notifyErrorRateLimited");
+      default:                return t("notifyErrorFailed");
+    }
+  }
+
+  async function handleSubmit() {
+    if (!canSubmit) return;
+
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/stock/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), slug, stockKeys }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(messageForCode(data?.code));
+      }
+
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("notifyErrorFailed"));
+    } finally {
+      setSending(false);
+    }
+  }
 
   return (
     <div
@@ -396,24 +457,28 @@ function NotifyModal({ onClose }: { onClose: () => void }) {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter" && email.trim()) setSent(true); }}
+                onChange={e => { setEmail(e.target.value); setError(null); }}
+                onKeyDown={e => { if (e.key === "Enter") handleSubmit(); }}
                 placeholder={t("emailPlaceholder")}
                 aria-label={t("emailLabel")}
                 autoComplete="email"
                 autoFocus
-                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/50 transition-colors bg-surface"
+                disabled={sending}
+                className="w-full border border-border rounded-xl px-4 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/50 transition-colors bg-surface disabled:opacity-60"
               />
+              {error && (
+                <p role="alert" className="text-red-500 text-xs -mt-1">{error}</p>
+              )}
               <button
-                onClick={() => { if (email.trim()) setSent(true); }}
-                disabled={!email.trim()}
+                onClick={handleSubmit}
+                disabled={!canSubmit}
                 className={`w-full py-3 rounded-xl font-semibold text-sm transition-all ${
-                  !email.trim()
+                  !canSubmit
                     ? "bg-border text-text-subtle cursor-not-allowed"
                     : "bg-primary text-on-primary hover:brightness-105"
                 }`}
               >
-                {t("remind")}
+                {sending ? t("notifySending") : t("remind")}
               </button>
             </div>
           )}
@@ -439,7 +504,6 @@ export default function ProduktClient({
   const t  = useT("product");
   const tv = useT("variants");
   const { locale } = useLang();
-  const productAny = product as any;
 
   const productName = getProductName(product, locale);
   const breadcrumbCategory = (() => {
@@ -450,11 +514,11 @@ export default function ProduktClient({
   // Popisky voleb chodí z katalogu česky ("Tmavě modrá"). Klíčem k překladu je
   // syrová hodnota ("darkblue") — viz lib/variantLabels.ts.
   const newColors:  { label: string; value: string; hex?: string; img?: string }[] =
-    translateOptions(tv, productAny.colors ?? []);
-  const newSizes:   { label: string; value: string }[] = translateOptions(tv, productAny.sizes ?? []);
-  const extraMedia: MediaItem[]                        = productAny.media ?? [];
-  const sizesLabel: string = productAny.sizesLabel
-    ? variantLabel(tv, productAny.sizesLabel, productAny.sizesLabel)
+    translateOptions(tv, product.colors ?? []);
+  const newSizes:   { label: string; value: string }[] = translateOptions(tv, product.sizes ?? []);
+  const extraMedia: MediaItem[]                        = product.media ?? [];
+  const sizesLabel: string = product.sizesLabel
+    ? variantLabel(tv, product.sizesLabel, product.sizesLabel)
     : t("size");
 
   const hasNewColors = newColors.length > 0;
@@ -485,15 +549,15 @@ export default function ProduktClient({
   const rawComboExtra = model?.comboExtra ?? 0;
 
   const CZK = CURRENCIES.CZK;
-  const basePrice  = getPrice(rawBasePrice as any, currency);
+  const basePrice  = getPrice(rawBasePrice, currency);
   const comboExtra = (isLayered && combo && bodyValue !== capValue)
-    ? getPrice(rawComboExtra as any, currency)
+    ? getPrice(rawComboExtra, currency)
     : 0;
   const totalPrice = basePrice + comboExtra;
 
-  const basePriceCZK  = getPrice(rawBasePrice as any, CZK);
+  const basePriceCZK  = getPrice(rawBasePrice, CZK);
   const comboExtraCZK = (isLayered && combo && bodyValue !== capValue)
-    ? getPrice(rawComboExtra as any, CZK)
+    ? getPrice(rawComboExtra, CZK)
     : 0;
   const totalPriceCZK = basePriceCZK + comboExtraCZK;
 
@@ -510,15 +574,20 @@ export default function ProduktClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.slug, currencyMounted]);
 
-  const priceRawForCart = (isLayered && combo && bodyValue !== capValue && model?.comboExtra)
+  // U vrstvené kombinace se k základní ceně přičítá comboExtra, a to v každé
+  // měně zvlášť — do košíku proto musí jít objekt se všemi měnami, ne jedno
+  // číslo. Dřív se skládal přes Object.fromEntries, jenže ten vrací
+  // { [k: string]: number }, což do PriceRaw nesedí — a řešilo se to `as any`.
+  // Vypsané klíče typ splní samy a navíc je hned vidět, co se do košíku uloží.
+  const comboExtraRaw = model?.comboExtra;
+  const priceRawForCart: PriceRaw = (isLayered && combo && bodyValue !== capValue && comboExtraRaw)
     ? (typeof rawBasePrice === "number"
         ? totalPriceCZK
-        : Object.fromEntries(
-            (["CZK", "EUR", "USD"] as const).map(c => [
-              c,
-              getPrice(rawBasePrice as any, CURRENCIES[c]) + getPrice(model!.comboExtra as any, CURRENCIES[c]),
-            ])
-          ))
+        : {
+            CZK: getPrice(rawBasePrice, CURRENCIES.CZK) + getPrice(comboExtraRaw, CURRENCIES.CZK),
+            EUR: getPrice(rawBasePrice, CURRENCIES.EUR) + getPrice(comboExtraRaw, CURRENCIES.EUR),
+            USD: getPrice(rawBasePrice, CURRENCIES.USD) + getPrice(comboExtraRaw, CURRENCIES.USD),
+          })
     : rawBasePrice;
 
   const allLegacyVariantsSelected = !hasVariants ||
@@ -532,7 +601,7 @@ export default function ProduktClient({
 
   const hasSheetData = Object.keys(stockData).length > 0;
 
-  // Klíč(e) ve stejném formátu jako klíče Google Sheets skladu — "color|size".
+  // Klíč(e) ve stejném formátu jako klíče skladu v Redisu — "color|size".
   // U vrstvených barev (tělo + hlavička) vrací dva klíče najednou, protože
   // dostupné množství je omezené tou barvou, které je skladem méně.
   const stockKeys: string | string[] = (() => {
@@ -617,14 +686,20 @@ export default function ProduktClient({
   const canAddMoreQty = currentStock;
   const isOutOfStock = currentStock === 0;
 
-  // Když se změní varianta a nový sklad je nižší než qty, ořízni qty
-  useEffect(() => {
-    if (canAddMoreQty > 0 && qty > canAddMoreQty) {
-      setQty(canAddMoreQty);
-    } else if (canAddMoreQty === 0 && !isOutOfStock) {
-      setQty(1);
-    }
-  }, [canAddMoreQty, isOutOfStock]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Když se změní varianta a nový sklad je nižší než zvolené množství, ořízneme
+  // ho. Stejně jako v Gallery to dřív dělal useEffect, takže se jeden render
+  // stihl vykreslit s množstvím vyšším, než kolik je skladem.
+  //
+  // Druhá větev tu byla `else if (canAddMoreQty === 0 && !isOutOfStock) setQty(1)`
+  // a nešlo ji vykonat: canAddMoreQty i isOutOfStock se počítají z téhož
+  // currentStock, takže `canAddMoreQty === 0` znamená `isOutOfStock === true`
+  // a podmínka `!isOutOfStock` byla vždy nepravdivá. Odstraněno — chování to
+  // nemění, jen tu přestává strašit mrtvý kód.
+  const [prevCanAddMoreQty, setPrevCanAddMoreQty] = useState(canAddMoreQty);
+  if (canAddMoreQty !== prevCanAddMoreQty) {
+    setPrevCanAddMoreQty(canAddMoreQty);
+    if (canAddMoreQty > 0 && qty > canAddMoreQty) setQty(canAddMoreQty);
+  }
 
   const anyInStock = hasSheetData
     ? Object.values(stockData).some(v => v > 0)
@@ -633,9 +708,11 @@ export default function ProduktClient({
   const selectedColorObj = newColors.find(c => c.value === colorValue);
   const mainImgSrc = selectedColorObj?.img ?? product.img;
 
+  // Bez `as any` funguje type guard, jak má: ve větvi !isLayeredColor(...) si
+  // TypeScript sám zúží typ na ModelColor, takže druhý cast u .img odpadá.
   const legacyColorObj  = model?.colors.find(c => c.value === legacyColor);
-  const legacyImgSrc    = legacyColorObj && !isLayeredColor(legacyColorObj as any)
-    ? (legacyColorObj as ModelColor).img
+  const legacyImgSrc    = legacyColorObj && !isLayeredColor(legacyColorObj)
+    ? legacyColorObj.img
     : product.img;
 
   const galleryItems: MediaItem[] = isLayered
@@ -703,7 +780,7 @@ export default function ProduktClient({
         slug: product.slug,
         name: product.name,
         priceCZK: totalPriceCZK,
-        priceRaw: priceRawForCart as any,
+        priceRaw: priceRawForCart,
         img: imgForCart,
         variants: Object.keys(variantInfo).length > 0 ? variantInfo : undefined,
         stockKey: stockKeys, // přesný klíč (nebo dva u vrstvených barev) pro lookup skladu v košíku
@@ -724,14 +801,20 @@ export default function ProduktClient({
   return (
     <>
       {added && <AddedModal productName={productName} productImg={mainImgSrc} onClose={() => { setAdded(false); setQty(1); }} />}
-      {notifyOpen && <NotifyModal onClose={() => setNotifyOpen(false)} />}
+      {notifyOpen && (
+        <NotifyModal
+          onClose={() => setNotifyOpen(false)}
+          slug={product.slug}
+          stockKeys={stockKeys}
+        />
+      )}
 
       <main className="min-h-screen bg-surface">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-10">
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-1.5 text-xs text-text-subtle mb-5 lg:mb-8 flex-wrap">
-            <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
             <ChevronRight size={11} className="text-border" aria-hidden="true" />
             {product.categories[0] && (
               <>

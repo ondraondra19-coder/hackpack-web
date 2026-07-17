@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useId } from "react";
+import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
@@ -288,7 +289,7 @@ function SmartAddressBlock({
       {confirmed && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200">
           <CheckCircle2 size={14} className="text-green-600 shrink-0" />
-          <p className="text-green-700 text-xs font-medium">Adresa ověřena z databáze RÚIAN</p>
+          <p className="text-green-700 text-xs font-medium">{t("addressVerified")}</p>
         </div>
       )}
       {/* ODSTRANĚNO: varování "Prosím vyberte adresu ze seznamu" — RÚIAN ověření není povinné */}
@@ -584,7 +585,17 @@ export default function InformacePage() {
   const [zadatPoznamku, setZadatPoznamku] = useState(false);
   const [noNewsletter, setNoNewsletter] = useState(false);
   const [registrace, setRegistrace] = useState(false);
-  const [orderData, setOrderData] = useState<Record<string, any> | null>(null);
+  // Data objednávky uložená v localStorage z předchozích kroků. Dynamický
+  // objekt — typujeme jen pole, která tady reálně čteme.
+  type OrderFormData = {
+    doprava?: string | null;
+    dopravaName?: string;
+    dopravaPrices?: number | Partial<Record<"CZK" | "EUR" | "USD", number>>;
+    isDobirka?: boolean;
+    zbox?: { id?: string; nameStreet?: string; city?: string } | null;
+    [key: string]: unknown;
+  };
+  const [orderData, setOrderData] = useState<OrderFormData | null>(null);
 
   useEffect(() => {
     try {
@@ -717,8 +728,9 @@ export default function InformacePage() {
       const successParams: Record<string, string> = { method: metoda || "dobirka" };
       if (createdOrderId) successParams.order_id = createdOrderId;
       window.location.href = `/objednavka/uspech?${new URLSearchParams(successParams)}`;
-    } catch (err: any) {
-      alert(t("errGeneric", { message: err.message }));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      alert(t("errGeneric", { message }));
     } finally {
       setLoading(false);
     }
@@ -737,11 +749,11 @@ export default function InformacePage() {
       <main className="min-h-screen bg-dark">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-10">
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
-            <a href="/kosik" className="hover:text-text-muted transition-colors">{t("cart")}</a>
+            <Link href="/kosik" className="hover:text-text-muted transition-colors">{t("cart")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
-            <a href="/objednavka" className="hover:text-text-muted transition-colors">{t("shippingStep")}</a>
+            <Link href="/objednavka" className="hover:text-text-muted transition-colors">{t("shippingStep")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
             <span className="text-text-muted">{t("title")}</span>
           </nav>
@@ -796,7 +808,7 @@ export default function InformacePage() {
                   <div className="flex items-start gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
                     <MapPin size={16} className="text-primary-ink mt-0.5" />
                     <div>
-                      <p className="text-text-base text-xs font-semibold">Vyzvednutí na výdejním místě</p>
+                      <p className="text-text-base text-xs font-semibold">{t("pickupAtPoint")}</p>
                       <p className="text-text-muted text-xs mt-0.5">{orderData.zbox.nameStreet}, {orderData.zbox.city}</p>
                     </div>
                   </div>

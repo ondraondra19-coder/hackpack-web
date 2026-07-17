@@ -142,7 +142,11 @@
     "stockPlenty": "Skladom",
     "stockLow_one": "Posledný {count} kus",
     "stockLow_few": "Posledné {count} kusy",
-    "stockLow_many": "Posledných {count} kusov"
+    "stockLow_many": "Posledných {count} kusov",
+    "notifySending": "Ukladám…",
+    "notifyErrorInvalidEmail": "Zadajte platný e-mail.",
+    "notifyErrorRateLimited": "Príliš veľa pokusov. Skúste to prosím neskôr.",
+    "notifyErrorFailed": "Nepodarilo sa to uložiť. Skúste to prosím znova."
   },
   "footer": {
     "newsletter": "Buďte prvý, kto sa dozvie o novinkách",
@@ -393,7 +397,13 @@
     "messagePlaceholder": "Ako ti môžeme pomôcť?",
     "submit": "Odoslať správu",
     "sentTitle": "Správa odoslaná!",
-    "sentDesc": "Ozveme sa ti čo najskôr, spravidla do 24 hodín."
+    "sentDesc": "Ozveme sa ti čo najskôr, spravidla do 24 hodín.",
+    "sending": "Odosielam…",
+    "errorInvalidName": "Zadajte prosím svoje meno.",
+    "errorInvalidEmail": "Zadajte platný e-mail.",
+    "errorInvalidText": "Správa je prázdna alebo príliš dlhá.",
+    "errorCooldown": "Ďalšiu správu môžete odoslať o {minutes} min.",
+    "errorFailed": "Nepodarilo sa odoslať správu."
   },
   "about": {
     "home": "Domov",
@@ -522,7 +532,9 @@
     "errGeneric": "Niečo sa pokazilo: {message}",
     "free": "Zadarmo",
     "submit": "Dokončiť objednávku",
-    "discountNotApplied": "Kód {code} sa neuplatní — nakúpte ešte za {amount}."
+    "discountNotApplied": "Kód {code} sa neuplatní — nakúpte ešte za {amount}.",
+    "addressVerified": "Adresa overená z databázy RÚIAN",
+    "pickupAtPoint": "Vyzdvihnutie na výdajnom mieste"
   },
   "success": {
     "transferEyebrow": "Platobné inštrukcie",
@@ -592,7 +604,19 @@
     "trustShipping": "Expedícia do 24 h",
     "trustShippingDesc": "Zásielku odosielame ihneď po potvrdení platby.",
     "trustReturns": "30 dní na vrátenie",
-    "trustReturnsDesc": "Tovar je možné vrátiť bez udania dôvodu do 30 dní."
+    "trustReturnsDesc": "Tovar je možné vrátiť bez udania dôvodu do 30 dní.",
+    "copy": "Kopírovať: {value}",
+    "copied": "Skopírované: {value}",
+    "copyShort": "Kopírovať",
+    "breadcrumb": "Potvrdenie objednávky",
+    "eyebrow": "Objednávka prijatá",
+    "title": "Ďakujeme za nákup!",
+    "orderItems": "Položky objednávky",
+    "itemsFailed": "Položky sa nepodarilo načítať.",
+    "contactDetails": "Kontaktné údaje",
+    "helpTitle": "Potrebujete pomoc?",
+    "helpDesc": "Zákaznícky servis je k dispozícii Po–Pi 9–18 h, So 10–14 h.",
+    "complaintsLink": "Reklamácie a vrátenie"
   },
   "shipping": {
     "home": "Domov",
@@ -632,7 +656,9 @@
     "payCodDesc": "Pri doručení na adresu platíte v hotovosti alebo kartou kuriérovi. Pri výdajnom Z-BOXe sa dobierka platí vopred v aplikácii Zásielkovňa alebo cez odkaz z e-mailu.",
     "ctaTitle": "Máte otázku k doprave?",
     "ctaDesc": "Radi poradíme — Po–Pi 9–18 h, So 10–14 h.",
-    "ctaButton": "Kontaktovať nás"
+    "ctaButton": "Kontaktovať nás",
+    "secureTitle": "Bezpečné platby — chránime vaše údaje",
+    "secureDesc": "Online platby kartou sú realizované cez zabezpečenú platobnú bránu s certifikáciou {pci} a protokolom {tds}."
   },
   "review": {
     "home": "Domov",
@@ -666,7 +692,13 @@
     "errNetwork": "Nepodarilo sa odoslať recenziu. Skontrolujte pripojenie.",
     "cooldownBanner": "Ďalšiu recenziu môžete napísať o {time}.",
     "emailLabel": "E-mail",
-    "emailPlaceholder": "jan@email.sk"
+    "emailPlaceholder": "jan@email.sk",
+    "nameLabel": "Meno",
+    "textLabel": "Vaša recenzia",
+    "captchaPrompt": "Potvrďte prosím, že nie ste robot.",
+    "showMoreReviews": "Zobraziť ďalšie recenzie",
+    "empty": "Zatiaľ žiadne recenzie. Buďte prvý!",
+    "sentTitle": "Ďakujeme za recenziu!"
   },
   "legal": {
     "home": "Domov",
@@ -775,6 +807,34 @@
     "contactSupport": "Kontaktovať podporu",
     "ctaTitle": "Potrebujete pomoc s reklamáciou?",
     "ctaDesc": "Radi poradíme — Po–Pi 9–18 h, So 10–14 h.",
-    "ctaButton": "Kontaktovať nás"
+    "ctaButton": "Kontaktovať nás",
+    "returnsTitle": "Spôsoby a podmienky vrátenia",
+    "goodsHeading": "Informácie o tovare",
+    "consentNote": "Odoslaním formulára beriete na vedomie {link} na účely vybavenia reklamácie. Polia označené * sú povinné.",
+    "consentLink": "spracovanie osobných údajov",
+    "submit": "Odoslať žiadosť",
+    "infoReplyIn": "Ozveme sa do",
+    "infoReplyValue": "3 pracovných dní",
+    "infoLegalLimit": "Zákonná lehota vybavenia",
+    "infoLegalValue": "30 dní",
+    "infoRefund": "Vrátenie peňazí (po uznaní)",
+    "infoRefundValue": "3–5 dní",
+    "newRequest": "Podať ďalšiu žiadosť",
+    "legalTitle": "Právne náležitosti a dokumenty",
+    "legalDesc": "Podrobný postup reklamácií, práva z vadného plnenia a informácie o mimosúdnom riešení sporov (ADR) nájdete v našich kompletných obchodných podmienkach.",
+    "legalCta": "Zobraziť obchodné podmienky",
+    "formTitle": "Reklamačný formulár",
+    "sending": "Odosielam…",
+    "errCooldown": "Ďalšiu žiadosť môžete odoslať o {minutes} min.",
+    "errFailed": "Odoslanie sa nepodarilo. Skúste to prosím znova."
+  },
+  "cookieBanner": {
+    "dialogLabel": "Súhlas s cookies",
+    "title": "Táto webová stránka používa cookies",
+    "desc": "Technické cookies potrebujeme na fungovanie košíka a pokladne — tie sa nedajú vypnúť. Analytické cookies používame len s vaším súhlasom na meranie návštevnosti v nástroji PostHog.",
+    "descExtra": "Dáta nepredávame ani neodovzdávame reklamným sieťam a bez súhlasu sa na PostHog neodošle nič.",
+    "showDetails": "Zobraziť detaily",
+    "acceptAll": "Povoliť všetko",
+    "rejectAll": "Odmietnuť všetko"
   }
 }

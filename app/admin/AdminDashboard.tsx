@@ -9,12 +9,14 @@ import type { CurrentSession } from '@/lib/session';
 import type { Permission } from '@/lib/permissions';
 import type { Product } from '@/lib/products';
 import type { Message } from '@/lib/messages';
+import type { Claim } from '@/lib/claims';
 import type { Discount } from '@/lib/discounts';
 import ReviewsAdminList from './recenze/ReviewsAdminList';
 import AccountsAdminPanel from './AccountsAdminPanel';
 import DiscountsAdminPanel from './DiscountsAdminPanel';
 import ProductsAdminList from './ProductsAdminList';
 import MessagesAdminList from './MessagesAdminList';
+import ClaimsAdminList from './ClaimsAdminList';
 import AnalyticsPanel from './AnalyticsPanel';
 import CampaignsPanel from './CampaignsPanel';
 import OrdersAdminList from './OrdersAdminList';
@@ -22,7 +24,7 @@ import MagazinAdminList from './MagazinAdminList';
 import DashboardHome from './DashboardHome';
 import AdminSearch from './AdminSearch';
 
-export type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'settings' | 'analytics' | 'discounts' | 'campaigns' | 'accounts';
+export type Tab = 'dashboard' | 'reservations' | 'products' | 'reviews' | 'messages' | 'claims' | 'settings' | 'analytics' | 'discounts' | 'campaigns' | 'accounts';
 
 function getInitials(name: string): string {
   return name
@@ -59,18 +61,27 @@ export default function AdminDashboard({
   const [accounts, setAccounts] = useState(initialAccounts);
   const [discounts, setDiscounts] = useState(initialDiscounts);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [claims, setClaims] = useState<Claim[]>([]);
   const router = useRouter();
 
   const hasPermission = (perm: Permission) => session.isMain || session.permissions.includes(perm);
   const canSeeMessages = hasPermission('messages');
+  const canSeeClaims = hasPermission('claims');
 
   // Jakmile admin odejde ze záložky, na kterou ho navedlo hledání, zapomeneme
   // cílový produkt/objednávku — ať se při dalším příchodu na tab (přes menu,
   // ne přes hledání) neotvírá pořád ten samý starý výsledek.
-  useEffect(() => {
+  //
+  // Dřív to byl useEffect nad [activeTab], jenže ten běží až PO renderu: nová
+  // záložka se stihla jednou vykreslit ještě se starým cílem hledání. Úprava
+  // stavu přímo v renderu je na reakci na změnu doporučený postup Reactu —
+  // přepočítá se hned, bez commitu mezikroku.
+  const [prevTab, setPrevTab] = useState(activeTab);
+  if (activeTab !== prevTab) {
+    setPrevTab(activeTab);
     if (activeTab !== 'products') setProductsQuery(undefined);
     if (activeTab !== 'reservations') setOrdersFocusId(undefined);
-  }, [activeTab]);
+  }
 
   // Zprávy z chat widgetu — natáhnou se hned po přihlášení, ať se počet
   // nepřečtených v levém menu ukáže i bez otevření záložky "Zprávy".
@@ -90,10 +101,30 @@ export default function AdminDashboard({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canSeeMessages]);
 
+  // Reklamace — stejný důvod jako u zpráv: počet otevřených se má ukázat
+  // v levém menu i bez otevření záložky.
+  useEffect(() => {
+    if (!canSeeClaims) return;
+
+    let cancelled = false;
+    fetch('/api/admin/claims', { cache: 'no-store' })
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled) setClaims(data.claims ?? []);
+      })
+      .catch(() => {
+        // Tiše ignorujeme — záložka ukáže prázdný stav, není kritické.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [canSeeClaims]);
+
   const unreadMessagesCount = messages.filter((m) => !m.read).length;
+  const openClaimsCount = claims.filter((c) => c.status !== 'vyrizeno').length;
 
   const handleLogout = async () => {
     setIsProfileOpen(false);
@@ -141,6 +172,14 @@ export default function AdminDashboard({
       visible: hasPermission('messages'),
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+      ),
+    },
+    {
+      id: 'claims',
+      label: 'Reklamace',
+      visible: hasPermission('claims'),
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
       ),
     },
     {
@@ -257,6 +296,15 @@ export default function AdminDashboard({
                       {unreadMessagesCount}
                     </span>
                   )}
+                  {item.id === 'claims' && openClaimsCount > 0 && (
+                    <span
+                      className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-white/[0.06] text-zinc-400'
+                      }`}
+                    >
+                      {openClaimsCount}
+                    </span>
+                  )}
                   {item.id === 'discounts' && discounts.length > 0 && (
                     <span
                       className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
@@ -354,7 +402,7 @@ export default function AdminDashboard({
 
             <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 min-h-[400px] flex flex-col justify-between shadow-sm relative overflow-hidden">
 
-              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'discounts' || activeTab === 'messages' || activeTab === 'campaigns' ? 'w-full' : undefined}>
+              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'discounts' || activeTab === 'messages' || activeTab === 'claims' || activeTab === 'campaigns' ? 'w-full' : undefined}>
                 {activeTab === 'dashboard' && (
                   <DashboardHome
                     products={products}
@@ -395,6 +443,16 @@ export default function AdminDashboard({
                       Dotazy uživatelů odeslané přes chat widget na e-shopu (kompatibilita, dotazy na naskladnění).
                     </p>
                     <MessagesAdminList messages={messages} onChange={setMessages} />
+                  </div>
+                )}
+
+                {activeTab === 'claims' && hasPermission('claims') && (
+                  <div className="space-y-4">
+                    <p className="text-zinc-500 text-xs leading-relaxed max-w-lg">
+                      Reklamace, vrácení a výměny odeslané přes formulář na /reklamace. Číslo případu
+                      dostal zákazník e-mailem a odkazuje se na něj — proto ho měň jen výjimečně.
+                    </p>
+                    <ClaimsAdminList claims={claims} onChange={setClaims} />
                   </div>
                 )}
 

@@ -2,6 +2,7 @@
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 import React, { useState } from "react";
 import {
     ChevronRight, Package, MapPin, Home, ShoppingCart,
@@ -139,9 +140,14 @@ export default function ReklamaceAVraceniPage() {
     const steps = buildSteps(t);
     const returnMethods = buildReturnMethods(t);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [ticketNumber] = useState(() => Math.floor(Math.random() * 90000) + 10000);
+    // Číslo případu přiděluje server (atomický INCR, viz lib/claims.ts) a vrací
+    // ho v odpovědi. Dřív se tady losovalo přes Math.random(), takže se nikam
+    // neukládalo, po reloadu se změnilo a zákazníkovi bylo k ničemu.
+    const [ticket, setTicket] = useState<string | null>(null);
     const [form, setForm] = useState<FormState>(defaultForm);
     const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+    const [sending, setSending] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
         const { name, value } = e.target;
@@ -162,8 +168,26 @@ export default function ReklamaceAVraceniPage() {
         return e;
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    // API vrací kód, ne hotovou větu — text vybíráme tady podle jazyka. Neznámý
+    // kód spadne na obecné "nepovedlo se", ať nikdy neukážeme "claims.neco".
+    function messageForCode(code: unknown, minutes: unknown): string {
+        switch (code) {
+            case "invalid_name":        return t("errName");
+            case "invalid_email":       return t("errEmailFormat");
+            case "invalid_phone":       return t("errPhone");
+            case "invalid_order":       return t("errOrderNumber");
+            case "invalid_type":        return t("errRequestType");
+            case "invalid_resolution":  return t("errResolution");
+            case "invalid_description": return t("errDescription");
+            case "cooldown":            return t("errCooldown", { minutes: typeof minutes === "number" ? minutes : 5 });
+            default:                    return t("errFailed");
+        }
+    }
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (sending) return;
+
         const e2 = validate();
         if (Object.keys(e2).length > 0) {
             setErrors(e2);
@@ -171,13 +195,33 @@ export default function ReklamaceAVraceniPage() {
             document.querySelector(`[name="${firstKey}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
-        setIsSubmitted(true);
-        window.scrollTo({
-            top: document.getElementById('formular')?.offsetTop
-                ? document.getElementById('formular')!.offsetTop - 100
-                : 0,
-            behavior: 'smooth'
-        });
+
+        setSending(true);
+        setSubmitError(null);
+
+        try {
+            const res = await fetch("/api/claims", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (!res.ok) throw new Error(messageForCode(data?.code, data?.minutes));
+
+            setTicket(data.ticket);
+            setIsSubmitted(true);
+            window.scrollTo({
+                top: document.getElementById('formular')?.offsetTop
+                    ? document.getElementById('formular')!.offsetTop - 100
+                    : 0,
+                behavior: 'smooth'
+            });
+        } catch (err) {
+            setSubmitError(err instanceof Error ? err.message : t("errFailed"));
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -198,7 +242,7 @@ export default function ReklamaceAVraceniPage() {
 
                     <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-14 lg:py-20 relative z-10">
                         <nav className="flex items-center gap-2 text-xs text-white/30 mb-8">
-                            <a href="/" className="hover:text-white/60 transition-colors">{t("home")}</a>
+                            <Link href="/" className="hover:text-white/60 transition-colors">{t("home")}</Link>
                             <ChevronRight size={11} aria-hidden="true" />
                             <span className="text-white/60">{t("breadcrumb")}</span>
                         </nav>
@@ -253,7 +297,7 @@ export default function ReklamaceAVraceniPage() {
                     <section className="mb-16">
                         <SectionLabel>{t("returnsEyebrow")}</SectionLabel>
                         <h2 className="text-2xl font-extrabold text-text-base tracking-tight mb-8">
-                            Způsoby a podmínky vrácení
+                            {t("returnsTitle")}
                         </h2>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -287,7 +331,7 @@ export default function ReklamaceAVraceniPage() {
                     <section className="mb-16" id="formular">
                         <SectionLabel>{t("formEyebrow")}</SectionLabel>
                         <h2 className="text-2xl font-extrabold text-text-base tracking-tight mb-8">
-                            Reklamační formulář
+                            {t("formTitle")}
                         </h2>
 
                         <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -313,7 +357,7 @@ export default function ReklamaceAVraceniPage() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="text-sm font-bold text-text-base uppercase tracking-wider mb-2">Informace o zboží</h3>
+                                        <h3 className="text-sm font-bold text-text-base uppercase tracking-wider mb-2">{t("goodsHeading")}</h3>
                                         <Field
                                             label={t("orderNumber")} name="cisloObjednavky" value={form.cisloObjednavky}
                                             onChange={handleChange} placeholder="TG-2024-XXXX"
@@ -370,17 +414,32 @@ export default function ReklamaceAVraceniPage() {
 
                                     <div className="md:col-span-2 pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6">
                                         <p className="text-xs text-text-subtle leading-relaxed max-w-md text-center sm:text-left">
-                                            Odesláním formuláře berete na vědomí{" "}
-                                            <a href="/ochrana-osobnich-udaju" className="text-primary-ink hover:underline font-semibold">zpracování osobních údajů</a>
-                                            {" "}pro účely vyřízení reklamace. Pole označená * jsou povinná.
+                                            {(() => {
+                                                const [before, after] = t("consentNote").split("{link}");
+                                                return (
+                                                    <>
+                                                        {before}
+                                                        <a href="/ochrana-osobnich-udaju" className="text-primary-ink hover:underline font-semibold">{t("consentLink")}</a>
+                                                        {after}
+                                                    </>
+                                                );
+                                            })()}
                                         </p>
-                                        <button
-                                            type="submit"
-                                            className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-extrabold text-sm hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10"
-                                        >
-                                            Odeslat žádost
-                                            <Send size={16} />
-                                        </button>
+                                        <div className="w-full sm:w-auto flex flex-col items-stretch sm:items-end gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={sending}
+                                                className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-primary text-on-primary font-extrabold text-sm hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/10 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                                            >
+                                                {sending ? t("sending") : t("submit")}
+                                                <Send size={16} aria-hidden="true" />
+                                            </button>
+                                            {submitError && (
+                                                <p role="alert" className="flex items-center gap-1 text-red-500 text-xs">
+                                                    <AlertCircle size={11} aria-hidden="true" /> {submitError}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 </form>
                             ) : (
@@ -409,32 +468,32 @@ export default function ReklamaceAVraceniPage() {
                                                 <div className="flex items-center justify-between mb-5">
                                                     <p className="text-xs font-bold text-text-subtle uppercase tracking-widest">{t("ticketNumber")}</p>
                                                     <span className="px-3 py-1 rounded-full bg-primary/10 text-primary-ink text-xs font-extrabold tracking-wide">
-                                                        TG-{ticketNumber}
+                                                        {ticket}
                                                     </span>
                                                 </div>
                                                 <div className="space-y-3">
                                                     <div className="flex items-center justify-between text-sm">
                                                         <span className="text-text-muted flex items-center gap-2">
                                                             <Clock size={13} className="text-text-subtle" />
-                                                            Ozveme se do
+                                                            {t("infoReplyIn")}
                                                         </span>
-                                                        <span className="font-bold text-text-base">3 pracovních dnů</span>
+                                                        <span className="font-bold text-text-base">{t("infoReplyValue")}</span>
                                                     </div>
                                                     <div className="h-px bg-border" />
                                                     <div className="flex items-center justify-between text-sm">
                                                         <span className="text-text-muted flex items-center gap-2">
                                                             <ShieldCheck size={13} className="text-text-subtle" />
-                                                            Zákonná lhůta vyřízení
+                                                            {t("infoLegalLimit")}
                                                         </span>
-                                                        <span className="font-bold text-text-base">30 dní</span>
+                                                        <span className="font-bold text-text-base">{t("infoLegalValue")}</span>
                                                     </div>
                                                     <div className="h-px bg-border" />
                                                     <div className="flex items-center justify-between text-sm">
                                                         <span className="text-text-muted flex items-center gap-2">
                                                             <Banknote size={13} className="text-text-subtle" />
-                                                            Vrácení peněz (po uznání)
+                                                            {t("infoRefund")}
                                                         </span>
-                                                        <span className="font-bold text-text-base">3–5 dní</span>
+                                                        <span className="font-bold text-text-base">{t("infoRefundValue")}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -479,7 +538,7 @@ export default function ReklamaceAVraceniPage() {
                                                     }}
                                                     className="w-full sm:w-auto px-6 py-3 rounded-full border border-border text-text-muted font-bold text-sm hover:bg-surface hover:text-text-base transition-all flex items-center justify-center gap-2"
                                                 >
-                                                    Podat další žádost
+                                                    {t("newRequest")}
                                                 </button>
                                             </div>
                                         </div>
@@ -502,10 +561,10 @@ export default function ReklamaceAVraceniPage() {
                                         </div>
                                         <div>
                                             <h3 className="text-text-base font-bold text-base mb-1">
-                                                Právní náležitosti a dokumenty
+                                                {t("legalTitle")}
                                             </h3>
                                             <p className="text-text-muted text-sm leading-relaxed max-w-xl">
-                                                Podrobný postup reklamací, práva z vadného plnění a informace o mimosoudním řešení sporů (ADR) naleznete v našich kompletních obchodních podmínkách.
+                                                {t("legalDesc")}
                                             </p>
                                         </div>
                                     </div>
@@ -513,8 +572,8 @@ export default function ReklamaceAVraceniPage() {
                                         href="/obchodni-podminky"
                                         className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border bg-surface text-text-base font-bold text-xs hover:bg-border transition-colors"
                                     >
-                                        Zobrazit obchodní podmínky
-                                        <ArrowRight size={14} />
+                                        {t("legalCta")}
+                                        <ArrowRight size={14} aria-hidden="true" />
                                     </a>
                                 </div>
                             </div>

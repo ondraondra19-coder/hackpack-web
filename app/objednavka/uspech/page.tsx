@@ -32,6 +32,15 @@ type SnapshotItem = {
     quantity: number;
 };
 
+// Tvar položky, jak ji vrací /api/checkout/session z uložené objednávky.
+type ApiOrderItem = {
+    slug: string;
+    name: string;
+    unitPrice: number;
+    variants?: Record<string, string>;
+    quantity: number;
+};
+
 type SnapshotInfo = {
     jmeno?: string; email?: string; telefon?: string; firma?: string;
     nakupNaFirmu?: boolean; jineDorucenoAdresa?: boolean;
@@ -75,11 +84,12 @@ function StatusPill({ label, active = false }: { label: string; active?: boolean
 }
 
 function CopyButton({ value }: { value: string }) {
+    const t = useT("success");
     const [copied, setCopied] = useState(false);
     return (
         <button onClick={() => { navigator.clipboard.writeText(value).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            aria-label={copied ? `Zkopírováno: ${value}` : `Kopírovat: ${value}`}
-            className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-border/50 transition-colors text-text-subtle hover:text-text-base" title="Kopírovat">
+            aria-label={copied ? t("copied", { value }) : t("copy", { value })}
+            className="w-11 h-11 flex items-center justify-center rounded-lg hover:bg-border/50 transition-colors text-text-subtle hover:text-text-base" title={t("copyShort")}>
             {copied ? <Check size={13} aria-hidden="true" className="text-primary-ink" /> : <Copy size={13} aria-hidden="true" />}
         </button>
     );
@@ -406,7 +416,7 @@ function SuccessContent() {
     const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
     const [hydrated, setHydrated] = useState(false);
     const [stableOrderId, setStableOrderId] = useState<string>("");
-    const [loadError, setLoadError] = useState(false);
+    const [, setLoadError] = useState(false);
     const [apiTotal, setApiTotal] = useState<number | null>(null);
 
     const rawMethod = searchParams.get("method") ?? "";
@@ -420,6 +430,8 @@ function SuccessContent() {
         // jakmile dorazí (níže), přepíšeme ji na variabilní symbol odvozený
         // ze SKUTEČNÉHO order.id, ať sedí se souhrnem v potvrzovacím e-mailu.
         if (orderIdParam) {
+            // Dočasné ID z URL parametru; níže se přepíše skutečným order.id.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setStableOrderId(orderIdToVariableSymbol(orderIdParam));
         } else if (!sessionId) {
             setStableOrderId((Math.floor(Math.random() * 90000) + 10000).toString());
@@ -441,7 +453,7 @@ function SuccessContent() {
                     if (o.id) setStableOrderId(orderIdToVariableSymbol(o.id));
                     setApiTotal(typeof data.amountTotal === "number" ? data.amountTotal : o.total);
                     setSnapshot({
-                        items: o.items.map((it: any) => ({
+                        items: o.items.map((it: ApiOrderItem) => ({
                             slug: it.slug,
                             name: it.name,
                             priceCZK: it.unitPrice,
@@ -503,7 +515,7 @@ function SuccessContent() {
 
     const vsymbol = stableOrderId.replace(/\D/g, "").slice(-8).padStart(8, "0");
 
-    const subtotal = items.reduce((s, i) => s + getPrice(i.priceRaw as any, currency) * i.quantity, 0);
+    const subtotal = items.reduce((s, i) => s + getPrice(i.priceRaw, currency) * i.quantity, 0);
     const dopravaPrice = orderData?.dopravaPrices ? getPrice(orderData.dopravaPrices, currency) : 0;
     const dobirkaExtra = orderData?.isDobirka ? getPrice(DOBIRKA_FEE, currency) : 0;
     const celkem = apiTotal ?? (subtotal + dopravaPrice + dobirkaExtra);
@@ -522,11 +534,11 @@ function SuccessContent() {
                     <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
                     <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-14 lg:py-20 relative z-10">
                         <nav className="flex items-center gap-2 text-xs text-white/30 mb-8">
-                            <a href="/" className="hover:text-white/60 transition-colors">Domů</a>
+                            <Link href="/" className="hover:text-white/60 transition-colors">{tc("home")}</Link>
                             <span className="opacity-40 mx-1">›</span>
-                            <a href="/kosik" className="hover:text-white/60 transition-colors">Košík</a>
+                            <Link href="/kosik" className="hover:text-white/60 transition-colors">{tc("cart")}</Link>
                             <span className="opacity-40 mx-1">›</span>
-                            <span className="text-white/60">Potvrzení objednávky</span>
+                            <span className="text-white/60">{t("breadcrumb")}</span>
                         </nav>
                         <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
                             <div className="flex items-start gap-6">
@@ -534,8 +546,8 @@ function SuccessContent() {
                                     <CheckCircle2 size={30} className="text-primary-ink" />
                                 </div>
                                 <div>
-                                    <p className="text-primary-ink text-xs font-bold uppercase tracking-[0.18em] mb-2">Objednávka přijata</p>
-                                    <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight mb-3">Děkujeme za nákup!</h1>
+                                    <p className="text-primary-ink text-xs font-bold uppercase tracking-[0.18em] mb-2">{t("eyebrow")}</p>
+                                    <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight mb-3">{t("title")}</h1>
                                     <p className="text-white/50 text-base leading-relaxed">
                                         Objednávka{" "}
                                         {stableOrderId
@@ -548,7 +560,7 @@ function SuccessContent() {
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                                 <div className="text-right hidden sm:block">
-                                    <p className="text-white/30 text-[10px] uppercase tracking-widest">Způsob platby</p>
+                                    <p className="text-white/30 text-[10px] uppercase tracking-widest">{t("paymentMethodEyebrow")}</p>
                                     <p className="text-white/80 text-sm font-bold">{methodLabel}</p>
                                 </div>
                                 <StatusPill label={statusLabel} active />
@@ -574,11 +586,11 @@ function SuccessContent() {
 
                             {/* Položky objednávky */}
                             <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-4">Položky objednávky</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-4">{t("orderItems")}</p>
                                 {hydrated && items.length > 0 ? (
                                     <div className="space-y-4 mb-5">
                                         {items.map((item, i) => {
-                                            const itemPrice = getPrice(item.priceRaw as any, currency);
+                                            const itemPrice = getPrice(item.priceRaw, currency);
                                             const variantStr = item.variants ? Object.values(item.variants).join(" · ") : null;
                                             return (
                                                 <div key={item.slug + i} className="flex items-start gap-3">
@@ -598,7 +610,7 @@ function SuccessContent() {
                                         })}
                                     </div>
                                 ) : hydrated ? (
-                                    <p className="text-text-subtle text-xs py-4 text-center">Položky se nepodařilo načíst.</p>
+                                    <p className="text-text-subtle text-xs py-4 text-center">{t("itemsFailed")}</p>
                                 ) : (
                                     <div className="space-y-3 mb-5 animate-pulse">
                                         {[1, 2].map((n) => (
@@ -660,7 +672,7 @@ function SuccessContent() {
                             {/* Kontakt */}
                             {hydrated && (info.email || info.telefon) && (
                                 <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
-                                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-3">Kontaktní údaje</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-3">{t("contactDetails")}</p>
                                     <div className="space-y-2">
                                         {info.email && (
                                             <div className="flex items-center gap-2 text-xs text-text-muted">
@@ -680,8 +692,8 @@ function SuccessContent() {
 
                             {/* Podpora */}
                             <div className="bg-white rounded-2xl border border-border shadow-sm p-6">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-2">Potřebujete pomoc?</p>
-                                <p className="text-xs text-text-muted leading-relaxed mb-4">Zákaznický servis je k dispozici Po–Pá 9–18 h, So 10–14 h.</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-text-subtle mb-2">{t("helpTitle")}</p>
+                                <p className="text-xs text-text-muted leading-relaxed mb-4">{t("helpDesc")}</p>
                                 <Link href="/kontakt" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border border-border bg-surface text-text-base font-bold text-xs hover:bg-border/50 transition-colors">
                                     Kontaktovat podporu <ArrowRight size={13} />
                                 </Link>
@@ -714,7 +726,7 @@ function SuccessContent() {
                             <ShoppingBag size={16} aria-hidden="true" /> {tcart("continueShopping")}
                         </Link>
                         <Link href="/reklamace" className="w-full sm:w-auto px-8 py-3.5 rounded-full border border-border text-text-muted font-bold text-sm hover:bg-white hover:text-text-base transition-all flex items-center justify-center gap-2">
-                            Reklamace a vrácení
+                            {t("complaintsLink")}
                         </Link>
                     </div>
                 </div>

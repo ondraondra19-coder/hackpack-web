@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ChevronRight, Phone, Mail, MapPin, Clock, Check, Send } from "lucide-react";
@@ -12,10 +13,50 @@ export default function KontaktPage() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit() {
-    if (!name || !email || !message) return;
-    setSent(true);
+  const canSubmit = !!name && !!email && !!message && !sending;
+
+  // API vrací kód, ne hotovou větu — text vybíráme tady podle jazyka. Neznámý
+  // kód spadne na obecné "nepovedlo se", ať nikdy neukážeme "contact.neco".
+  function messageForCode(code: unknown, minutes: unknown): string {
+    switch (code) {
+      case "invalid_name":  return t("errorInvalidName");
+      case "invalid_email": return t("errorInvalidEmail");
+      case "invalid_text":  return t("errorInvalidText");
+      case "cooldown":      return t("errorCooldown", { minutes: typeof minutes === "number" ? minutes : 5 });
+      default:              return t("errorFailed");
+    }
+  }
+
+  // Formulář posílá do stejného endpointu jako chat widget — zpráva se objeví
+  // v adminu na jednom místě a jde z ní odpovědět e-mailem. `source` jen
+  // odliší, odkud přišla.
+  async function handleSubmit() {
+    if (!canSubmit) return;
+
+    setSending(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, text: message, source: "kontakt" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(messageForCode(data?.code, data?.minutes));
+      }
+
+      setSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorFailed"));
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -26,7 +67,7 @@ export default function KontaktPage() {
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
             <span className="text-text-muted">{t("title")}</span>
           </nav>
@@ -131,17 +172,20 @@ export default function KontaktPage() {
                       rows={6}
                       className="w-full border border-border rounded-xl px-4 py-3 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/50 transition-colors resize-none bg-surface" />
                   </div>
+                  {error && (
+                    <p role="alert" className="text-red-500 text-xs">{error}</p>
+                  )}
                   <button
                     onClick={handleSubmit}
-                    disabled={!name || !email || !message}
+                    disabled={!canSubmit}
                     className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all w-fit ${
-                      !name || !email || !message
+                      !canSubmit
                         ? "bg-border text-text-subtle cursor-not-allowed"
                         : "bg-primary text-on-primary hover:brightness-105 active:scale-[0.98]"
                     }`}
                   >
                     <Send size={14} aria-hidden="true" />
-                    {t("submit")}
+                    {sending ? t("sending") : t("submit")}
                   </button>
                 </div>
               )}

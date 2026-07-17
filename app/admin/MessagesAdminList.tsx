@@ -94,6 +94,11 @@ function MessageCard({
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             {!msg.read && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
             <span className="text-sm font-semibold text-[#0f0f10]">{msg.name}</span>
+            {/* Zprávy uložené dřív než formulář na /kontakt žádný source nemají —
+                tehdy existoval jen chat widget, proto je fallback "chat". */}
+            <span className="text-[10px] font-semibold text-zinc-500 bg-[#f1f1f3] border border-[#e5e7eb] px-1.5 py-0.5 rounded">
+              {msg.source === "kontakt" ? "kontakt" : "chat"}
+            </span>
             <span className="text-[11px] text-zinc-400">
               {new Date(msg.date).toLocaleString("cs-CZ")}
             </span>

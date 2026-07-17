@@ -1,6 +1,7 @@
 // lib/stock.ts
 // Skladovost uložená v Upstash Redis — spravovaná přímo z admin panelu.
 import { getRedis } from "./redis";
+import { getWatchersForFields, notifyAndRemove } from "./stockWatch";
 
 export type StockKey = {
   slug: string;
@@ -72,15 +73,49 @@ export function lookupStock(
   return stockData[key] ?? 0;
 }
 
+// ── Naskladnění → e-mail čekatelům ──────────────────────────────────────────
+// Volá se po každém zápisu, který mohl poslat pole z nuly nahoru. Zájemce
+// nasbíral formulář "Připomenout, až bude skladem" (viz lib/stockWatch.ts).
+//
+// Odeslání NIKDY nesmí shodit samotný zápis skladu — admin ukládá sklad a je
+// mu jedno, že Resend má výpadek. Proto je celé tělo v try/catch a chyba se jen
+// zaloguje, stejně jako to dělá lib/email.ts.
+async function notifyRestocked(restockedFields: string[]): Promise<void> {
+  if (restockedFields.length === 0) return;
+
+  try {
+    const watchers = await getWatchersForFields(restockedFields);
+    if (watchers.length === 0) return;
+
+    // Čerstvá mapa skladu — u vrstvených barev čeká zájemce na DVĚ pole
+    // (tělo + hlavička) a mail smí odejít, až mají sklad obě. Naskladnění
+    // jednoho z nich kombinaci pořád nezpřístupní.
+    const map = await fetchFromRedis();
+    const ready = watchers.filter((w) => w.fields.every((f) => (map.get(f) ?? 0) > 0));
+
+    await notifyAndRemove(ready);
+  } catch (err) {
+    console.error("Odeslání e-mailů o naskladnění selhalo:", err);
+  }
+}
+
 // ── Zápis skladu z admin panelu ──────────────────────────────────────────────
 
 export async function setStock(key: StockKey, value: number): Promise<void> {
   const redis = getRedis();
   const field = makeKey(key.slug, key.color, key.size);
   const safeValue = Math.max(0, Math.floor(value));
+
+  // Starou hodnotu potřebujeme kvůli rozpoznání přechodu 0 → N. Prosté
+  // "hodnota je > 0" by mail poslalo při KAŽDÉM uložení skladu, tedy i když
+  // admin jen upraví 5 na 6.
+  const previous = Number(await redis.hget<number | string>(HASH_KEY, field)) || 0;
+
   await redis.hset(HASH_KEY, { [field]: safeValue });
 
   if (cache) cache.set(field, safeValue);
+
+  if (previous === 0 && safeValue > 0) await notifyRestocked([field]);
 }
 
 // Hromadné uložení více variant najednou — jeden HSET požadavek do Redisu
@@ -98,6 +133,11 @@ export async function setStockBulk(
     fields[field] = Math.max(0, Math.floor(value));
   }
 
+  const names = Object.keys(fields);
+
+  // Staré hodnoty jedním HMGET — kvůli rozpoznání přechodu 0 → N, viz setStock.
+  const previous = await redis.hmget<Record<string, number | string>>(HASH_KEY, ...names);
+
   await redis.hset(HASH_KEY, fields);
 
   if (cache) {
@@ -105,6 +145,11 @@ export async function setStockBulk(
       cache.set(field, value);
     }
   }
+
+  const restocked = names.filter(
+    (field) => (Number(previous?.[field]) || 0) === 0 && fields[field] > 0,
+  );
+  await notifyRestocked(restocked);
 }
 
 // ── Automatický odečet při dokončené objednávce ─────────────────────────────
@@ -164,12 +209,23 @@ export async function restockItems(items: StockDeductionItem[]): Promise<void> {
   if (totals.size === 0) return;
 
   const pipeline = redis.pipeline();
-  for (const [field, amount] of totals.entries()) {
+  const entries = [...totals.entries()];
+  for (const [field, amount] of entries) {
     pipeline.hincrby(HASH_KEY, field, amount);
   }
-  await pipeline.exec();
+  // HINCRBY vrací NOVOU hodnotu, takže starou dopočítáme odečtením přičteného
+  // množství — druhé kolo čtení kvůli tomu není potřeba.
+  const results = (await pipeline.exec()) as unknown as number[];
 
   cache = null;
+
+  const restocked = entries
+    .filter(([, amount], i) => {
+      const after = Number(results?.[i]);
+      return Number.isFinite(after) && after - amount === 0 && after > 0;
+    })
+    .map(([field]) => field);
+  await notifyRestocked(restocked);
 }
 
 export async function deductStockForItems(

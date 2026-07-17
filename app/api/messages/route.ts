@@ -7,7 +7,8 @@
 // jako čitelný fallback do logů. U cooldownu jde s kódem i `minutes`, protože
 // číslo se doplňuje do věty až v překladu.
 import { NextResponse } from "next/server";
-import { addMessage, checkAndSetCooldown } from "@/lib/messages";
+import { addMessage, checkAndSetCooldown, type MessageSource } from "@/lib/messages";
+import { sendNewMessageAdminEmail } from "@/lib/email";
 import { getClientIp } from "@/lib/clientIp";
 
 const MAX_TEXT_LENGTH = 1000;
@@ -26,11 +27,15 @@ function fail(code: MessagesErrorCode, error: string, status: number, extra?: Re
   return NextResponse.json({ code, error, ...extra }, { status });
 }
 
-// POST /api/messages — odeslání zprávy z chat widgetu
+// POST /api/messages — odeslání zprávy z chat widgetu nebo z /kontakt
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, email, text } = body ?? {};
+    const { name, email, text, source } = body ?? {};
+
+    // Zdroj bereme jen z uzavřeného seznamu — do adminu se nesmí dostat
+    // libovolný řetězec z požadavku. Cokoli jiného spadne na "chat".
+    const safeSource: MessageSource = source === "kontakt" ? "kontakt" : "chat";
 
     // ── Validace vstupu ────────────────────────────────────────────────────
     if (typeof name !== "string" || !name.trim() || name.trim().length > MAX_NAME_LENGTH) {
@@ -56,7 +61,19 @@ export async function POST(req: Request) {
       return fail("cooldown", `Další zprávu můžete odeslat za ${minutes} min.`, 429, { minutes });
     }
 
-    await addMessage({ name: name.trim(), email: email.trim(), text: text.trim() });
+    const message = await addMessage({
+      name: name.trim(),
+      email: email.trim(),
+      text: text.trim(),
+      source: safeSource,
+    });
+
+    // Upozornění pro obsluhu. Zpráva je v tuhle chvíli bezpečně uložená, takže
+    // selhání mailu (výpadek Resendu) nesmí zákazníkovi vrátit chybu — jinak by
+    // ji poslal znovu a v adminu by ležela dvakrát. sendNewMessageAdminEmail
+    // proto chyby jen loguje, viz lib/email.ts.
+    await sendNewMessageAdminEmail(message);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Messages POST error:", error);

@@ -5,6 +5,7 @@
 import { Resend, type Attachment } from "resend";
 import QRCode from "qrcode";
 import type { Order, OrderItem } from "./orders";
+import type { Claim } from "./claims";
 import { CURRENCIES, formatPrice, type Currency, type CurrencyCode } from "./currency";
 import { approxConvert } from "./discounts";
 import { buildSpdString, orderIdToVariableSymbol } from "./qrPlatba";
@@ -12,6 +13,9 @@ import { generatePaymentReceiptPdf } from "./pdf";
 
 const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? "HackPack <info@hackpack.cz>";
 const SUPPORT_EMAIL = "info@hackpack.cz";
+// Kam chodí interní upozornění (nová zpráva, nová reklamace). Zatím shodné se
+// SUPPORT_EMAIL — až bude potřeba jiná adresa, stačí sáhnout sem.
+const ADMIN_EMAIL = SUPPORT_EMAIL;
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://hackpack-web.vercel.app").replace(/\/$/, "");
 const BRAND_COLOR = "#ff8ad0";
 const DARK = "#1c1c1c";
@@ -42,7 +46,16 @@ function getResendClient(): Resend | null {
   return client;
 }
 
-async function send(to: string, subject: string, html: string, attachments?: Attachment[]): Promise<boolean> {
+// `replyTo` má výchozí hodnotu SUPPORT_EMAIL (zákazník odpovídá nám). Interní
+// upozornění si ho ale přepisují na adresu zákazníka, aby šlo na zprávu nebo
+// reklamaci odpovědět prostým Reply, bez kopírování adresy z těla mailu.
+async function send(
+  to: string,
+  subject: string,
+  html: string,
+  attachments?: Attachment[],
+  replyTo: string = SUPPORT_EMAIL,
+): Promise<boolean> {
   const resend = getResendClient();
   if (!resend) return false;
 
@@ -50,7 +63,7 @@ async function send(to: string, subject: string, html: string, attachments?: Att
     const { error } = await resend.emails.send({
       from: FROM_ADDRESS,
       to,
-      replyTo: SUPPORT_EMAIL,
+      replyTo,
       subject,
       html,
       attachments,
@@ -452,7 +465,159 @@ export async function sendReviewThankYouEmail(to: string, name: string): Promise
   return send(to, subject, html);
 }
 
-// ── 5) Odpověď adminu na zprávu ze chat widgetu ─────────────────────────────
+// ── 5) Zboží je zase skladem ────────────────────────────────────────────────
+// Posílá se automaticky z lib/stock.ts při přechodu skladu 0 → N, adresátem je
+// ten, kdo vyplnil "Připomenout, až bude skladem" (viz lib/stockWatch.ts).
+
+export function renderBackInStockEmail(params: { productName: string; slug: string }): {
+  subject: string;
+  html: string;
+} {
+  const { productName, slug } = params;
+  const url = `${SITE_URL}/produkt/${encodeURIComponent(slug)}`;
+
+  const html = layout(
+    `${productName} je zpátky skladem`,
+    `
+    ${h1("Zboží je zase skladem! 🎉")}
+    ${p(`Ahoj, <strong>${esc(productName)}</strong> je zpátky skladem — přesně jak sis přál/a, dáváme vědět.`)}
+    ${p("Kusů bývá po naskladnění omezeně, tak si ho radši zajisti hned.")}
+    <p style="margin:0 0 20px;">
+      <a href="${url}" style="display:inline-block;background:${BRAND_COLOR};color:${DARK};font-weight:800;font-size:13px;padding:12px 20px;border-radius:10px;text-decoration:none;">Zobrazit produkt</a>
+    </p>
+    <p style="margin:0;font-size:11px;color:#9ca3af;line-height:1.6;">
+      Tenhle e-mail ti přišel jednorázově, protože sis u tohohle produktu vyžádal/a hlídání skladu. Nikam tě nepřihlašujeme a víc už ti kvůli němu nenapíšeme.
+    </p>
+    `,
+  );
+  return { subject: `${productName} je zpátky skladem — HackPack`, html };
+}
+
+export async function sendBackInStockEmail(params: {
+  to: string;
+  productName: string;
+  slug: string;
+}): Promise<boolean> {
+  const { to, ...rest } = params;
+  const { subject, html } = renderBackInStockEmail(rest);
+  return send(to, subject, html);
+}
+
+// ── 5b) Reklamace / vrácení / výměna ────────────────────────────────────────
+// Potvrzení zákazníkovi slouží i jako doklad, že žádost dorazila — proto v něm
+// musí být číslo případu a shrnutí toho, co vyplnil.
+
+const CLAIM_TYPE_LABELS: Record<string, string> = {
+  reklamace: "Reklamace (vada zboží)",
+  vraceni: "Vrácení do 14 dnů",
+  vymena: "Výměna",
+};
+
+const CLAIM_RESOLUTION_LABELS: Record<string, string> = {
+  oprava: "Oprava",
+  penize: "Vrácení peněz",
+  sleva: "Sleva z ceny",
+};
+
+function claimLabel(map: Record<string, string>, value: string): string {
+  return map[value] ?? value;
+}
+
+function claimDetailsTable(claim: Claim): string {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+    ${summaryRow("Číslo případu", esc(claim.ticket), { bold: true, color: BRAND_COLOR })}
+    ${summaryRow("Číslo objednávky", esc(claim.cisloObjednavky))}
+    ${summaryRow("Typ žádosti", esc(claimLabel(CLAIM_TYPE_LABELS, claim.typZadosti)))}
+    ${summaryRow("Způsob vyřízení", esc(claimLabel(CLAIM_RESOLUTION_LABELS, claim.zpusobVyrizeni)))}
+  </table>`;
+}
+
+export function renderClaimConfirmationEmail(claim: Claim): { subject: string; html: string } {
+  const html = layout(
+    `Žádost ${claim.ticket} přijata`,
+    `
+    ${h1("Žádost jsme přijali")}
+    ${p(`Ahoj ${esc(claim.jmeno)}, potvrzujeme, že tvoje žádost dorazila. Číslo případu si prosím uschovej — budeme se na něj odkazovat.`)}
+    ${claimDetailsTable(claim)}
+    <p style="margin:0 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Popis</p>
+    <div style="background:#f7f6f4;border-radius:12px;padding:14px 18px;margin:0 0 20px;font-size:13px;line-height:1.6;color:#3f3f46;white-space:pre-wrap;">${esc(claim.popis)}</div>
+    ${p("Ozveme se ti nejpozději do 30 dnů, obvykle ale mnohem dřív. Pokud budeme potřebovat doplnit informace, napíšeme na tenhle e-mail.")}
+    ${sellerBlock()}
+    `,
+  );
+  return { subject: `Žádost ${claim.ticket} přijata — HackPack`, html };
+}
+
+export async function sendClaimConfirmationEmail(claim: Claim): Promise<boolean> {
+  const { subject, html } = renderClaimConfirmationEmail(claim);
+  return send(claim.email, subject, html);
+}
+
+export function renderClaimAdminEmail(claim: Claim): { subject: string; html: string } {
+  const html = layout(
+    `Nová žádost ${claim.ticket}`,
+    `
+    ${h1("Nová reklamace / vrácení")}
+    ${claimDetailsTable(claim)}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+      ${summaryRow("Jméno", esc(claim.jmeno), { bold: true })}
+      ${summaryRow("E-mail", esc(claim.email))}
+      ${summaryRow("Telefon", esc(claim.telefon))}
+    </table>
+    <p style="margin:0 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Popis</p>
+    <div style="background:#f7f6f4;border-radius:12px;padding:14px 18px;margin:0 0 20px;font-size:13px;line-height:1.6;color:#3f3f46;white-space:pre-wrap;">${esc(claim.popis)}</div>
+    ${p("Odpovědět jde přímo odpovědí na tenhle e-mail.")}
+    `,
+  );
+  return { subject: `Nová žádost ${claim.ticket} od ${claim.jmeno} — HackPack`, html };
+}
+
+export async function sendClaimAdminEmail(claim: Claim): Promise<boolean> {
+  const { subject, html } = renderClaimAdminEmail(claim);
+  return send(ADMIN_EMAIL, subject, html, undefined, claim.email);
+}
+
+// ── 6) Interní upozornění: přišla nová zpráva ───────────────────────────────
+// Nejde zákazníkovi, ale nám na ADMIN_EMAIL. replyTo = adresa zákazníka, takže
+// se dá odpovědět rovnou z mailu.
+
+export function renderNewMessageAdminEmail(params: {
+  name: string;
+  email: string;
+  text: string;
+  source?: string;
+}): { subject: string; html: string } {
+  const { name, email, text, source } = params;
+  const origin = source === "kontakt" ? "formulář /kontakt" : "chat widget";
+
+  const html = layout(
+    `Nová zpráva od ${name}`,
+    `
+    ${h1("Nová zpráva")}
+    ${p(`Přišla přes <strong>${esc(origin)}</strong>.`)}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+      ${summaryRow("Jméno", esc(name), { bold: true })}
+      ${summaryRow("E-mail", esc(email), { bold: true })}
+    </table>
+    <p style="margin:0 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Text zprávy</p>
+    <div style="background:#f7f6f4;border-radius:12px;padding:14px 18px;margin:0 0 20px;font-size:13px;line-height:1.6;color:#3f3f46;white-space:pre-wrap;">${esc(text)}</div>
+    ${p(`Odpovědět jde přímo odpovědí na tenhle e-mail, nebo v <a href="${SITE_URL}/admin" style="color:${BRAND_COLOR};text-decoration:none;">adminu</a>.`)}
+    `,
+  );
+  return { subject: `Nová zpráva od ${name} — HackPack`, html };
+}
+
+export async function sendNewMessageAdminEmail(params: {
+  name: string;
+  email: string;
+  text: string;
+  source?: string;
+}): Promise<boolean> {
+  const { subject, html } = renderNewMessageAdminEmail(params);
+  return send(ADMIN_EMAIL, subject, html, undefined, params.email);
+}
+
+// ── 7) Odpověď adminu na zprávu ze chat widgetu ─────────────────────────────
 
 export function renderMessageReplyEmail(params: { name: string; originalText: string; replyText: string }): {
   subject: string;

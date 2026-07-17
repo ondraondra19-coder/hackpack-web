@@ -138,7 +138,11 @@
     "stockVariant": "This variant is out of stock",
     "stockPlenty": "In stock",
     "stockLow_one": "Last {count} piece",
-    "stockLow_many": "Last {count} pieces"
+    "stockLow_many": "Last {count} pieces",
+    "notifySending": "Saving…",
+    "notifyErrorInvalidEmail": "Enter a valid e-mail.",
+    "notifyErrorRateLimited": "Too many attempts. Please try again later.",
+    "notifyErrorFailed": "Couldn't save it. Please try again."
   },
   "footer": {
     "newsletter": "Be the first to know about new arrivals",
@@ -387,7 +391,13 @@
     "messagePlaceholder": "How can we help?",
     "submit": "Send message",
     "sentTitle": "Message sent!",
-    "sentDesc": "We'll get back to you as soon as we can, usually within 24 hours."
+    "sentDesc": "We'll get back to you as soon as we can, usually within 24 hours.",
+    "sending": "Sending…",
+    "errorInvalidName": "Please enter your name.",
+    "errorInvalidEmail": "Enter a valid e-mail.",
+    "errorInvalidText": "The message is empty or too long.",
+    "errorCooldown": "You can send another message in {minutes} min.",
+    "errorFailed": "Couldn't send the message."
   },
   "about": {
     "home": "Home",
@@ -514,7 +524,9 @@
     "errGeneric": "Something went wrong: {message}",
     "free": "Free",
     "submit": "Place order",
-    "discountNotApplied": "Code {code} won't apply — spend another {amount}."
+    "discountNotApplied": "Code {code} won't apply — spend another {amount}.",
+    "addressVerified": "Address verified against the RÚIAN register",
+    "pickupAtPoint": "Collection from a pickup point"
   },
   "success": {
     "transferEyebrow": "Payment instructions",
@@ -584,7 +596,19 @@
     "trustShipping": "Ships within 24 h",
     "trustShippingDesc": "We send your parcel as soon as the payment is confirmed.",
     "trustReturns": "30-day returns",
-    "trustReturnsDesc": "Return anything within 30 days, no reason needed."
+    "trustReturnsDesc": "Return anything within 30 days, no reason needed.",
+    "copy": "Copy: {value}",
+    "copied": "Copied: {value}",
+    "copyShort": "Copy",
+    "breadcrumb": "Order confirmation",
+    "eyebrow": "Order received",
+    "title": "Thank you for your purchase!",
+    "orderItems": "Order items",
+    "itemsFailed": "We couldn't load the items.",
+    "contactDetails": "Contact details",
+    "helpTitle": "Need help?",
+    "helpDesc": "Customer service is available Mon–Fri 9am–6pm, Sat 10am–2pm.",
+    "complaintsLink": "Complaints and returns"
   },
   "shipping": {
     "home": "Home",
@@ -624,7 +648,9 @@
     "payCodDesc": "For delivery to your address you pay the courier in cash or by card. At a Z-BOX pickup point you pay in advance in the Zásilkovna app or via the link in your e-mail.",
     "ctaTitle": "A question about shipping?",
     "ctaDesc": "Happy to help — Mon–Fri 9am–6pm, Sat 10am–2pm.",
-    "ctaButton": "Get in touch"
+    "ctaButton": "Get in touch",
+    "secureTitle": "Secure payments — we protect your details",
+    "secureDesc": "Online card payments go through a secure payment gateway with {pci} certification and the {tds} protocol."
   },
   "review": {
     "home": "Home",
@@ -657,7 +683,13 @@
     "errNetwork": "Couldn't submit your review. Check your connection.",
     "cooldownBanner": "You can write another review in {time}.",
     "emailLabel": "E-mail",
-    "emailPlaceholder": "john@email.com"
+    "emailPlaceholder": "john@email.com",
+    "nameLabel": "Name",
+    "textLabel": "Your review",
+    "captchaPrompt": "Please confirm you're not a robot.",
+    "showMoreReviews": "Show more reviews",
+    "empty": "No reviews yet. Be the first!",
+    "sentTitle": "Thanks for your review!"
   },
   "legal": {
     "home": "Home",
@@ -766,6 +798,34 @@
     "contactSupport": "Contact support",
     "ctaTitle": "Need help with a complaint?",
     "ctaDesc": "Happy to help — Mon–Fri 9am–6pm, Sat 10am–2pm.",
-    "ctaButton": "Get in touch"
+    "ctaButton": "Get in touch",
+    "returnsTitle": "How and when you can return goods",
+    "goodsHeading": "About the goods",
+    "consentNote": "By submitting this form you acknowledge the {link} for the purpose of settling your complaint. Fields marked * are required.",
+    "consentLink": "processing of personal data",
+    "submit": "Send request",
+    "infoReplyIn": "We reply within",
+    "infoReplyValue": "3 working days",
+    "infoLegalLimit": "Statutory settlement period",
+    "infoLegalValue": "30 days",
+    "infoRefund": "Refund (once accepted)",
+    "infoRefundValue": "3–5 days",
+    "newRequest": "Submit another request",
+    "legalTitle": "Legal details and documents",
+    "legalDesc": "The detailed complaints procedure, your rights from defective performance and information about out-of-court dispute resolution (ADR) are in our full Terms and Conditions.",
+    "legalCta": "View Terms and Conditions",
+    "formTitle": "Complaint form",
+    "sending": "Sending…",
+    "errCooldown": "You can send another request in {minutes} min.",
+    "errFailed": "Sending failed. Please try again."
+  },
+  "cookieBanner": {
+    "dialogLabel": "Cookie consent",
+    "title": "This website uses cookies",
+    "desc": "We need technical cookies for the cart and checkout to work — those can't be turned off. We use analytics cookies only with your consent, to measure traffic in PostHog.",
+    "descExtra": "We don't sell your data or pass it to advertising networks, and without consent nothing is sent to PostHog.",
+    "showDetails": "Show details",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all"
   }
 }

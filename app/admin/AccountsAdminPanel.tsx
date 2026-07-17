@@ -9,6 +9,7 @@ const PERMISSION_LABELS: Record<Permission, string> = {
   products: "Produkty",
   reviews: "Recenze",
   messages: "Zprávy",
+  claims: "Reklamace",
   settings: "Magazín",
   analytics: "Analytika",
   discounts: "Slevové kódy",

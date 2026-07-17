@@ -17,6 +17,7 @@
 // v tu chvíli musí granulární volba zpátky i do lišty.
 import { useState, useEffect } from "react";
 import { ChevronRight } from "lucide-react";
+import { useT } from "@/lib/useT";
 import { useRouter, usePathname } from "next/navigation";
 import {
   acceptAll,
@@ -27,6 +28,7 @@ import {
 } from "@/lib/consent";
 
 export default function CookieBanner() {
+  const t = useT("cookieBanner");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -37,6 +39,8 @@ export default function CookieBanner() {
 
   useEffect(() => {
     if (readVisitedDetails()) {
+      // Stav souhlasu čteme až po mountu (localStorage není na serveru).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasVisitedDetails(true);
     }
 
@@ -109,7 +113,7 @@ export default function CookieBanner() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Souhlas s cookies"
+        aria-label={t("dialogLabel")}
         className={`fixed z-[200] transition-all duration-500 ease-out ${
           hasVisitedDetails
             ? "bottom-0 left-0 w-full"
@@ -133,12 +137,11 @@ export default function CookieBanner() {
           <div className={`flex-1 min-w-0 flex flex-col justify-between h-full ${hasVisitedDetails ? "md:flex-row md:items-center gap-2 md:gap-6" : ""}`}>
             <div>
               <h2 className={`text-white font-bold tracking-wide ${hasVisitedDetails ? "text-sm mb-0.5" : "text-base md:text-lg mb-1.5"}`}>
-                Tato webová stránka používá cookies
+                {t("title")}
               </h2>
               <p className={`text-[#a3a3a3] leading-relaxed ${hasVisitedDetails ? "text-[11px] md:text-xs max-w-5xl" : "text-xs md:text-sm max-w-4xl"}`}>
-                Technické cookies potřebujeme k fungování košíku a pokladny — ty nejdou vypnout.
-                Analytické cookies používáme jen s vaším souhlasem k měření návštěvnosti v nástroji PostHog.
-                {!hasVisitedDetails && " Data neprodáváme ani nepředáváme reklamním sítím a bez souhlasu se na PostHog neodešle nic."}
+                {t("desc")}
+                {!hasVisitedDetails && ` ${t("descExtra")}`}
               </p>
             </div>
 
@@ -150,7 +153,7 @@ export default function CookieBanner() {
                   hasVisitedDetails ? "text-xs gap-1" : "text-xs md:text-sm gap-1.5"
                 }`}
               >
-                Zobrazit detaily
+                {t("showDetails")}
                 <ChevronRight size={hasVisitedDetails ? 12 : 14} className="stroke-[2.5]" />
               </button>
             </div>
@@ -168,8 +171,8 @@ export default function CookieBanner() {
                 GDPR nátlakový (dřív: "Povolit" plné růžové, "Odmítnout" bledý
                 obrys). Když sáhneš na styl jednoho, sáhni i na druhý. */}
             {([
-              { label: "Povolit vše",   onClick: handleAcceptAll },
-              { label: "Odmítnout vše", onClick: handleRejectAll },
+              { label: t("acceptAll"), onClick: handleAcceptAll },
+              { label: t("rejectAll"), onClick: handleRejectAll },
             ] as const).map(btn => (
               <button
                 key={btn.label}

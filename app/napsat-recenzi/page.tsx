@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Star, ChevronRight, Send, Check, AlertCircle, ChevronDown } from "lucide-react";
@@ -91,6 +92,7 @@ declare global {
       reset: (id: string) => void;
     };
     onHcaptchaVerify: (token: string) => void;
+    onHcaptchaLoad?: () => void;
   }
 }
 
@@ -146,7 +148,10 @@ export default function RecenzePage() {
     script.async = true;
     script.defer = true;
     document.body.appendChild(script);
-    (window as any).onHcaptchaLoad = () => initCaptcha();
+    window.onHcaptchaLoad = () => initCaptcha();
+    // Efekt má běžet jen při změně cooldownLeft; initCaptcha se vytváří každý
+    // render, přidání do deps by ho zbytečně spouštělo znovu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cooldownLeft]);
 
   function initCaptcha() {
@@ -236,9 +241,9 @@ export default function RecenzePage() {
 
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
             <ChevronRight size={12} className="text-border" />
-            <span className="text-text-muted">Hodnocení obchodu</span>
+            <span className="text-text-muted">{tr("title")}</span>
           </nav>
 
           <h1 className="text-3xl font-extrabold text-text-base mb-8">{tr("title")}</h1>
@@ -308,7 +313,7 @@ export default function RecenzePage() {
                   <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                     <Check size={22} className="text-green-600" />
                   </div>
-                  <p className="text-text-base font-semibold">Děkujeme za recenzi!</p>
+                  <p className="text-text-base font-semibold">{t("sentTitle")}</p>
                   <p className="text-text-muted text-sm">{t("sentDesc")}</p>
                 </div>
               ) : (
@@ -343,8 +348,8 @@ export default function RecenzePage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-text-muted text-xs font-medium mb-1.5">Jméno *</label>
-                      <input value={name} onChange={e => setName(e.target.value)} placeholder={t("namePlaceholder")}
+                      <label htmlFor="review-name" className="block text-text-muted text-xs font-medium mb-1.5">{t("nameLabel")} <span aria-hidden="true">*</span></label>
+                      <input id="review-name" value={name} onChange={e => setName(e.target.value)} placeholder={t("namePlaceholder")}
                         className="w-full bg-surface border border-border rounded-xl px-4 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/50 transition-colors" />
                     </div>
                     <div>
@@ -357,7 +362,7 @@ export default function RecenzePage() {
                   {/* Textarea s počítadlem znaků */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-text-muted text-xs font-medium">Vaše recenze *</label>
+                      <label htmlFor="review-text" className="block text-text-muted text-xs font-medium">{t("textLabel")} <span aria-hidden="true">*</span></label>
                       <span className={`text-xs ${charsLeft < 50 ? (charsLeft < 0 ? "text-red-500 font-semibold" : "text-amber-500") : "text-text-subtle"}`}>
                         {charsLeft} znaků zbývá
                       </span>
@@ -378,7 +383,7 @@ export default function RecenzePage() {
                   <div>
                     <div ref={captchaRef} />
                     {!captchaToken && (
-                      <p className="text-text-subtle text-xs mt-1.5">Potvrďte prosím, že nejste robot.</p>
+                      <p className="text-text-subtle text-xs mt-1.5">{t("captchaPrompt")}</p>
                     )}
                     {captchaToken && (
                       <p className="flex items-center gap-1.5 text-green-600 text-xs mt-1.5">
@@ -425,15 +430,15 @@ export default function RecenzePage() {
                     onClick={() => setVisibleCount(v => v + LOAD_MORE_COUNT)}
                     className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-border text-text-muted text-sm font-medium hover:border-primary hover:text-primary-ink transition-all"
                   >
-                    Zobrazit další recenze
-                    <ChevronDown size={15} />
+                    {t("showMoreReviews")}
+                    <ChevronDown size={15} aria-hidden="true" />
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
-              <p className="text-text-muted text-sm">Zatím žádné recenze. Buďte první!</p>
+              <p className="text-text-muted text-sm">{t("empty")}</p>
             </div>
           )}
 

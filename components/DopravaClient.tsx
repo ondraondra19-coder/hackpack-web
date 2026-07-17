@@ -5,6 +5,7 @@ import {
   Banknote, ShieldCheck, Clock, Package, ArrowRight,
   CheckCircle2, Zap, HelpCircle, Building2,
 } from "lucide-react";
+import Link from "next/link";
 import { SHIPPING_PRICES } from "@/lib/shipping/pricing";
 import { DOBIRKA_FEE } from "@/lib/fees";
 import { formatPrice, CURRENCIES } from "@/lib/currency";
@@ -97,7 +98,7 @@ export default function DopravaClient() {
 
           <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-14 lg:py-20 relative z-10">
             <nav className="flex items-center gap-2 text-xs text-white/30 mb-8">
-              <a href="/" className="hover:text-white/60 transition-colors">{t("home")}</a>
+              <Link href="/" className="hover:text-white/60 transition-colors">{t("home")}</Link>
               <ChevronRight size={11} aria-hidden="true" />
               <span className="text-white/60">{t("breadcrumb")}</span>
             </nav>
@@ -223,12 +224,19 @@ export default function DopravaClient() {
                   </div>
                   <div>
                     <p className="text-text-base font-bold text-base mb-2">
-                      Bezpečné platby — chráníme vaše údaje
+                      {t("secureTitle")}
                     </p>
                     <p className="text-text-muted text-sm leading-relaxed max-w-2xl">
-                      Online platby kartou jsou realizovány přes zabezpečenou platební bránu
-                      s certifikací <strong className="text-text-base">PCI DSS</strong> a protokolem{" "}
-                      <strong className="text-text-base">3D Secure</strong>.
+                      {/* Věta se v překladu drží vcelku a jen se rozseká na značkách,
+                          aby zůstala tučná jména certifikací. */}
+                      {(() => {
+                        const parts = t("secureDesc").split(/\{(pci|tds)\}/);
+                        return parts.map((part, i) =>
+                          part === "pci" ? <strong key={i} className="text-text-base">PCI DSS</strong>
+                          : part === "tds" ? <strong key={i} className="text-text-base">3D Secure</strong>
+                          : <span key={i}>{part}</span>
+                        );
+                      })()}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-4">
                       {["Visa", "Mastercard", "Apple Pay", "Google Pay"].map(brand => (
