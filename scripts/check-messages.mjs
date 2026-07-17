@@ -57,8 +57,15 @@ function walk(dir) {
 
 // Komentáře pryč — v useT.ts je v hlavičce ukázka `t.plural(n, "item")`, která
 // by se jinak počítala jako skutečné použití neexistujícího klíče.
+//
+// POŘADÍ JE DŮLEŽITÉ: nejdřív řádkové komentáře, pak blokové. Když se text
+// "messages/x.json" (s hvězdičkou místo x) objeví v řádkovém komentáři, obsahuje
+// posloupnost lomítko-hvězdička a regex na blokové komentáře by od ní sežral
+// všechno až k nejbližšímu ukončení bloku — tedy klidně půl souboru i s
+// deklarací useT. Tohle je naivní lexer, ne parser; pro náš účel stačí, ale
+// tenhle pořádek si musí držet.
 const stripComments = (src) =>
-  src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
 
 const used = new Set();
 for (const file of [...walk(join(ROOT, "app")), ...walk(join(ROOT, "components")), ...walk(join(ROOT, "lib"))]) {
@@ -88,7 +95,16 @@ for (const key of used) {
 }
 
 // ── 3. Mrtvé klíče ───────────────────────────────────────────────────────────
-const dead = [...keys.cs].filter((k) => !used.has(k));
+
+// `variants` se klíčuje za běhu hodnotou z katalogu — variantLabel(tv, "darkblue")
+// místo tv("darkblue"), viz lib/variantLabels.ts. Staticky se to najít nedá,
+// takže by se celý namespace hlásil jako mrtvý. Kontrolu shody mezi jazyky
+// (bod 1) to nijak neobchází, jen se u něj nehlídá mrtvost.
+const DYNAMIC_NAMESPACES = new Set(["variants"]);
+
+const dead = [...keys.cs].filter(
+  (k) => !used.has(k) && !DYNAMIC_NAMESPACES.has(k.split(".")[0]),
+);
 
 // ── Výstup ───────────────────────────────────────────────────────────────────
 if (dead.length) {
