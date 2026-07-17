@@ -212,7 +212,8 @@ export async function GET(req: Request) {
       const parsed = parseAddressLine(addr);
       if (!parsed) continue;
 
-      let { name, pscMesto, cast, psc } = parsed;
+      const { name, cast, psc } = parsed;
+      let { pscMesto } = parsed;
       if (!pscMesto) continue;
 
       // OPRAVA: Odstranění chatových oblastí a jiného balastu z našeptávače obcí

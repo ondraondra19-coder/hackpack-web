@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, Fragment } from "react";
+import Image from "next/image";
 import { getProductCombinations, type Product, type PriceValue } from "@/lib/products";
 
 function formatPrice(price: Product["price"]): string {
@@ -311,7 +312,7 @@ export default function ProductsAdminList({ products, stock, initialQuery }: Pro
                     >
                       <td className="py-4 pl-2 flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-lg bg-[#f1f1f3] border border-[#e5e7eb] overflow-hidden flex-shrink-0 relative">
-                          <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                          <Image src={product.img} alt={product.name} fill className="object-cover" unoptimized />
                         </div>
                         <div>
                           <h4 className="text-xs font-bold text-[#0f0f10] leading-tight group-hover:text-primary-ink transition-colors">

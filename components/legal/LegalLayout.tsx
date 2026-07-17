@@ -8,6 +8,7 @@
 // je prošpikovaná <strong>, <a> a seznamy a do JSON by se dala nacpat jen jako
 // HTML v řetězcích, což by nikdo nezkontroloval ani nepřeložil.
 
+import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { useT } from "@/lib/useT";
 
@@ -38,7 +39,7 @@ export default function LegalLayout({
       <div className="max-w-5xl mx-auto px-6 lg:px-12 py-12">
 
         <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-          <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+          <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
           <ChevronRight size={12} className="text-border" aria-hidden="true" />
           <span className="text-text-muted">{title}</span>
         </nav>

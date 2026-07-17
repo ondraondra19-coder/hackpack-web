@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ChevronRight, ArrowUpRight } from "lucide-react";
 import { useT } from "@/lib/useT";
 
@@ -51,7 +52,7 @@ export default function BlogList({ posts }: { posts: ListPost[] }) {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-          <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+          <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
           <ChevronRight size={12} className="text-border" aria-hidden="true" />
           <span className="text-text-muted">{t("title")}</span>
         </nav>

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ChevronRight, Tag } from "lucide-react";
-import { products as staticProducts, getProductName } from "@/lib/products";
+import { products as staticProducts, getProductName, type ModelColorLayered } from "@/lib/products";
 import { useLang } from "@/lib/LangContext";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice } from "@/lib/currency";
@@ -24,8 +25,9 @@ function getProductImgs(slug: string, variants?: Record<string, string>): { img:
   const bodyVal = variants["Tělo"];
   const capVal = variants["Hlavička"];
   if (!bodyVal || !capVal) return null;
-  const bodyColor = model.colors.find(c => c.value === bodyVal) as any;
-  const capColor = model.colors.find(c => c.value === capVal) as any;
+  // model.layered je true (viz guard výše), takže barvy jsou vrstvené (body/cap).
+  const bodyColor = model.colors.find(c => c.value === bodyVal) as ModelColorLayered | undefined;
+  const capColor = model.colors.find(c => c.value === capVal) as ModelColorLayered | undefined;
   if (bodyColor && capColor) return { img: bodyColor.body, img2: capColor.cap };
   return null;
 }
@@ -83,6 +85,8 @@ export default function KosikPage() {
   const tc = useT("common");
   const { locale } = useLang();
   const [mounted, setMounted] = useState(false);
+  // Mount flag proti hydratačnímu nesouladu (košík žije v localStorage).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   // Ceny doporučených produktů (bestsellery / "hodí se k tomu") mají být
@@ -115,6 +119,8 @@ export default function KosikPage() {
   }, [items]);
 
   useEffect(() => {
+    // Sklad dotáhneme až po mountu; setStockMap běží až po fetchi.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (mounted) fetchStockForItems();
   }, [mounted, fetchStockForItems]);
 
@@ -203,7 +209,6 @@ export default function KosikPage() {
     // "poolu" na (slug, klíč), ať se nestane, že si dvě položky navzájem
     // odsouhlasí víc kusů, než kolik jich reálně na skladě je.
     const remainingBySlugKey: Record<string, number> = {};
-    let anyChanged = false;
 
     for (const item of items) {
       const slugStock = freshStock[item.slug] ?? {};
@@ -234,7 +239,6 @@ export default function KosikPage() {
       if (max <= 0) {
         // Vyprodáno — odeber z košíku
         removeItem(item.slug, item.variants);
-        anyChanged = true;
         continue;
       }
 
@@ -242,7 +246,6 @@ export default function KosikPage() {
       if (finalQty !== item.quantity) {
         // Více kusů než je reálně na skladě — ořízni
         updateQuantity(item.slug, finalQty, item.variants);
-        anyChanged = true;
       }
 
       // Odečti spotřebované kusy ze společného poolu, ať je vidí i další položky
@@ -268,7 +271,7 @@ export default function KosikPage() {
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-10">
 
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">{tc("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{tc("home")}</Link>
             <ChevronRight size={12} className="text-border" />
             <span className="text-text-muted">{t("title")}</span>
           </nav>
@@ -299,9 +302,9 @@ export default function KosikPage() {
                     </div>
                     <p className="text-text-base font-semibold text-lg">{t("empty")}</p>
                     <p className="text-text-muted text-sm mt-2">{t("emptyDesc")}</p>
-                    <a href="/" className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-bold text-sm hover:brightness-105 transition-all">
+                    <Link href="/" className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-bold text-sm hover:brightness-105 transition-all">
                       {t("continueShopping")} <ArrowRight size={14} />
-                    </a>
+                    </Link>
                   </div>
                   <ProductRow title={recommendedTitle} subtitle={recommendedSubtitle} items={recommendedProducts} currency={currency} />
                 </>
@@ -314,7 +317,7 @@ export default function KosikPage() {
                         const itemPrice = getItemPrice(item, currency);
                         return (
                           <div key={item.slug + JSON.stringify(item.variants)} className="flex gap-3 sm:gap-5 p-3 sm:p-5 bg-secondary border border-border rounded-2xl">
-                            <a href={`/produkt/${item.slug}`} className="shrink-0">
+                            <Link href={`/produkt/${item.slug}`} className="shrink-0">
                               {(() => {
                                 const layered = getProductImgs(item.slug, item.variants);
                                 return (
@@ -324,11 +327,11 @@ export default function KosikPage() {
                                   </div>
                                 );
                               })()}
-                            </a>
+                            </Link>
                             <div className="flex-1 min-w-0 py-1">
-                              <a href={`/produkt/${item.slug}`}>
+                              <Link href={`/produkt/${item.slug}`}>
                                 <p className="text-text-base font-semibold text-base leading-snug hover:text-primary-ink transition-colors">{item.name}</p>
-                              </a>
+                              </Link>
                               {item.variants && Object.entries(item.variants).length > 0 && (
                                 <p className="text-text-subtle text-sm mt-1.5">
                                   {Object.entries(item.variants).map(([k, v]) => `${variantAttr(tv, k)}: ${variantLabel(tv, v)}`).join(" · ")}
@@ -379,9 +382,9 @@ export default function KosikPage() {
                           </div>
                         );
                       })}
-                      <a href="/" className="inline-flex items-center gap-1.5 text-primary-ink text-sm hover:underline mt-2">
+                      <Link href="/" className="inline-flex items-center gap-1.5 text-primary-ink text-sm hover:underline mt-2">
                         ← {t("continueShopping")}
-                      </a>
+                      </Link>
                     </div>
 
                     {/* Souhrn */}

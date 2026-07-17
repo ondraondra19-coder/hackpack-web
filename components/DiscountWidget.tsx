@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Tag, X, Check, AlertCircle, Sparkles, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/CurrencyContext";
@@ -115,12 +116,12 @@ export default function DiscountWidget() {
                   </>
                 );
               })()}
-              <a
+              <Link
                 href="/"
                 className="ml-1.5 inline-flex items-center gap-0.5 text-amber-700 font-semibold hover:text-amber-900 transition-colors underline underline-offset-2"
               >
                 {t("goToShop")} <ArrowRight size={11} aria-hidden="true" />
-              </a>
+              </Link>
               {showApprox && (
                 <span className="block text-amber-500 text-[10px] mt-1">
                   {t("approxNote")}

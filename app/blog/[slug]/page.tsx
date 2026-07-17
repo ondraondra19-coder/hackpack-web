@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
-import { getAllPosts, getPostBySlug, parseBlogContent, splitBold } from "@/lib/blog";
+import { getPostBySlug, parseBlogContent, splitBold } from "@/lib/blog";
 
 // Obsah spravuje admin a může se změnit kdykoliv — žádné statické
 // generování/cache, ať se úpravy projeví hned.

@@ -42,8 +42,9 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (err: any) {
-    console.error("Neplatný Stripe webhook podpis:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Neplatný Stripe webhook podpis:", message);
     return NextResponse.json({ error: "Neplatný podpis." }, { status: 400 });
   }
 

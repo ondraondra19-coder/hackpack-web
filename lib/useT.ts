@@ -62,8 +62,12 @@ export function useT(namespace: Namespace): T {
     return raw === undefined ? `${namespace}.${key}` : interpolate(raw, vars);
   }) as T;
 
+  // Metody navěšujeme na callable `t` (překladač + t.plural/t.locale) — záměrná
+  // mutace lokálně vytvořeného objektu, ne sdíleného stavu.
+  // eslint-disable-next-line react-hooks/immutability
   t.plural = (count: number, key: string, vars?: Vars) =>
     t(`${key}_${pluralSuffix(locale, count)}`, { count, ...vars });
+  // eslint-disable-next-line react-hooks/immutability
   t.locale = locale;
 
   return t;

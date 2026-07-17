@@ -2,6 +2,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useT } from "@/lib/useT";
 
 type PreviewPost = { slug: string; title: string; date: string; img: string };
@@ -52,13 +53,13 @@ export default function BlogPreviewList({ posts }: { posts: PreviewPost[] }) {
         </div>
 
         <div className="flex justify-center">
-          <a
+          <Link
             href="/blog"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border border-border text-text-base text-sm font-medium hover:border-primary hover:text-primary-ink transition-all duration-200"
           >
             {t("goToMagazine")}
             <ArrowUpRight size={15} />
-          </a>
+          </Link>
         </div>
       </div>
     </section>

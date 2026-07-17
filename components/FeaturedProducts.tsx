@@ -60,6 +60,8 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
   }, []);
 
   useEffect(() => {
+    // Změření layoutu po mountu (šířka karet) — nutně nastaví stav synchronně.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     measure();
     const ro = new ResizeObserver(measure);
     if (trackRef.current) ro.observe(trackRef.current);
@@ -167,7 +169,7 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
             WebkitOverflowScrolling: "touch",
           } as React.CSSProperties}
         >
-          {featured.map((product, i) => (
+          {featured.map((product) => (
             <a
               key={product.slug}
               href={`/produkt/${product.slug}`}
@@ -207,7 +209,7 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
                     {getProductName(product, locale)}
                   </p>
                   <p className="text-primary-ink font-extrabold text-xl leading-none">
-                    {formatPrice(getPrice(product.price as any, currency), currency)}
+                    {formatPrice(getPrice(product.price, currency), currency)}
                   </p>
                 </div>
 

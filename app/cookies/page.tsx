@@ -40,6 +40,8 @@ export default function CookiesPage() {
   useEffect(() => {
     const prefs = getConsentPreferences();
     if (!prefs) return;
+    // Uloženou volbu čteme až po mountu (na serveru localStorage není).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnalytics(prefs.analytics);
     setMarketing(prefs.marketing);
   }, []);

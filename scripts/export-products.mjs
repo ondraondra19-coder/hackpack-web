@@ -11,7 +11,6 @@ const blocks = content.match(/\{[\s\S]*?slug:[\s\S]*?\}/g) || [];
 for (const block of blocks) {
   const name = block.match(/name:\s*"([^"]+)"/)?.[1];
   const price = block.match(/price:\s*(\d+)/)?.[1];
-  const inStock = block.match(/inStock:\s*(true|false)/)?.[1];
   const stock = block.match(/stock:\s*(\d+)/)?.[1] ?? "0";
   const categories = block.match(/categories:\s*\[([^\]]+)\]/)?.[1]
     ?.replace(/"/g, "").replace(/\s/g, "") || "";

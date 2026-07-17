@@ -12,6 +12,15 @@ import { getClientIp } from '@/lib/clientIp';
 // rozbíjí cenu i odečet skladu).
 const MAX_ITEM_QUANTITY = 50;
 
+// Tvar položky tak, jak dorazí v request body z košíku (klient posílá JSON).
+type CheckoutItem = {
+  slug: string;
+  quantity: number;
+  variants?: Record<string, string>;
+  stockKey?: string | string[];
+  img?: string;
+};
+
 export async function POST(req: Request) {
   const key = process.env.STRIPE_SECRET_KEY;
 
@@ -51,18 +60,9 @@ export async function POST(req: Request) {
     // strhla aktuální cena (i těsně po úpravě v adminu, bez redeploye).
     const products = await getProductsWithPriceOverrides();
 
-    // ── Helper: cena produktu v dané měně (jen pro produkty BEZ modelů —
-    // pro modely a vrstvené barvy se používá resolveItemUnitPrice, který
-    // zohlední i výběr modelu a příplatek za namíchané barvy) ──────────────
-    function getUnitAmount(price: number | Record<string, number>, code: string): number {
-      if (typeof price === 'number') return price;
-      // Zkusíme požadovanou měnu, fallback na CZK
-      return price[code] ?? price['CZK'] ?? 0;
-    }
-
     // ── 1. Produkty ──────────────────────────────────────────────────────────
     let subtotal = 0;
-    const line_items = items.map((cartItem: any) => {
+    const line_items = items.map((cartItem: CheckoutItem) => {
       const realProduct = products.find(p => p.slug === cartItem.slug);
       if (!realProduct) throw new Error(`Produkt ${cartItem.slug} nenalezen.`);
 
@@ -182,7 +182,7 @@ export async function POST(req: Request) {
       discountCode: resolvedDiscount.discountCode,
       discountLabel: resolvedDiscount.discountLabel,
       discountAmountCZK: resolvedDiscount.discountAmountCZK,
-      items: items.map((i: any) => {
+      items: items.map((i: CheckoutItem) => {
         const realProduct = products.find(p => p.slug === i.slug);
         return {
           slug: i.slug,
@@ -210,7 +210,7 @@ export async function POST(req: Request) {
       success_url: `${origin}/objednavka/uspech?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/kosik`,
       metadata: {
-        order_items: JSON.stringify(items.map((i: any) => ({ slug: i.slug, qty: i.quantity }))),
+        order_items: JSON.stringify(items.map((i: CheckoutItem) => ({ slug: i.slug, qty: i.quantity }))),
         discount_code: resolvedDiscount.discountCode ?? '',
         pending_order_id: pendingOrderId,
       },
@@ -218,8 +218,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
 
-  } catch (err: any) {
-    console.error('STRIPE ERROR:', err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('STRIPE ERROR:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

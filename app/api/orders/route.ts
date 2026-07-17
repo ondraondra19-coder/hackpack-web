@@ -17,6 +17,14 @@ import { isBankTransferEnabled } from "@/lib/featureFlags";
 // rozbíjí cenu i odečet skladu, viz deductStockForItems).
 const MAX_ITEM_QUANTITY = 50;
 
+// Tvar položky tak, jak dorazí v request body z košíku (klient posílá JSON).
+type OrderReqItem = {
+  slug: string;
+  quantity: number;
+  variants?: Record<string, string>;
+  stockKey?: string | string[];
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -63,7 +71,7 @@ export async function POST(req: Request) {
     const effectiveProducts = await getProductsWithPriceOverrides();
 
     let subtotal = 0;
-    const resolvedItems = items.map((i: any) => {
+    const resolvedItems = items.map((i: OrderReqItem) => {
       const realProduct = effectiveProducts.find((p) => p.slug === i.slug);
       const unitPrice = realProduct ? resolveItemUnitPrice(realProduct, i.variants, currencyCode) : 0;
       subtotal += unitPrice * i.quantity;
@@ -154,7 +162,7 @@ export async function POST(req: Request) {
     await sendOrderConfirmationEmail(order);
 
     return NextResponse.json({ ok: true, orderId: order.id });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Chyba při vytváření objednávky (dobírka/převod):", err);
     return NextResponse.json({ error: "Objednávku se nepodařilo uložit." }, { status: 500 });
   }

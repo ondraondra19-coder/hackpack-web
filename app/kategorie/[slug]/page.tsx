@@ -28,7 +28,7 @@ export default async function KategoriePage({
 
   // Fetchni celou stock mapu jedním voláním (je cachovaná)
   // a sestav { [slug]: { "color|size": number } } pro produkty v kategorii
-  let stockData: Record<string, Record<string, number>> = {};
+  const stockData: Record<string, Record<string, number>> = {};
   try {
     const stockMap = await getStockMap();
     for (const product of products) {

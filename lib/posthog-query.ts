@@ -24,7 +24,7 @@ function lastNDays(n: number): string[] {
   return days;
 }
 
-async function runHogQL<Row extends any[] = any[]>(query: string): Promise<Row[]> {
+async function runHogQL<Row extends unknown[] = unknown[]>(query: string): Promise<Row[]> {
   const apiKey = process.env.POSTHOG_PERSONAL_API_KEY;
   const projectId = process.env.POSTHOG_PROJECT_ID;
   if (!apiKey || !projectId) {

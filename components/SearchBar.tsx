@@ -287,6 +287,8 @@ export default function SearchBar() {
 
   const confident = isConfidentResult(results);
 
+  // Reset zvýrazněné položky při změně dotazu.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setActiveIndex(-1); }, [query]);
 
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { SlidersHorizontal, ChevronDown, X, Check } from "lucide-react";
 import type { Product, Category } from "@/lib/products";
 import { getProductName, getCategoryName } from "@/lib/products";
@@ -169,7 +170,7 @@ export default function KategorieClient({
   ];
 
   // Filtry vždy počítáme v CZK
-  const allPrices = products.map(p => typeof p.price === "number" ? p.price : (p.price as any).CZK ?? 0);
+  const allPrices = products.map(p => typeof p.price === "number" ? p.price : p.price.CZK ?? 0);
   const PRICE_MIN = allPrices.length ? Math.min(...allPrices) : 0;
   const PRICE_MAX = allPrices.length ? Math.max(...allPrices) : 1000;
 
@@ -182,7 +183,7 @@ export default function KategorieClient({
   const [priceOpen,        setPriceOpen]        = useState(false);
   const [availOpen,        setAvailOpen]        = useState(false);
 
-  const getCZK = (p: Product) => typeof p.price === "number" ? p.price : (p.price as any).CZK ?? 0;
+  const getCZK = (p: Product) => typeof p.price === "number" ? p.price : p.price.CZK ?? 0;
 
   let filtered = products.filter(p => {
     const czk = getCZK(p);
@@ -275,7 +276,7 @@ export default function KategorieClient({
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-text-subtle mb-5 lg:mb-8">
-          <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+          <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
           <span aria-hidden="true" className="text-border">/</span>
           <span className="text-text-muted">{categoryName}</span>
         </nav>
@@ -420,7 +421,7 @@ export default function KategorieClient({
                         {/* Cena + stock */}
                         <div className="flex items-center justify-between gap-2 mt-0.5">
                           <p className="text-primary-ink font-extrabold text-2xl leading-none">
-                            {formatPrice(getPrice(product.price as any, currency), currency)}
+                            {formatPrice(getPrice(product.price, currency), currency)}
                           </p>
                           <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${stockLabel.cls}`}>
                             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${stockLabel.dot}`} />

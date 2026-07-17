@@ -65,12 +65,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        const migrated = parsed.map((item: any) => ({
+        // Starší verze košíku ukládaly jen `price` (CZK) — migrujeme na
+        // priceCZK/priceRaw. Legacy položky proto mají tyhle pole volitelné.
+        const parsed = JSON.parse(stored) as (Partial<CartItem> & { price?: number })[];
+        const migrated = parsed.map((item) => ({
           ...item,
           priceCZK: item.priceCZK ?? item.price ?? 0,
           priceRaw: item.priceRaw ?? item.priceCZK ?? item.price ?? 0,
-        }));
+        })) as CartItem[];
+        // Košík hydratujeme z localStorage až po mountu.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(migrated);
       }
     } catch {}
@@ -132,11 +136,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalPriceCZK = items.reduce((s, i) => s + i.priceCZK * i.quantity, 0);
 
   const getItemPrice = useCallback((item: CartItem, currency: Currency): number => {
-    return getPrice(item.priceRaw as any, currency);
+    return getPrice(item.priceRaw, currency);
   }, []);
 
   const getTotalPrice = useCallback((currency: Currency): number => {
-    return items.reduce((s, i) => s + getPrice(i.priceRaw as any, currency) * i.quantity, 0);
+    return items.reduce((s, i) => s + getPrice(i.priceRaw, currency) * i.quantity, 0);
   }, [items]);
 
   // ── Discount ───────────────────────────────────────────────────────────────
@@ -173,7 +177,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (!appliedDiscount || !isDiscountActive()) return 0;
     const eligible = getEligibleItems(appliedDiscount);
     const eligibleCZK = eligible.reduce((s, i) => s + i.priceCZK * i.quantity, 0);
-    const eligibleInCurrency = eligible.reduce((s, i) => s + getPrice(i.priceRaw as any, currency) * i.quantity, 0);
+    const eligibleInCurrency = eligible.reduce((s, i) => s + getPrice(i.priceRaw, currency) * i.quantity, 0);
     return calcDiscount(appliedDiscount, eligibleCZK, eligibleInCurrency);
   }, [appliedDiscount, isDiscountActive, getEligibleItems]);
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -226,7 +227,7 @@ export default function FaqPage() {
 
           <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-14 lg:py-20 relative z-10">
             <nav className="flex items-center gap-2 text-xs text-white/30 mb-8">
-              <a href="/" className="hover:text-white/60 transition-colors">{t("home")}</a>
+              <Link href="/" className="hover:text-white/60 transition-colors">{t("home")}</Link>
               <ChevronRight size={11} aria-hidden="true" />
               <span className="text-white/60">{t("title")}</span>
             </nav>

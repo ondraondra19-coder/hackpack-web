@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { ShoppingCart, Phone, Mail, ChevronDown, Menu, X, Globe } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { type CurrencyCode } from "@/lib/currency";
@@ -12,7 +13,6 @@ import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
 import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/locale";
 import { getCategoryName, getProductName } from "@/lib/products";
-import Logo from "@/components/Logo";
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -124,7 +124,7 @@ export default function Header() {
       <div className="max-w-screen-2xl mx-auto px-4 lg:px-12 flex items-center justify-between h-16 lg:h-20 gap-4 lg:gap-6">
 
         {/* Logo */}
-        <a
+        <Link
           href="/"
           onClick={e => {
             if (window.location.pathname === "/") {
@@ -142,7 +142,7 @@ export default function Header() {
             className="h-25 w-auto object-contain"
             priority // Zajistí rychlé načtení loga jako LCP elementu
           />
-        </a>
+        </Link>
 
         {/* SearchBar — pouze desktop */}
         <div className="hidden lg:flex flex-1 max-w-xl relative z-[60]">

@@ -26,6 +26,8 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as CurrencyCode | null;
       if (saved && CURRENCIES[saved]) {
+        // Uloženou měnu čteme až po mountu (localStorage není na serveru).
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrencyState(CURRENCIES[saved]);
       }
     } catch {}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
@@ -222,6 +223,8 @@ export default function ObjednavkaPage() {
     } catch {}
 
     trackEvent("checkout_step_completed", { step: 2 });
+    // Tvrdá navigace mezi kroky objednávky je záměrná (čistý mount /informace).
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = "/informace";
   }
 
@@ -232,9 +235,9 @@ export default function ObjednavkaPage() {
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-10">
 
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">{t("home")}</a>
+            <Link href="/" className="hover:text-text-muted transition-colors">{t("home")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
-            <a href="/kosik" className="hover:text-text-muted transition-colors">{t("cart")}</a>
+            <Link href="/kosik" className="hover:text-text-muted transition-colors">{t("cart")}</Link>
             <ChevronRight size={12} className="text-border" aria-hidden="true" />
             <span className="text-text-muted">{t("title")}</span>
           </nav>

@@ -28,6 +28,8 @@ export function useStockPolling(slug: string) {
   }, [slug]);
 
   useEffect(() => {
+    // Iniciální načtení skladu; setStockData běží až po fetchi (async).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchStock();
     const interval = setInterval(fetchStock, POLL_INTERVAL_MS);
     return () => clearInterval(interval);

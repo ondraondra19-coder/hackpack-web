@@ -110,6 +110,8 @@ export default function Reviews() {
   }, []);
 
   useEffect(() => {
+    // Reset karuselu při změně počtu viditelných recenzí (breakpoint).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIndex(0);
   }, [visibleCount]);
 

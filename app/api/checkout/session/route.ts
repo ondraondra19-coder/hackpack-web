@@ -11,7 +11,7 @@
 // zpět na "pending" verzi — je to stejná data, jen ještě nepovýšená.
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getOrder, getPendingOrder } from "@/lib/orders";
+import { getOrder, getPendingOrder, type Order } from "@/lib/orders";
 
 export async function GET(req: Request) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     }
 
     const pendingOrderId = session.metadata?.pending_order_id;
-    let order = null;
+    let order: Order | null = null;
     let status: "confirmed" | "pending_webhook" | "unknown" = "unknown";
 
     if (pendingOrderId) {
@@ -46,7 +46,7 @@ export async function GET(req: Request) {
         // Webhook ještě neproběhl (nebo není nastavený) — ukážeme pending data.
         const pending = await getPendingOrder(pendingOrderId);
         if (pending) {
-          order = { ...pending, id: pendingOrderId, createdAt: Date.now(), status: "nova", paymentStatus: "zaplaceno" } as any;
+          order = { ...pending, id: pendingOrderId, createdAt: Date.now(), status: "nova", paymentStatus: "zaplaceno" } as Order;
           status = "pending_webhook";
         }
       }
@@ -59,8 +59,9 @@ export async function GET(req: Request) {
       order,
       status,
     });
-  } catch (err: any) {
-    console.error("Chyba při ověřování Stripe session:", err.message);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Chyba při ověřování Stripe session:", message);
     return NextResponse.json({ error: "Nepodařilo se ověřit platbu." }, { status: 500 });
   }
 }

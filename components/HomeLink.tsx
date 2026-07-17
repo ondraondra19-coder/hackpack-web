@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 // components/HomeLink.tsx
 // Odkaz na homepage, který — když už na homepage jsi — místo přenačtení
 // stránky jen plynule odroluje nahoru.
@@ -17,7 +19,7 @@ export default function HomeLink({
   children: React.ReactNode;
 }) {
   return (
-    <a
+    <Link
       href="/"
       onClick={e => {
         if (window.location.pathname === "/") {
@@ -28,6 +30,6 @@ export default function HomeLink({
       className={className}
     >
       {children}
-    </a>
+    </Link>
   );
 }

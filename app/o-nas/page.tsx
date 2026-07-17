@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
@@ -37,7 +38,7 @@ export default function ONasPage() {
           {/* Breadcrumb — nahoře přes obrázek */}
           <div className="absolute top-0 right-15 w-full px-8 md:px-16 lg:px-24 pt-6">
             <nav className="flex items-center gap-2 text-xs text-white/50">
-              <a href="/" className="hover:text-white/80 transition-colors">{t("home")}</a>
+              <Link href="/" className="hover:text-white/80 transition-colors">{t("home")}</Link>
               <ChevronRight size={12} aria-hidden="true" />
               <span className="text-white/80">{t("title")}</span>
             </nav>

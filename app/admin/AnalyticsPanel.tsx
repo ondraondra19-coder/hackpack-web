@@ -29,6 +29,8 @@ export default function AnalyticsPanel() {
 
   useEffect(() => {
     let cancelled = false;
+    // Záměrný reset před dalším fetchem (změna `days`) — spinner se má znovu ukázat.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     setError(null);
 

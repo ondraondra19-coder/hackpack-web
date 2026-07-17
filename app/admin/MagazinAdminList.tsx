@@ -334,7 +334,7 @@ export default function MagazinAdminList() {
       </div>
 
       {posts.length === 0 ? (
-        <p className="text-xs text-zinc-400 py-6 text-center">Zatím žádné články. Klikni na „Nový článek" a napiš první.</p>
+        <p className="text-xs text-zinc-400 py-6 text-center">Zatím žádné články. Klikni na „Nový článek&ldquo; a napiš první.</p>
       ) : (
         <div className="space-y-2">
           {posts.map((post) => (

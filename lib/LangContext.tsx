@@ -32,6 +32,8 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     if (legacy) {
       writeLocale(legacy);
       clearLegacyGoogtransCookie();
+      // Jazyk zjišťujeme až po mountu (cookie/localStorage nejsou na serveru).
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocaleState(legacy);
       return;
     }
