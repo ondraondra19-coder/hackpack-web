@@ -10,55 +10,9 @@ import SearchBar from "./SearchBar";
 import { products, categories } from "@/lib/products";
 import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
-import { clearGoogtransCookie, loadGoogleTranslate, readGoogtransLang } from "@/lib/googleTranslate";
+import { LOCALES, LOCALE_LABELS, type Locale } from "@/lib/locale";
+import { getCategoryName, getProductName } from "@/lib/products";
 import Logo from "@/components/Logo";
-
-const languages = [
-  { code: "cs", label: "Čeština", gtCode: "cs" },
-  { code: "sk", label: "Slovenčina", gtCode: "sk" },
-  { code: "en", label: "English", gtCode: "en" },
-];
-
-const navRight = [
-  { label: "Blog", href: "/blog" },
-  { label: "O nás", href: "/o-nas" },
-  { label: "Kontakt", href: "/kontakt" },
-];
-
-function readLangFromCookie(): typeof languages[0] {
-  const code = readGoogtransLang();
-  if (!code) return languages[0];
-  return languages.find(l => l.gtCode === code) ?? languages[0];
-}
-
-// Widget se objeví až chvíli po stažení skriptu — než se dole vyrobí <select>,
-// musíme počkat. Pokus je omezený (~10 s): když Google nedojede (blokovaný
-// skript, výpadek), nemá smysl zkoušet donekonečna na pozadí.
-const GT_SELECT_RETRY_MS = 500;
-const GT_SELECT_MAX_ATTEMPTS = 20;
-
-function switchGoogleTranslate(langCode: string, attempt = 0) {
-  if (langCode === "cs") {
-    clearGoogtransCookie();
-    window.location.reload();
-    return;
-  }
-
-  // Až tady se skript z translate.google.com vůbec stáhne — návštěvník si
-  // překlad výslovně vyžádal kliknutím na jazyk.
-  loadGoogleTranslate();
-
-  const select = document.querySelector<HTMLSelectElement>(
-    ".goog-te-combo, #google_translate_element select"
-  );
-  if (select) {
-    select.value = langCode;
-    select.dispatchEvent(new Event("change"));
-    return;
-  }
-  if (attempt >= GT_SELECT_MAX_ATTEMPTS) return;
-  setTimeout(() => switchGoogleTranslate(langCode, attempt + 1), GT_SELECT_RETRY_MS);
-}
 
 export default function Header() {
   const { totalItems } = useCart();
@@ -67,24 +21,33 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const [currencyOpen, setCurrencyOpen] = useState(false);
-  const [language, setLanguage] = useState(languages[0]);
   const [langOpen, setLangOpen] = useState(false);
   const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const t = useT("header");
-  const { setLocale } = useLang();
+  const tn = useT("nav");
+  const { locale, setLocale } = useLang();
+
+  // Přepnutí jazyka je teď jen změna stavu — žádné stahování cizího skriptu
+  // ani reload stránky. React překreslí texty z messages/*.json.
+  function switchLanguage(l: Locale) {
+    setLocale(l);
+    setLangOpen(false);
+  }
+
+  const navRight = [
+    { label: tn("blog"), href: "/blog" },
+    { label: tn("about"), href: "/o-nas" },
+    { label: tn("contact"), href: "/kontakt" },
+  ];
 
   const navItems = categories.map(cat => ({
-    label: cat.name,
+    label: getCategoryName(cat, locale),
     href: `/kategorie/${cat.slug}`,
     children: products
       .filter(p => p.categories.includes(cat.slug))
-      .map(p => ({ label: p.name, href: `/produkt/${p.slug}`, img: p.img })),
+      .map(p => ({ label: getProductName(p, locale), href: `/produkt/${p.slug}`, img: p.img })),
   }));
-
-  useEffect(() => {
-    setLanguage(readLangFromCookie());
-  }, []);
 
   return (
     /* OPRAVA: pt-[env(safe-area-inset-top)] zajistí, že na mobilu černé pozadí proteče až pod notch */
@@ -107,19 +70,19 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => { setCurrencyOpen(v => !v); setLangOpen(false); }}
-                aria-label={`Změnit měnu — vybráno ${currencyMounted ? currency.code : ""}`}
+                aria-label={t("changeCurrency", { code: currencyMounted ? currency.code : "" })}
                 aria-expanded={currencyOpen}
                 aria-haspopup="menu"
                 className="inline-flex items-center gap-1 min-h-11 text-white/60 text-xs hover:text-white transition-colors"
               >
-                <span className="notranslate" translate="no">{currencyMounted ? currency.code : "···"}</span>
+                <span>{currencyMounted ? currency.code : "···"}</span>
                 <ChevronDown size={11} aria-hidden="true" className={`transition-transform duration-150 ${currencyOpen ? "rotate-180" : ""}`} />
               </button>
               {currencyOpen && (
                 <div className="absolute right-0 top-full mt-1 bg-header border border-white/10 rounded-lg py-1 z-50 min-w-[72px] shadow-md">
                   {(["CZK", "EUR", "USD"] as CurrencyCode[]).map(code => (
-                    <button key={code} translate="no" onClick={() => { setCurrency(code); setCurrencyOpen(false); }} className={`block w-full text-left px-3 py-1.5 text-xs transition-colors ${code === currency.code ? "text-primary" : "text-white/50 hover:text-white"}`}>
-                      <span className="notranslate">{code}</span>
+                    <button key={code} onClick={() => { setCurrency(code); setCurrencyOpen(false); }} className={`block w-full text-left px-3 py-1.5 text-xs transition-colors ${code === currency.code ? "text-primary" : "text-white/50 hover:text-white"}`}>
+                      <span>{code}</span>
                     </button>
                   ))}
                 </div>
@@ -129,30 +92,25 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => { setLangOpen(v => !v); setCurrencyOpen(false); }}
-                aria-label={`Změnit jazyk — vybráno ${language.label}`}
+                aria-label={t("changeLanguage", { current: LOCALE_LABELS[locale] })}
                 aria-expanded={langOpen}
                 aria-haspopup="menu"
                 className="inline-flex items-center gap-1 min-h-11 text-white/60 text-xs hover:text-white transition-colors"
               >
                 <Globe size={11} aria-hidden="true" />
-                <span className="notranslate" translate="no">{language.label}</span>
+                <span>{LOCALE_LABELS[locale]}</span>
                 <ChevronDown size={11} aria-hidden="true" className={`transition-transform duration-150 ${langOpen ? "rotate-180" : ""}`} />
               </button>
               {langOpen && (
                 <div className="absolute right-0 top-full mt-1 bg-header border border-white/10 rounded-lg py-1 z-50 min-w-[120px] shadow-md">
-                  {languages.map(l => (
+                  {LOCALES.map(l => (
                     <button
-                      key={l.code}
-                      translate="no"
-                      onClick={() => {
-                        setLanguage(l);
-                        setLocale(l.gtCode as "cs" | "sk" | "en");
-                        setLangOpen(false);
-                        switchGoogleTranslate(l.gtCode);
-                      }}
-                      className={`block w-full text-left px-3 py-1.5 text-xs transition-colors ${l.code === language.code ? "text-primary" : "text-white/50 hover:text-white"}`}
+                      key={l}
+                      lang={l}
+                      onClick={() => switchLanguage(l)}
+                      className={`block w-full text-left px-3 py-1.5 text-xs transition-colors ${l === locale ? "text-primary" : "text-white/50 hover:text-white"}`}
                     >
-                      <span className="notranslate">{l.label}</span>
+                      {LOCALE_LABELS[l]}
                     </button>
                   ))}
                 </div>
@@ -178,7 +136,7 @@ export default function Header() {
         >
           <Image
             src="/images/main/logo-white.png"
-            alt="Logo"
+            alt={t("logoAlt")}
             width={1000} // Nastav šířku podle potřeby
             height={300}  // Nastav výšku podle potřeby (odpovídá h-12)
             className="h-25 w-auto object-contain"
@@ -197,7 +155,7 @@ export default function Header() {
               zbyla holá ikona bez názvu — aria-label ho drží vždy. */}
           <a
             href="/kosik"
-            aria-label={totalItems > 0 ? `Otevřít košík — ${totalItems} ${totalItems === 1 ? "položka" : totalItems < 5 ? "položky" : "položek"}` : "Otevřít košík — prázdný"}
+            aria-label={totalItems > 0 ? t.plural(totalItems, "openCart") : t("openCartEmpty")}
             className="relative flex items-center gap-2 px-3 lg:px-4 py-2 min-h-11 rounded-full bg-primary text-on-primary font-semibold text-sm hover:brightness-105 transition-all"
           >
             <ShoppingCart size={15} aria-hidden="true" />
@@ -212,7 +170,7 @@ export default function Header() {
           <button
             className="lg:hidden w-11 h-11 flex items-center justify-center text-white/60 hover:text-white transition-colors"
             onClick={() => setMobileOpen(v => !v)}
-            aria-label={mobileOpen ? "Zavřít menu" : "Otevřít menu"}
+            aria-label={mobileOpen ? t("closeMenu") : t("openMenu")}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
@@ -314,7 +272,7 @@ export default function Header() {
                   <button
                     className="px-4 py-4 min-w-11 min-h-11 text-white/55 hover:text-white transition-colors"
                     onClick={() => setMobileExpanded(v => v === item.label ? null : item.label)}
-                    aria-label={mobileExpanded === item.label ? `Sbalit ${item.label}` : `Rozbalit ${item.label}`}
+                    aria-label={mobileExpanded === item.label ? t("collapse", { name: item.label }) : t("expand", { name: item.label })}
                     aria-expanded={mobileExpanded === item.label}
                   >
                     <ChevronDown size={14} aria-hidden="true" className={`transition-transform duration-200 ${mobileExpanded === item.label ? "rotate-180 text-primary" : ""}`} />
@@ -351,35 +309,32 @@ export default function Header() {
               která je na mobilu skrytá celá, takže sem patří jediná mobilní varianta. */}
           <div className="border-t border-white/10 px-5 py-4 space-y-3">
             <div>
-              <p className="text-white/55 text-[11px] font-medium uppercase tracking-wide mb-2">Měna</p>
+              <p className="text-white/55 text-[11px] font-medium uppercase tracking-wide mb-2">{t("currency")}</p>
               <div className="flex gap-2">
                 {(["CZK", "EUR", "USD"] as CurrencyCode[]).map(code => (
                   <button
                     key={code}
-                    translate="no"
                     onClick={() => setCurrency(code)}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${code === currency.code ? "bg-primary text-on-primary" : "bg-white/5 text-white/50 hover:text-white"}`}
+                    aria-pressed={code === currency.code}
+                    className={`flex-1 py-2 min-h-11 rounded-lg text-xs font-semibold transition-colors ${code === currency.code ? "bg-primary text-on-primary" : "bg-white/5 text-white/50 hover:text-white"}`}
                   >
-                    <span className="notranslate">{code}</span>
+                    {code}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <p className="text-white/55 text-[11px] font-medium uppercase tracking-wide mb-2">Jazyk</p>
+              <p className="text-white/55 text-[11px] font-medium uppercase tracking-wide mb-2">{t("language")}</p>
               <div className="flex gap-2">
-                {languages.map(l => (
+                {LOCALES.map(l => (
                   <button
-                    key={l.code}
-                    translate="no"
-                    onClick={() => {
-                      setLanguage(l);
-                      setLocale(l.gtCode as "cs" | "sk" | "en");
-                      switchGoogleTranslate(l.gtCode);
-                    }}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${l.code === language.code ? "bg-primary text-on-primary" : "bg-white/5 text-white/50 hover:text-white"}`}
+                    key={l}
+                    lang={l}
+                    onClick={() => switchLanguage(l)}
+                    aria-pressed={l === locale}
+                    className={`flex-1 py-2 min-h-11 rounded-lg text-xs font-semibold transition-colors ${l === locale ? "bg-primary text-on-primary" : "bg-white/5 text-white/50 hover:text-white"}`}
                   >
-                    <span className="notranslate">{l.label}</span>
+                    {LOCALE_LABELS[l]}
                   </button>
                 ))}
               </div>

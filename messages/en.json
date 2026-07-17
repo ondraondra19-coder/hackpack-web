@@ -1,10 +1,32 @@
 {
   "header": {
     "cart": "Cart",
-    "products": "products"
+    "products": "products",
+    "logoAlt": "HackPack — home",
+    "changeLanguage": "Change language — {current} selected",
+    "changeCurrency": "Change currency — {code} selected",
+    "currency": "Currency",
+    "language": "Language",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "expand": "Expand {name}",
+    "collapse": "Collapse {name}",
+    "openCartEmpty": "Open cart — empty",
+    "openCart_one": "Open cart — {count} item",
+    "openCart_many": "Open cart — {count} items"
+  },
+  "nav": {
+    "blog": "Blog",
+    "about": "About",
+    "contact": "Contact"
   },
   "search": {
-    "placeholder": "Search products..."
+    "placeholder": "Search products...",
+    "label": "Search products",
+    "clear": "Clear search",
+    "noResults": "No results found",
+    "noResultsFor": "Nothing found for \"{query}\"",
+    "suggestions": "Search suggestions"
   },
   "cart": {
     "title": "Cart",
@@ -19,7 +41,6 @@
     "securePayment": "Secure payment · SSL encryption",
     "summary": "Summary",
     "item_one": "item",
-    "item_few": "items",
     "item_many": "items",
     "step1": "Cart",
     "step2": "Shipping & payment",
@@ -27,7 +48,45 @@
     "bestsellers": "Our bestsellers",
     "bestsellersSubtitle": "Our pick for you",
     "relatedTitle": "Goes well with",
-    "relatedSubtitle": "Related to"
+    "relatedSubtitle": "For {name}",
+    "remove": "Remove from cart — {name}",
+    "increase": "Add one — {name}",
+    "decrease": "Remove one — {name}",
+    "quantity": "Quantity: "
+  },
+  "variants": {
+    "attr_Tělo": "Body",
+    "attr_Hlavička": "Cap",
+    "attr_Model": "Model",
+    "attr_Barva": "Colour",
+    "attr_Velikost": "Size",
+    "black": "Black",
+    "white": "White",
+    "grey": "Grey",
+    "pink": "Pink",
+    "purple": "Purple",
+    "green": "Green",
+    "darkblue": "Dark blue",
+    "armygreen": "Army green",
+    "cerna": "Black",
+    "bila": "White",
+    "modra": "Blue",
+    "ruzova": "Pink",
+    "zelena": "Green",
+    "cervena": "Red",
+    "zluta": "Yellow",
+    "hneda": "Brown",
+    "bezova": "Beige",
+    "stribrna": "Silver",
+    "fialova": "Purple",
+    "small": "38–41 mm",
+    "large": "42–45 mm",
+    "gen1": "1st generation",
+    "gen2": "2nd generation",
+    "s": "S",
+    "m": "M",
+    "l": "L",
+    "set": "S+M+L set"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -65,15 +124,69 @@
     "emailPlaceholder": "your@email.com",
     "emailError": "Please enter a valid email",
     "rights": "All rights reserved.",
-    "description": "Original Apple accessories at fair prices. Every item tested and ready to ship within 24 hours."
+    "description": "Original Apple accessories at fair prices. Every item tested and ready to ship within 24 hours.",
+    "headingCategories": "Categories",
+    "headingCustomer": "Customer zone",
+    "headingAbout": "About",
+    "orderStatus": "Order status",
+    "returnsLink": "Returns",
+    "claims": "Complaints",
+    "shippingPayment": "Shipping & payment",
+    "faq": "FAQ",
+    "aboutHackpack": "About HackPack",
+    "blog": "Blog",
+    "contact": "Contact",
+    "trustExpedition": "Ships within 24 h",
+    "trustReturns": "30-day returns",
+    "trustWarranty": "2-year warranty",
+    "openingHours": "Mon–Fri 9am–6pm · Sat 10am–2pm",
+    "address": "Václavské nám. 1, 110 00 Prague 1, Czechia",
+    "terms": "Terms & Conditions",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookies"
   },
   "infogrid": {
-  "teamTitle": "Meet our team",
-  "teamSubtitle": "HackPack",
-  "teamBtn": "Learn more",
-  "contactTitle": "Contact us",
-  "contactSubtitle": "we're here for you",
-  "contactBtn": "Get in touch",
-  "hours": "Mon–Fri: 9:00–17:00"
-}
+    "teamTitle": "Meet our team",
+    "teamSubtitle": "HackPack",
+    "teamBtn": "Learn more",
+    "contactTitle": "Contact us",
+    "contactSubtitle": "we're here for you",
+    "contactBtn": "Get in touch",
+    "hours": "Mon–Fri: 9:00–17:00"
+  },
+  "reviews": {
+    "sectionTitle": "What customers say",
+    "sectionSubtitle": "Customer reviews",
+    "allReviews": "All reviews",
+    "count_one": "{count} rating",
+    "count_many": "{count} ratings",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "prev": "Previous review",
+    "next": "Next review",
+    "writeReview": "Write a review",
+    "empty": "No reviews yet",
+    "emptyDesc": "Be the first to write one."
+  },
+  "rating": {
+    "title": "Store rating",
+    "empty": "No ratings yet",
+    "count_one": "{count} rating",
+    "count_many": "{count} ratings",
+    "recommend": "of customers would recommend our store",
+    "writeReview": "Write a review"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "back": "Back",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "send": "Send",
+    "sending": "Sending…",
+    "required": "Required field",
+    "home": "Home"
+  }
 }

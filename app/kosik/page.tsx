@@ -5,26 +5,26 @@ import { useCart } from "@/lib/cart";
 import Header from "@/components/Header";
 import Image from "next/image";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ChevronRight, Tag } from "lucide-react";
-import { products as staticProducts } from "@/lib/products";
+import { products as staticProducts, getProductName } from "@/lib/products";
+import { useLang } from "@/lib/LangContext";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { formatPrice, getPrice } from "@/lib/currency";
 import type { Currency } from "@/lib/currency";
 import DiscountWidget from "@/components/DiscountWidget";
+import { useT, type T } from "@/lib/useT";
 
-const COLOR_LABELS: Record<string, string> = {
-  black: "Černá", white: "Bílá", grey: "Šedá", pink: "Růžová",
-  purple: "Fialová", green: "Zelená", darkblue: "Tmavě modrá",
-  armygreen: "Army zelená", cerna: "Černá", bila: "Bílá",
-  modra: "Modrá", ruzova: "Růžová", zelena: "Zelená",
-  cervena: "Červená", zluta: "Žlutá", hneda: "Hnědá",
-  bezova: "Béžová", stribrna: "Stříbrná", fialova: "Fialová",
-  small: "38–41 mm", large: "42–45 mm",
-  gen1: "1. generace", gen2: "2. generace",
-  s: "S", m: "M", l: "L", set: "Sada S+M+L",
-};
+// Varianty se v košíku ukládají v syrové podobě ("darkblue", "gen2") a názvy
+// jejich atributů česky ("Tělo", "Hlavička") — tak přišly z katalogu. Do UI
+// se překládají až tady přes namespace `variants`; neznámou hodnotu ukážeme,
+// jak přišla, ať v košíku nesvítí "variants.neco" místo názvu barvy.
+function variantLabel(tv: T, raw: string): string {
+  const translated = tv(raw);
+  return translated === `variants.${raw}` ? raw : translated;
+}
 
-function translateValue(val: string): string {
-  return COLOR_LABELS[val] ?? val;
+function variantAttr(tv: T, raw: string): string {
+  const translated = tv(`attr_${raw}`);
+  return translated === `variants.attr_${raw}` ? raw : translated;
 }
 
 function getProductImgs(slug: string, variants?: Record<string, string>): { img: string; img2?: string } | null {
@@ -49,10 +49,11 @@ const BESTSELLER_SLUGS = [
 ];
 
 function Stepper({ step }: { step: 1 | 2 | 3 }) {
+  const t = useT("cart");
   const steps = [
-    { n: 1, label: "Košík", href: "/kosik" },
-    { n: 2, label: "Doprava a platba", href: "/objednavka" },
-    { n: 3, label: "Informace", href: null },
+    { n: 1, label: t("step1"), href: "/kosik" },
+    { n: 2, label: t("step2"), href: "/objednavka" },
+    { n: 3, label: t("step3"), href: null },
   ];
   return (
     <div className="flex items-center w-full mb-10">
@@ -90,6 +91,7 @@ function Stepper({ step }: { step: 1 | 2 | 3 }) {
 }
 
 function ProductCard({ product, currency }: { product: typeof staticProducts[0]; currency: Currency }) {
+  const { locale } = useLang();
   return (
     <a
       href={`/produkt/${product.slug}`}
@@ -100,7 +102,7 @@ function ProductCard({ product, currency }: { product: typeof staticProducts[0];
         <Image src={product.img} alt="" fill sizes="(max-width: 640px) 50vw, 25vw" className="object-contain p-6 transition-transform duration-300 group-hover:scale-[1.04]" />
       </div>
       <div className="p-4 flex flex-col gap-1.5">
-        <p className="text-text-base text-sm font-semibold leading-snug line-clamp-2 group-hover:text-primary-ink transition-colors">{product.name}</p>
+        <p className="text-text-base text-sm font-semibold leading-snug line-clamp-2 group-hover:text-primary-ink transition-colors">{getProductName(product, locale)}</p>
         <p className="text-primary-ink font-extrabold text-xl mt-1">{formatPrice(getPrice(product.price, currency), currency)}</p>
       </div>
     </a>
@@ -129,6 +131,10 @@ export default function KosikPage() {
     getTotalPrice, appliedDiscount, getDiscountAmount, getFinalPrice,
   } = useCart();
   const { currency } = useCurrency();
+  const t = useT("cart");
+  const tv = useT("variants");
+  const tc = useT("common");
+  const { locale } = useLang();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -224,8 +230,10 @@ export default function KosikPage() {
         : products.filter(p => p.slug !== singleProduct.slug && p.categories.some(c => singleProduct.categories.includes(c))).slice(0, 6)
       ) as typeof products
     : bestsellers;
-  const recommendedTitle = singleProduct ? "Hodí se k tomu" : "Naše bestsellery";
-  const recommendedSubtitle = singleProduct ? `K produktu ${singleProduct.name}` : "Výběr pro vás";
+  const recommendedTitle = singleProduct ? t("relatedTitle") : t("bestsellers");
+  const recommendedSubtitle = singleProduct
+    ? t("relatedSubtitle", { name: getProductName(singleProduct, locale) })
+    : t("bestsellersSubtitle");
 
   // Při přechodu na objednávku ověří sklad a ořízne množství na reálné maximum
   async function handleCheckout() {
@@ -313,9 +321,9 @@ export default function KosikPage() {
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-10">
 
           <nav className="flex items-center gap-2 text-xs text-text-subtle mb-8">
-            <a href="/" className="hover:text-text-muted transition-colors">Domů</a>
+            <a href="/" className="hover:text-text-muted transition-colors">{tc("home")}</a>
             <ChevronRight size={12} className="text-border" />
-            <span className="text-text-muted">Košík</span>
+            <span className="text-text-muted">{t("title")}</span>
           </nav>
 
           {!mounted ? (
@@ -328,10 +336,10 @@ export default function KosikPage() {
               {!isEmpty && <Stepper step={1} />}
 
               <h1 className="text-3xl font-extrabold text-text-base mb-8">
-                Košík
+                {t("title")}
                 {totalItems > 0 && (
                   <span className="ml-3 text-lg font-medium text-text-muted">
-                    ({totalItems} {totalItems === 1 ? "položka" : totalItems < 5 ? "položky" : "položek"})
+                    ({totalItems} {t.plural(totalItems, "item")})
                   </span>
                 )}
               </h1>
@@ -342,10 +350,10 @@ export default function KosikPage() {
                     <div className="w-16 h-16 rounded-2xl bg-secondary border border-border flex items-center justify-center mb-5">
                       <ShoppingBag size={26} className="text-text-subtle" />
                     </div>
-                    <p className="text-text-base font-semibold text-lg">Košík je prázdný</p>
-                    <p className="text-text-muted text-sm mt-2">Přidejte produkty a vraťte se sem.</p>
+                    <p className="text-text-base font-semibold text-lg">{t("empty")}</p>
+                    <p className="text-text-muted text-sm mt-2">{t("emptyDesc")}</p>
                     <a href="/" className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-on-primary font-bold text-sm hover:brightness-105 transition-all">
-                      Pokračovat v nákupu <ArrowRight size={14} />
+                      {t("continueShopping")} <ArrowRight size={14} />
                     </a>
                   </div>
                   <ProductRow title={recommendedTitle} subtitle={recommendedSubtitle} items={recommendedProducts} currency={currency} />
@@ -376,7 +384,7 @@ export default function KosikPage() {
                               </a>
                               {item.variants && Object.entries(item.variants).length > 0 && (
                                 <p className="text-text-subtle text-sm mt-1.5">
-                                  {Object.entries(item.variants).map(([k, v]) => `${k}: ${translateValue(v)}`).join(" · ")}
+                                  {Object.entries(item.variants).map(([k, v]) => `${variantAttr(tv, k)}: ${variantLabel(tv, v)}`).join(" · ")}
                                 </p>
                               )}
                               <div className="flex items-center justify-between mt-4 flex-wrap gap-2">
@@ -384,7 +392,7 @@ export default function KosikPage() {
                                   <button
                                     onClick={() => updateQuantity(item.slug, item.quantity - 1, item.variants)}
                                     disabled={item.quantity <= 1}
-                                    aria-label={`Ubrat jeden kus — ${item.name}`}
+                                    aria-label={t("decrease", { name: item.name })}
                                     className={`w-11 h-11 flex items-center justify-center transition-colors ${
                                       item.quantity <= 1
                                         ? "text-border cursor-not-allowed"
@@ -394,12 +402,12 @@ export default function KosikPage() {
                                     <Minus size={14} aria-hidden="true" />
                                   </button>
                                   <span aria-live="polite" aria-atomic="true" className="w-9 text-center text-text-base text-sm font-medium">
-                                    <span className="sr-only">Počet kusů: </span>{item.quantity}
+                                    <span className="sr-only">{t("quantity")}</span>{item.quantity}
                                   </span>
                                   <button
                                     onClick={() => updateQuantity(item.slug, item.quantity + 1, item.variants)}
                                     disabled={item.quantity >= getMaxQty(item)}
-                                    aria-label={`Přidat jeden kus — ${item.name}`}
+                                    aria-label={t("increase", { name: item.name })}
                                     className={`w-11 h-11 flex items-center justify-center transition-colors ${
                                       item.quantity >= getMaxQty(item)
                                         ? "text-border cursor-not-allowed"
@@ -413,7 +421,7 @@ export default function KosikPage() {
                                   <p className="text-primary-ink font-extrabold text-xl">{formatPrice(itemPrice * item.quantity, currency)}</p>
                                   <button
                                     onClick={() => removeItem(item.slug, item.variants)}
-                                    aria-label={`Odebrat z košíku — ${item.name}`}
+                                    aria-label={t("remove", { name: item.name })}
                                     className="w-11 h-11 flex items-center justify-center rounded-lg text-text-subtle hover:text-red-500 hover:bg-red-50 transition-colors"
                                   >
                                     <Trash2 size={17} aria-hidden="true" />
@@ -425,7 +433,7 @@ export default function KosikPage() {
                         );
                       })}
                       <a href="/" className="inline-flex items-center gap-1.5 text-primary-ink text-sm hover:underline mt-2">
-                        ← Pokračovat v nákupu
+                        ← {t("continueShopping")}
                       </a>
                     </div>
 
@@ -433,11 +441,11 @@ export default function KosikPage() {
                     <div className="w-full lg:w-80 shrink-0 sticky top-24">
                       <div className="bg-secondary border border-border rounded-2xl overflow-hidden">
                         <div className="px-6 py-4 border-b border-border">
-                          <h2 className="text-text-base font-semibold text-base">Souhrn</h2>
+                          <h2 className="text-text-base font-semibold text-base">{t("summary")}</h2>
                         </div>
                         <div className="px-6 py-5 flex flex-col gap-3">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-text-muted">Mezisoučet</span>
+                            <span className="text-text-muted">{t("subtotal")}</span>
                             <span className={`font-medium ${appliedDiscount && discountAmount > 0 ? "text-text-subtle line-through" : "text-text-base"}`}>
                               {formatPrice(totalPrice, currency)}
                             </span>
@@ -446,18 +454,18 @@ export default function KosikPage() {
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-green-600 flex items-center gap-1.5">
                                 <Tag size={12} />
-                                <span className="notranslate" translate="no">{appliedDiscount.code}</span>
+                                <span>{appliedDiscount.code}</span>
                               </span>
                               <span className="text-green-600 font-semibold">− {formatPrice(discountAmount, currency)}</span>
                             </div>
                           )}
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-text-muted">Doprava</span>
-                            <span className="text-text-subtle">Zvolíte v dalším kroku</span>
+                            <span className="text-text-muted">{t("shipping")}</span>
+                            <span className="text-text-subtle">{t("shippingNote")}</span>
                           </div>
                           <div className="h-px bg-border my-1" />
                           <div className="flex items-center justify-between">
-                            <span className="text-text-base font-bold">Celkem bez dopravy</span>
+                            <span className="text-text-base font-bold">{t("totalNoShipping")}</span>
                             <span className="text-primary-ink font-extrabold text-xl">{formatPrice(finalPrice, currency)}</span>
                           </div>
                         </div>
@@ -471,9 +479,9 @@ export default function KosikPage() {
                             onClick={handleCheckout}
                             className="w-full py-4 rounded-2xl bg-primary text-on-primary font-bold text-sm hover:brightness-105 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                           >
-                            Pokračovat k dopravě <ArrowRight size={15} />
+                            {t("continueToShipping")} <ArrowRight size={15} />
                           </button>
-                          <p className="text-text-subtle text-xs text-center mt-3">Zabezpečená platba · SSL šifrování</p>
+                          <p className="text-text-subtle text-xs text-center mt-3">{t("securePayment")}</p>
                         </div>
                       </div>
                     </div>

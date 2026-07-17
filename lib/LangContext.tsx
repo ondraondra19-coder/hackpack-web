@@ -1,28 +1,53 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
-import { readGoogtransLang } from "@/lib/googleTranslate";
+// lib/LangContext.tsx
+// Drží zvolený jazyk a zpřístupňuje ho přes useLang(). Zápis volby rovnou
+// ukládá cookie, takže se jazyk drží i po reloadu (viz lib/locale.ts).
 
-type Locale = "cs" | "sk" | "en";
-
-function readLocale(): Locale {
-  const code = readGoogtransLang();
-  if (code === "en" || code === "sk") return code;
-  return "cs";
-}
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  DEFAULT_LOCALE,
+  type Locale,
+  clearLegacyGoogtransCookie,
+  readLegacyGoogtransLocale,
+  readLocale,
+  writeLocale,
+} from "@/lib/locale";
 
 const LangContext = createContext<{
   locale: Locale;
   setLocale: (l: Locale) => void;
-}>({ locale: "cs", setLocale: () => {} });
+}>({ locale: DEFAULT_LOCALE, setLocale: () => {} });
 
 export function LangProvider({ children }: { children: React.ReactNode }) {
-  // ← Vždy začínáme s "cs" — stejně na serveru i klientovi
-  const [locale, setLocale] = useState<Locale>("cs");
+  // Server i první render klienta musí dát stejný výsledek, jinak hydratace
+  // spadne — proto se vždy začíná výchozí češtinou a cookie se čte až v efektu.
+  const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
 
-  // ← Cookie čteme až po mountu na klientovi
   useEffect(() => {
-    setLocale(readLocale());
+    // Návštěvník, který si dřív zvolil jazyk ve starém Google Translate, má
+    // cookie googtrans. Jednorázově ji přebereme, ať nespadne zpátky do
+    // češtiny, a hned uklidíme.
+    const legacy = readLegacyGoogtransLocale();
+    if (legacy) {
+      writeLocale(legacy);
+      clearLegacyGoogtransCookie();
+      setLocaleState(legacy);
+      return;
+    }
+    setLocaleState(readLocale());
+  }, []);
+
+  // <html lang> musí odpovídat skutečnému jazyku obsahu — čtečky podle něj
+  // volí výslovnost a Lighthouse to kontroluje. V layoutu je natvrdo "cs",
+  // protože ten se renderuje na serveru, kde jazyk ještě neznáme.
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
+  const setLocale = useCallback((l: Locale) => {
+    writeLocale(l);
+    setLocaleState(l);
   }, []);
 
   return (

@@ -1,10 +1,33 @@
 {
   "header": {
     "cart": "Košík",
-    "products": "produktov"
+    "products": "produktov",
+    "logoAlt": "HackPack — domov",
+    "changeLanguage": "Zmeniť jazyk — vybrané {current}",
+    "changeCurrency": "Zmeniť menu — vybrané {code}",
+    "currency": "Mena",
+    "language": "Jazyk",
+    "openMenu": "Otvoriť menu",
+    "closeMenu": "Zavrieť menu",
+    "expand": "Rozbaliť {name}",
+    "collapse": "Zbaliť {name}",
+    "openCartEmpty": "Otvoriť košík — prázdny",
+    "openCart_one": "Otvoriť košík — {count} položka",
+    "openCart_few": "Otvoriť košík — {count} položky",
+    "openCart_many": "Otvoriť košík — {count} položiek"
+  },
+  "nav": {
+    "blog": "Blog",
+    "about": "O nás",
+    "contact": "Kontakt"
   },
   "search": {
-    "placeholder": "Hľadať produkty..."
+    "placeholder": "Hľadať produkty...",
+    "label": "Hľadať produkty",
+    "clear": "Vymazať hľadanie",
+    "noResults": "Nič sme nenašli",
+    "noResultsFor": "Na „{query}\" nič nemáme",
+    "suggestions": "Návrhy hľadania"
   },
   "cart": {
     "title": "Košík",
@@ -27,7 +50,45 @@
     "bestsellers": "Naše bestsellery",
     "bestsellersSubtitle": "Výber pre vás",
     "relatedTitle": "Hodí sa k tomu",
-    "relatedSubtitle": "K produktu"
+    "relatedSubtitle": "K produktu {name}",
+    "remove": "Odobrať z košíka — {name}",
+    "increase": "Pridať jeden kus — {name}",
+    "decrease": "Ubrať jeden kus — {name}",
+    "quantity": "Počet kusov: "
+  },
+  "variants": {
+    "attr_Tělo": "Telo",
+    "attr_Hlavička": "Hlavička",
+    "attr_Model": "Model",
+    "attr_Barva": "Farba",
+    "attr_Velikost": "Veľkosť",
+    "black": "Čierna",
+    "white": "Biela",
+    "grey": "Sivá",
+    "pink": "Ružová",
+    "purple": "Fialová",
+    "green": "Zelená",
+    "darkblue": "Tmavomodrá",
+    "armygreen": "Army zelená",
+    "cerna": "Čierna",
+    "bila": "Biela",
+    "modra": "Modrá",
+    "ruzova": "Ružová",
+    "zelena": "Zelená",
+    "cervena": "Červená",
+    "zluta": "Žltá",
+    "hneda": "Hnedá",
+    "bezova": "Béžová",
+    "stribrna": "Strieborná",
+    "fialova": "Fialová",
+    "small": "38–41 mm",
+    "large": "42–45 mm",
+    "gen1": "1. generácia",
+    "gen2": "2. generácia",
+    "s": "S",
+    "m": "M",
+    "l": "L",
+    "set": "Sada S+M+L"
   },
   "product": {
     "addToCart": "Pridať do košíka",
@@ -65,15 +126,71 @@
     "emailPlaceholder": "váš@email.sk",
     "emailError": "Zadajte platný e-mail",
     "rights": "Všetky práva vyhradené.",
-    "description": "Originálne Apple príslušenstvo za férové ceny. Každý kus otestovaný a pripravený na expedíciu do 24 hodín."
+    "description": "Originálne Apple príslušenstvo za férové ceny. Každý kus otestovaný a pripravený na expedíciu do 24 hodín.",
+    "headingCategories": "Kategórie",
+    "headingCustomer": "Zákaznícka zóna",
+    "headingAbout": "O nás",
+    "orderStatus": "Stav objednávky",
+    "returnsLink": "Vrátenie tovaru",
+    "claims": "Reklamácie",
+    "shippingPayment": "Doprava a platba",
+    "faq": "FAQ",
+    "aboutHackpack": "O HackPack",
+    "blog": "Blog",
+    "contact": "Kontakt",
+    "trustExpedition": "Expedícia do 24 h",
+    "trustReturns": "30 dní na vrátenie",
+    "trustWarranty": "Záruka 2 roky",
+    "openingHours": "Po–Pia 9–18 h · So 10–14 h",
+    "address": "Václavské nám. 1, 110 00 Praha 1",
+    "terms": "Obchodné podmienky",
+    "privacy": "Ochrana osobných údajov",
+    "cookies": "Cookies"
   },
-"infogrid": {
-  "teamTitle": "Spoznaj náš tím",
-  "teamSubtitle": "HackPack",
-  "teamBtn": "Spoznať",
-  "contactTitle": "Kontaktuj nás",
-  "contactSubtitle": "sme tu pre teba",
-  "contactBtn": "Kontaktovať",
-  "hours": "Po–Pia: 9:00–17:00"
-}
+  "infogrid": {
+    "teamTitle": "Spoznaj náš tím",
+    "teamSubtitle": "HackPack",
+    "teamBtn": "Spoznať",
+    "contactTitle": "Kontaktuj nás",
+    "contactSubtitle": "sme tu pre teba",
+    "contactBtn": "Kontaktovať",
+    "hours": "Po–Pia: 9:00–17:00"
+  },
+  "reviews": {
+    "sectionTitle": "Čo hovoria zákazníci",
+    "sectionSubtitle": "Recenzie zákazníkov",
+    "allReviews": "Všetky recenzie",
+    "count_one": "{count} hodnotenie",
+    "count_few": "{count} hodnotenia",
+    "count_many": "{count} hodnotení",
+    "showMore": "Zobraziť viac",
+    "showLess": "Zobraziť menej",
+    "prev": "Predchádzajúca recenzia",
+    "next": "Ďalšia recenzia",
+    "writeReview": "Napísať recenziu",
+    "empty": "Zatiaľ žiadne recenzie",
+    "emptyDesc": "Buďte prvý, kto napíše recenziu."
+  },
+  "rating": {
+    "title": "Hodnotenie obchodu",
+    "empty": "Zatiaľ žiadne hodnotenie",
+    "count_one": "{count} hodnotenie",
+    "count_few": "{count} hodnotenia",
+    "count_many": "{count} hodnotení",
+    "recommend": "zákazníkov by odporučilo náš obchod",
+    "writeReview": "Napísať recenziu"
+  },
+  "common": {
+    "loading": "Načítavam…",
+    "error": "Niečo sa pokazilo",
+    "retry": "Skúsiť znova",
+    "back": "Späť",
+    "close": "Zavrieť",
+    "save": "Uložiť",
+    "cancel": "Zrušiť",
+    "send": "Odoslať",
+    "sending": "Odosielam…",
+    "required": "Povinné pole",
+    "home": "Domov"
+  }
 }

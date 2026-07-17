@@ -6,7 +6,6 @@ import { CurrencyProvider } from "@/lib/CurrencyContext";
 import ChatWidget from "@/components/ChatWidget";
 import CookieBanner from "@/components/CookieBanner";
 import PostHogProvider from "@/components/PostHogProvider";
-import GoogleTranslate from "@/components/GoogleTranslate";
 import { LangProvider } from "@/lib/LangContext";
 
 const geistSans = Geist({
@@ -57,10 +56,6 @@ export default function RootLayout({
         <ChatWidget />
         <CookieBanner />
         <PostHogProvider />
-
-        {/* Google Translate — skrytý widget, ovládaný z Headeru. Skript se
-            načte až když si návštěvník sám zvolí jazyk (viz lib/googleTranslate.ts). */}
-        <GoogleTranslate />
       </body>
     </html>
   );

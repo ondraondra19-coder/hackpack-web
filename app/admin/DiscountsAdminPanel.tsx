@@ -95,8 +95,8 @@ export default function DiscountsAdminPanel({ discounts, onChange }: DiscountsAd
             value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase())}
             required
-            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-primary/50 notranslate"
-            translate="no"
+            className="flex-1 border border-[#e5e7eb] rounded-lg px-3 py-2 text-xs text-[#0f0f10] focus:outline-none focus:border-primary/50"
+           
           />
           <input
             type="text"
@@ -182,7 +182,7 @@ export default function DiscountsAdminPanel({ discounts, onChange }: DiscountsAd
             <div key={discount.id} className="border border-[#e5e7eb] rounded-xl p-4">
               <div className="flex items-center justify-between gap-3 mb-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-bold text-[#0f0f10] notranslate" translate="no">{discount.code}</span>
+                  <span className="text-sm font-bold text-[#0f0f10]">{discount.code}</span>
                   <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600">
                     {discount.type === "percent" ? `${discount.value} %` : formatMoney(discount.value, "CZK")}
                   </span>

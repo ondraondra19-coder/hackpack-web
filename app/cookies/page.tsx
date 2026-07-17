@@ -116,12 +116,12 @@ const storageList: StorageEntry[] = [
     type: "Preferenční",
   },
   {
-    name: "googtrans",
+    name: "hp_lang",
     storage: "Cookie",
-    provider: "Google",
+    provider: "HackPack",
     purpose:
-      "Jazyk zvolený v překladači. Nastaví se pouze tehdy, když si sami přepnete jazyk na jiný než češtinu — do té doby se překladač vůbec nenačítá.",
-    expiry: "Do zavření prohlížeče",
+      "Jazyk, který jste si sami zvolili pro zobrazení webu. Vzniká až ve chvíli, kdy jazyk přepnete — do té doby se web zobrazuje česky a žádná cookie se neukládá.",
+    expiry: "1 rok",
     type: "Preferenční",
   },
   {
@@ -223,7 +223,7 @@ export default function CookiesPage() {
             <p>Na našem e-shopu rozdělujeme soubory cookie do následujících kategorií:</p>
             <ul>
               <li><strong>Nezbytné (technické)</strong> — Jsou klíčové pro správný chod e-shopu. Zajišťují obsah nákupního košíku, funkčnost pokladny, přihlášení do administrace a zapamatování vaší volby souhlasu. Bez nich by nebylo možné nákup dokončit a nelze je vypnout.</li>
-              <li><strong>Preferenční</strong> — Pamatují si nastavení, které jste si sami zvolili. Konkrétně jde o jazyk v překladači (cookie <strong>googtrans</strong>), který vzniká až ve chvíli, kdy si překlad sami vyžádáte.</li>
+              <li><strong>Preferenční</strong> — Pamatují si nastavení, které jste si sami zvolili: jazyk webu (cookie <strong>hp_lang</strong>) a měnu pro zobrazení cen. Vznikají až ve chvíli, kdy volbu sami provedete, a zůstávají u nás — nikam se neodesílají.</li>
               <li><strong>Analytické</strong> — Pomáhají nám pochopit, jak web používáte (které stránky navštěvujete nejčastěji, odkud přicházíte). Zajišťuje je nástroj <strong>PostHog</strong> a ukládají se výhradně po vašem souhlasu. Dokud souhlas nedáte, na PostHog se neodešle žádný požadavek.</li>
               <li><strong>Marketingové</strong> — <strong>Žádné zatím nepoužíváme.</strong> Volbu níže si ukládáme dopředu, aby platila okamžitě, kdyby v budoucnu nějaký takový nástroj přibyl.</li>
             </ul>

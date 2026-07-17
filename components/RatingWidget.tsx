@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Star, ArrowRight } from "lucide-react";
+import { useT } from "@/lib/useT";
 
 type StoredReview = { rating: number };
 
 export default function RatingWidget() {
+  const t = useT("rating");
   const [avg, setAvg] = useState<number | null>(null);
   const [recommend, setRecommend] = useState<number | null>(null);
   const [total, setTotal] = useState(0);
@@ -35,7 +37,7 @@ export default function RatingWidget() {
     <div className="rounded-2xl border border-border bg-white shadow-sm overflow-hidden relative">
       <div className="flex flex-col gap-0">
         <div className="px-5 pt-5 pb-4 border-b border-border">
-          <p className="text-text-subtle text-xs font-semibold uppercase tracking-widest">Hodnocení obchodu</p>
+          <p className="text-text-subtle text-xs font-semibold uppercase tracking-widest">{t("title")}</p>
         </div>
         <div className="p-6 flex flex-col gap-5">
           {avg === null ? (
@@ -45,7 +47,7 @@ export default function RatingWidget() {
                   <Star key={i} size={18} className="fill-border text-border" />
                 ))}
               </div>
-              <p className="text-text-subtle text-xs">Zatím žádné hodnocení</p>
+              <p className="text-text-subtle text-xs">{t("empty")}</p>
             </div>
           ) : (
             <>
@@ -68,14 +70,14 @@ export default function RatingWidget() {
                       <Star key={`e${i}`} size={18} className="fill-border text-border" />
                     ))}
                   </div>
-                  <p className="text-text-subtle text-xs">{total} hodnocení</p>
+                  <p className="text-text-subtle text-xs">{t.plural(total, "count")}</p>
                 </div>
               </div>
               <div className="bg-surface rounded-xl px-4 py-4">
                 <div className="flex items-baseline gap-1">
                   <span className="text-3xl font-extrabold text-primary-ink">{recommend}%</span>
                 </div>
-                <p className="text-text-muted text-sm mt-1 leading-relaxed">zákazníků by doporučilo náš obchod</p>
+                <p className="text-text-muted text-sm mt-1 leading-relaxed">{t("recommend")}</p>
                 <div className="mt-2 h-1.5 bg-border rounded-full overflow-hidden">
                   <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${recommend}%` }} />
                 </div>
@@ -83,7 +85,7 @@ export default function RatingWidget() {
             </>
           )}
           <a href="/napsat-recenzi" className="inline-flex items-center gap-2 w-full justify-center px-4 py-2.5 rounded-xl bg-primary text-on-primary font-semibold text-sm hover:brightness-105 transition-all">
-            Napsat recenzi
+            {t("writeReview")}
             <ArrowRight size={14} />
           </a>
         </div>

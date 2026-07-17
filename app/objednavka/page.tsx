@@ -394,7 +394,7 @@ export default function ObjednavkaPage() {
                   {appliedDiscount && discountAmount > 0 && (
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-green-600 flex items-center gap-1.5">
-                        <Tag size={12} /> <span className="notranslate" translate="no">{appliedDiscount.code}</span>
+                        <Tag size={12} /> <span>{appliedDiscount.code}</span>
                       </span>
                       <span className="text-green-600 font-semibold">− {formatPrice(discountAmount, currency)}</span>
                     </div>

@@ -1,8 +1,9 @@
-// Serverová komponenta — patička je statická, takže do prohlížeče nepotřebuje
-// poslat nic. Jediná interaktivní část (formulář na newsletter) žije zvlášť
-// v FooterNewsletter.tsx jako klientský ostrůvek.
-// Nepřidávej sem "use client" — tím by se do bundlu vrátil celý obsah patičky
-// i s ikonami. Když potřebuješ interaktivitu, udělej z ní další ostrůvek.
+"use client";
+
+// Klientská komponenta. Dřív byla serverová (nižší bundle), ale jazyk se čte
+// z cookie až po hydrataci — viz komentář v lib/locale.ts — a patička je
+// prakticky celá text, takže by ze serveru stejně nezbylo nic k ušetření.
+// Interaktivní části (newsletter, logo se scrollem) zůstávají zvlášť.
 import {
   Phone, Mail, MapPin, Clock,
   Instagram, Facebook, Youtube,
@@ -11,39 +12,9 @@ import {
 import Image from "next/image";
 import Newsletter from "./FooterNewsletter";
 import HomeLink from "./HomeLink";
-
-// ── Nav data ──────────────────────────────────────────────────────────────────
-
-const footerNav = [
-  {
-    heading: "Kategorie",
-    links: [
-      { label: "Pouzdra & Obaly",     href: "/kategorie/pouzdra-obaly"  },
-      { label: "iPad & Apple Pencil", href: "/kategorie/ipad-pencil"    },
-      { label: "Apple Watch",         href: "/kategorie/apple-watch"    },
-      { label: "Příslušenství",       href: "/kategorie/prislusenstvi"  },
-      { label: "Čištění",             href: "/kategorie/cisteni"        },
-    ],
-  },
-  {
-    heading: "Zákaznická zóna",
-    links: [
-      { label: "Stav objednávky",  href: "/objednavky"          },
-      { label: "Vrácení zboží",    href: "/reklamace"             },
-      { label: "Reklamace",        href: "/reklamace"           },
-      { label: "Doprava a platba", href: "/doprava"             },
-      { label: "FAQ",              href: "/faq"                 },
-    ],
-  },
-  {
-    heading: "O nás",
-    links: [
-      { label: "O HackPack", href: "/o-nas"    },
-      { label: "Blog",          href: "/blog"     },
-      { label: "Kontakt",       href: "/kontakt"  },
-    ],
-  },
-];
+import { categories, getCategoryName } from "@/lib/products";
+import { useT } from "@/lib/useT";
+import { useLang } from "@/lib/LangContext";
 
 const socialLinks = [
   { icon: Instagram, label: "Instagram", href: "https://instagram.com/hackpack.cz" },
@@ -51,24 +22,53 @@ const socialLinks = [
   { icon: Youtube,   label: "YouTube",   href: "https://youtube.com/@hackpack"     },
 ];
 
-const trustItems = [
-  { icon: Truck,       label: "Expedice do 24 h"    },
-  { icon: RotateCcw,   label: "30 dní na vrácení"   },
-  { icon: ShieldCheck, label: "Záruka 2 roky"        },
-];
-
-// ── Newsletter ────────────────────────────────────────────────────────────────
-
-// ── Newsletter ────────────────────────────────────────────────────────────────
-
-
-// ── Main Footer ───────────────────────────────────────────────────────────────
-
 export default function Footer() {
+  const t = useT("footer");
+  const { locale } = useLang();
+
+  const trustItems = [
+    { icon: Truck,       label: t("trustExpedition") },
+    { icon: RotateCcw,   label: t("trustReturns")    },
+    { icon: ShieldCheck, label: t("trustWarranty")   },
+  ];
+
+  const footerNav = [
+    {
+      heading: t("headingCategories"),
+      links: categories.map(cat => ({
+        label: getCategoryName(cat, locale),
+        href: `/kategorie/${cat.slug}`,
+      })),
+    },
+    {
+      heading: t("headingCustomer"),
+      links: [
+        { label: t("orderStatus"),     href: "/objednavky" },
+        { label: t("returnsLink"),     href: "/reklamace"  },
+        { label: t("claims"),          href: "/reklamace"  },
+        { label: t("shippingPayment"), href: "/doprava"    },
+        { label: t("faq"),             href: "/faq"        },
+      ],
+    },
+    {
+      heading: t("headingAbout"),
+      links: [
+        { label: t("aboutHackpack"), href: "/o-nas"   },
+        { label: t("blog"),          href: "/blog"    },
+        { label: t("contact"),       href: "/kontakt" },
+      ],
+    },
+  ];
+
+  const legalLinks = [
+    { label: t("terms"),   href: "/obchodni-podminky"      },
+    { label: t("privacy"), href: "/ochrana-osobnich-udaju" },
+    { label: t("cookies"), href: "/cookies"                },
+  ];
+
   return (
     <footer className="bg-header">
 
-      {/* Newsletter */}
       <Newsletter />
 
       {/* Main grid */}
@@ -89,9 +89,8 @@ export default function Footer() {
               />
             </HomeLink>
 
-            {/* Popis */}
             <p className="text-white/60 text-sm leading-relaxed max-w-[260px]">
-              Originální Apple příslušenství za férové ceny. Každý kus testován a připraven k expedici do 24 hodin.
+              {t("description")}
             </p>
 
             {/* Trust pills */}
@@ -122,11 +121,11 @@ export default function Footer() {
               </a>
               <div className="inline-flex items-start gap-2.5 text-white/60 text-sm">
                 <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
-                <span>Václavské nám. 1, 110 00 Praha 1</span>
+                <span>{t("address")}</span>
               </div>
               <div className="inline-flex items-start gap-2.5 text-white/60 text-sm">
                 <Clock size={13} className="text-primary shrink-0 mt-0.5" />
-                <span>Po–Pá 9–18 h · So 10–14 h</span>
+                <span>{t("openingHours")}</span>
               </div>
             </div>
 
@@ -178,14 +177,10 @@ export default function Footer() {
       <div className="border-t border-white/8">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/50 text-xs">
-            © {new Date().getFullYear()} HackPack s.r.o. — Všechna práva vyhrazena.
+            © {new Date().getFullYear()} HackPack s.r.o. — {t("rights")}
           </p>
           <div className="flex items-center gap-1">
-            {[
-              { label: "Obchodní podmínky",        href: "/obchodni-podminky"       },
-              { label: "Ochrana osobních údajů",   href: "/ochrana-osobnich-udaju"  },
-              { label: "Cookies",                  href: "/cookies"                 },
-            ].map((link, i, arr) => (
+            {legalLinks.map((link, i, arr) => (
               <span key={link.label} className="flex items-center gap-1">
                 <a
                   href={link.href}

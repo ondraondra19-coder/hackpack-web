@@ -335,7 +335,7 @@ export default function SearchBar() {
   const otherResults = confident ? results.slice(1) : results;
 
   return (
-    <div ref={ref} className="relative w-full" translate="no">
+    <div ref={ref} className="relative w-full">
 
       {/* Input */}
       <div className={`relative flex items-center transition-all duration-200 ${showDropdown ? "ring-2 ring-primary/30 rounded-full" : ""}`}>
@@ -363,7 +363,7 @@ export default function SearchBar() {
           aria-activedescendant={showDropdown && activeIndex >= 0 ? optionId(activeIndex) : undefined}
           aria-autocomplete="list"
           role="combobox"
-          translate="no"
+         
           className="w-full bg-secondary border border-border rounded-full pl-10 pr-9 py-2.5 text-sm text-text-base placeholder-text-subtle focus:outline-none focus:border-primary/40 transition-colors"
         />
         {query && (

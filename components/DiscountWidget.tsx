@@ -56,7 +56,7 @@ export default function DiscountWidget() {
               <Check size={12} strokeWidth={3} className="text-white" />
             </div>
             <div>
-              <p className={`text-xs font-extrabold tracking-wide notranslate ${active ? "text-green-800" : "text-amber-800"}`} translate="no">
+              <p className={`text-xs font-extrabold tracking-wide ${active ? "text-green-800" : "text-amber-800"}`}>
                 {appliedDiscount.code}
               </p>
               <p className={`text-[11px] ${active ? "text-green-600" : "text-amber-600"}`}>

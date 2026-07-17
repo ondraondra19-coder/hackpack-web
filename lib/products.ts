@@ -55,7 +55,11 @@ export type Product = {
   price: PriceValue;
   categories: string[];
   img: string;
+  // Popis je povinný česky; překlady jsou volitelné a čtou se přes
+  // getProductDescription(). Chybí-li, spadne to zpět na češtinu.
   description: string;
+  description_en?: string;
+  description_sk?: string;
   inStock: boolean;
   stock: number;
   tags?: string[];
@@ -626,12 +630,19 @@ export const products: Product[] = [
 
 // ─── Helpers ────────────────────────────────────────
 
-export const categories = [
-  { slug: "pouzdra-obaly", name: "Pouzdra & Obaly" },
-  { slug: "ipad-pencil", name: "iPad & Apple Pencil" },
-  { slug: "apple-watch", name: "Apple Watch" },
-  { slug: "prislusenstvi", name: "Příslušenství" },
-  { slug: "cisteni", name: "Čištění" },
+export type Category = {
+  slug: string;
+  name: string;
+  name_en?: string;
+  name_sk?: string;
+};
+
+export const categories: Category[] = [
+  { slug: "pouzdra-obaly",  name: "Pouzdra & Obaly",     name_en: "Cases & Covers",     name_sk: "Puzdrá & Obaly" },
+  { slug: "ipad-pencil",    name: "iPad & Apple Pencil", name_en: "iPad & Apple Pencil", name_sk: "iPad & Apple Pencil" },
+  { slug: "apple-watch",    name: "Apple Watch",         name_en: "Apple Watch",        name_sk: "Apple Watch" },
+  { slug: "prislusenstvi",  name: "Příslušenství",       name_en: "Accessories",        name_sk: "Príslušenstvo" },
+  { slug: "cisteni",        name: "Čištění",             name_en: "Cleaning",           name_sk: "Čistenie" },
 ];
 
 export function getProductsByCategory(slug: string): Product[] {
@@ -713,8 +724,25 @@ export function getRelatedProducts(product: Product, limit = 4): Product[] {
 }
 
 // ─── Helper pro získání názvu produktu podle jazyka ──
+// ─── Lokalizace katalogu ────────────────────────────
+// Všechny tři funkce padají zpět na češtinu, když překlad chybí — radši
+// česky než prázdno. Nový produkt tak jde přidat bez překladů a doplnit je
+// později, aniž by se web rozbil.
+
 export function getProductName(product: Product, locale: string): string {
   if (locale === "en" && product.name_en) return product.name_en;
   if (locale === "sk" && product.name_sk) return product.name_sk;
   return product.name;
+}
+
+export function getProductDescription(product: Product, locale: string): string {
+  if (locale === "en" && product.description_en) return product.description_en;
+  if (locale === "sk" && product.description_sk) return product.description_sk;
+  return product.description;
+}
+
+export function getCategoryName(category: Category, locale: string): string {
+  if (locale === "en" && category.name_en) return category.name_en;
+  if (locale === "sk" && category.name_sk) return category.name_sk;
+  return category.name;
 }

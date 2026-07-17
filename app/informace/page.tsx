@@ -865,7 +865,7 @@ export default function InformacePage() {
                   </div>
                   {appliedDiscount && discountAmount > 0 && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-green-600 flex items-center gap-1.5"><Tag size={12} /><span className="notranslate" translate="no">{appliedDiscount.code}</span></span>
+                      <span className="text-green-600 flex items-center gap-1.5"><Tag size={12} /><span>{appliedDiscount.code}</span></span>
                       <span className="text-green-600 font-semibold">− {formatPrice(discountAmount, currency)}</span>
                     </div>
                   )}
@@ -876,7 +876,7 @@ export default function InformacePage() {
                       <div className="flex items-start gap-2 px-3 py-2.5 rounded-xl bg-red-50 border border-red-200">
                         <AlertTriangle size={13} className="text-red-500 shrink-0 mt-0.5" />
                         <p className="text-red-700 text-xs leading-relaxed">
-                          Kód <span className="font-bold notranslate" translate="no">{appliedDiscount.code}</span> se neuplatní — nakupte ještě za <span className="font-bold">{formatPrice(missingCZK, CURRENCIES.CZK)}</span>
+                          Kód <span className="font-bold">{appliedDiscount.code}</span> se neuplatní — nakupte ještě za <span className="font-bold">{formatPrice(missingCZK, CURRENCIES.CZK)}</span>
                           {showApprox && <span className="text-red-500"> (≈ {formatPrice(approxConvert(missingCZK, currency.code), currency)}*)</span>}.
                         </p>
                       </div>

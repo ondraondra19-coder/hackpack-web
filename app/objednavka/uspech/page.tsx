@@ -618,7 +618,7 @@ function SuccessContent() {
                                             <div className="flex justify-between text-xs text-green-600">
                                                 <span className="flex items-center gap-1.5">
                                                     <Tag size={11} />
-                                                    <span className="notranslate" translate="no">{orderData.discountCode}</span>
+                                                    <span>{orderData.discountCode}</span>
                                                 </span>
                                                 <span className="tabular-nums font-semibold">{orderData.discountLabel}</span>
                                             </div>
