@@ -59,3 +59,9 @@ body {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* Vyhledávací lišta — vjede odshora (jako blastro.cz). */
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(0); }
+}

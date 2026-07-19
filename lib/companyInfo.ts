@@ -1,17 +1,12 @@
 // lib/companyInfo.ts
-// Identifikační údaje prodávajícího na jednom místě.
-//
-// PROČ: obchodní podmínky, reklamační řád a zásady ochrany údajů je uváděly
-// jako zástupné texty ([NÁZEV FIRMY], [IČO], …) přímo v textu stránky. Po
-// překladu do tří jazyků by každý údaj existoval třikrát a vyplnit by se
-// musel na deseti místech — s jistotou, že jedno se zapomene.
-//
-// AŽ TO BUDEŠ VYPLŇOVAT: stačí sem. Prázdná hodnota se v textu vykreslí jako
-// nápadný zástupný text (viz `placeholder()` níž), takže nevyplněný údaj je
-// na stránce vidět a nepropadne tiše jako prázdné místo.
-//
-// Údaje jsou stejné pro všechny jazyky — název firmy, IČO ani adresa sídla
-// se nepřekládají.
+// ─────────────────────────────────────────────────────────────────────────────
+// POZOR: údaje se teď píšou na jednom místě v `lib/udaje.ts`.
+// Tenhle soubor zůstává jen kvůli zpětné kompatibilitě — obchodní podmínky
+// a zásady ochrany údajů importují `COMPANY` a `companyField` odsud. Data
+// bere z `UDAJE`, takže je uprav TAM, ne tady.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { UDAJE, adresaSidla, companyField } from "./udaje";
 
 export type CompanyInfo = {
   /** Obchodní firma, např. "SLINGR s.r.o." */
@@ -33,22 +28,15 @@ export type CompanyInfo = {
 };
 
 export const COMPANY: CompanyInfo = {
-  name: "",
-  companyId: "",
-  vatId: "",
-  address: "",
-  registration: "",
-  warehouseAddress: "",
-  email: "info@dodelat.cz",
-  phone: "+420 737 565 577",
-  freeShippingOverCZK: 0,
+  name: UDAJE.name,
+  companyId: UDAJE.companyId,
+  vatId: UDAJE.vatId,
+  address: adresaSidla,
+  registration: UDAJE.registration,
+  warehouseAddress: UDAJE.warehouseAddress,
+  email: UDAJE.email,
+  phone: UDAJE.phone,
+  freeShippingOverCZK: UDAJE.freeShippingOverCZK,
 };
 
-/**
- * Údaj do textu. Když chybí, vrátí nápadný zástupný text místo prázdna —
- * v právním dokumentu je lepší vidět "[DOPLNIT: IČO]" než větu, ze které
- * beze stopy zmizelo číslo.
- */
-export function companyField(value: string, label: string): string {
-  return value.trim() || `[DOPLNIT: ${label}]`;
-}
+export { companyField };

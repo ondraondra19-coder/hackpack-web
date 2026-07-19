@@ -10,9 +10,10 @@ import { CURRENCIES, formatPrice, type Currency, type CurrencyCode } from "./cur
 import { approxConvert } from "./discounts";
 import { buildSpdString, orderIdToVariableSymbol } from "./qrPlatba";
 import { generatePaymentReceiptPdf } from "./pdf";
+import { UDAJE } from "./udaje";
 
-const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? "SLINGR <info@slingr.cz>";
-const SUPPORT_EMAIL = "info@slingr.cz";
+const FROM_ADDRESS = process.env.RESEND_FROM_EMAIL ?? `SLINGR <${UDAJE.email}>`;
+const SUPPORT_EMAIL = UDAJE.email;
 // Kam chodí interní upozornění (nová zpráva, nová reklamace). Zatím shodné se
 // SUPPORT_EMAIL — až bude potřeba jiná adresa, stačí sáhnout sem.
 const ADMIN_EMAIL = SUPPORT_EMAIL;

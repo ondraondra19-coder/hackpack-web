@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "app/kontakt/page.tsx": {
-    "mtime": 1784308279.524784,
-    "ast_hash": "e2053be2510d89e30c7d82a75b099380",
+    "mtime": 1784477952.101478,
+    "ast_hash": "6b71d5bdc2d87e13b762dbc1212eeeb9",
     "semantic_hash": ""
   },
   "app/kosik/page.tsx": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "app/o-nas/page.tsx": {
-    "mtime": 1784308279.532824,
-    "ast_hash": "2244b313c597d0336e08b1c30fef1018",
+    "mtime": 1784475689.4898446,
+    "ast_hash": "0fee6a7f1130c210621a79a7ae0ec5aa",
     "semantic_hash": ""
   },
   "app/obchodni-podminky/page.tsx": {
@@ -290,13 +290,13 @@
     "semantic_hash": ""
   },
   "components/Footer.tsx": {
-    "mtime": 1784396965.4620602,
-    "ast_hash": "112c4f98f9babac4aed4f45e5195fec0",
+    "mtime": 1784477929.6482298,
+    "ast_hash": "f9f9e2d1bd535835e6eb881283629b11",
     "semantic_hash": ""
   },
   "components/Header.tsx": {
-    "mtime": 1784398792.45585,
-    "ast_hash": "19eb529a04f5c5ddc00b393d8f5158e8",
+    "mtime": 1784480195.8816538,
+    "ast_hash": "0180c5d8f10ba25b97a51171a3d3c916",
     "semantic_hash": ""
   },
   "components/HomeSlider.tsx": {
@@ -310,8 +310,8 @@
     "semantic_hash": ""
   },
   "components/InstagramFeed.tsx": {
-    "mtime": 1784396965.6563525,
-    "ast_hash": "ca37958994dc576bf2bc1e9284ab3f40",
+    "mtime": 1784477972.3298814,
+    "ast_hash": "a614e1a2aba25e965c324f0b8a03e017",
     "semantic_hash": ""
   },
   "components/KategorieClient.tsx": {
@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "components/ProduktClient.tsx": {
-    "mtime": 1784455044.7842536,
-    "ast_hash": "f58d0e6ad3972e0f70a462a1f151e110",
+    "mtime": 1784456591.997929,
+    "ast_hash": "e3b3f6e960eea57125e182b49b5508da",
     "semantic_hash": ""
   },
   "components/RatingWidget.tsx": {
@@ -342,11 +342,6 @@
   "components/Reviews.tsx": {
     "mtime": 1784308279.545401,
     "ast_hash": "11f09292b482dff942cb37e9170a5f5d",
-    "semantic_hash": ""
-  },
-  "components/SearchBar.tsx": {
-    "mtime": 1784452514.0867596,
-    "ast_hash": "736f2fe03ef242e8be1aad96285de316",
     "semantic_hash": ""
   },
   "components/TrustBar.tsx": {
@@ -445,8 +440,8 @@
     "semantic_hash": "d065b21ff55437301501288e27496632"
   },
   "lib/products.ts": {
-    "mtime": 1784453944.940002,
-    "ast_hash": "94cf4e0ea419e321d24d3ba38836f113",
+    "mtime": 1784477569.9028602,
+    "ast_hash": "41406117edd919ceac08e6fc5aa77d37",
     "semantic_hash": ""
   },
   "lib/redis.ts": {
@@ -480,18 +475,18 @@
     "semantic_hash": ""
   },
   "messages/cs.json": {
-    "mtime": 1784454990.959616,
-    "ast_hash": "b6e0ba4d5116bc636a3d8efaa7b45458",
+    "mtime": 1784481731.9219246,
+    "ast_hash": "4531d81fb252c846afaa64b6d7de2a0b",
     "semantic_hash": ""
   },
   "messages/en.json": {
-    "mtime": 1784454998.8565617,
-    "ast_hash": "933352baaa111bb6296e6bb7253d7325",
+    "mtime": 1784481744.38657,
+    "ast_hash": "aa67424df2ee3a538d176433bf93b1b8",
     "semantic_hash": ""
   },
   "messages/sk.json": {
-    "mtime": 1784454995.0384696,
-    "ast_hash": "551345c586d703da46338ec168850fe2",
+    "mtime": 1784481731.9284654,
+    "ast_hash": "9c669c25cb00596e7abb66a3be8d960f",
     "semantic_hash": ""
   },
   "next.config.ts": {
@@ -690,8 +685,8 @@
     "semantic_hash": ""
   },
   "lib/email.ts": {
-    "mtime": 1784396997.806087,
-    "ast_hash": "b7715c3a1c86ef403b911c1766b215e9",
+    "mtime": 1784477979.135659,
+    "ast_hash": "ed5372ff7101cf9b987140c9757c3ed6",
     "semantic_hash": ""
   },
   "lib/analytics.ts": {
@@ -700,8 +695,8 @@
     "semantic_hash": ""
   },
   "lib/pdf.ts": {
-    "mtime": 1784396966.3390546,
-    "ast_hash": "add361c231acf6fcab23c6c16da12d37",
+    "mtime": 1784478038.250877,
+    "ast_hash": "a8f450ca5606bf95977b7e790bbc7254",
     "semantic_hash": ""
   },
   "assets/fonts/OFL.txt": {
@@ -745,8 +740,8 @@
     "semantic_hash": ""
   },
   "lib/campaigns.ts": {
-    "mtime": 1784396966.8818698,
-    "ast_hash": "0f9909f2fd400d0636690395005e0978",
+    "mtime": 1784478025.310253,
+    "ast_hash": "6da0ad1ba1f814669bf040d677459eef",
     "semantic_hash": ""
   },
   "lib/posthogClient.ts": {
@@ -840,8 +835,8 @@
     "semantic_hash": ""
   },
   "lib/companyInfo.ts": {
-    "mtime": 1784396966.5062919,
-    "ast_hash": "4247a5dc6461e8073472787fbcd024a9",
+    "mtime": 1784477911.5165782,
+    "ast_hash": "6893909fa31e92c1ee3a6bd255b1e1c3",
     "semantic_hash": ""
   },
   "lib/locale.ts": {
@@ -870,8 +865,8 @@
     "semantic_hash": ""
   },
   "components/VideoHero.tsx": {
-    "mtime": 1784400289.8043437,
-    "ast_hash": "5fee4c9cbb1e198aae2293215b81048f",
+    "mtime": 1784480631.5709074,
+    "ast_hash": "a11f5c686ec975d4862442e20e527218",
     "semantic_hash": ""
   },
   "public/videos/uvod.mp4": {
@@ -907,6 +902,51 @@
   "lib/productDiscounts.ts": {
     "mtime": 1784452269.2470436,
     "ast_hash": "f6806ee21b19bc54a0848434fe466f1d",
+    "semantic_hash": ""
+  },
+  "public/images/help/background-product.jpg": {
+    "mtime": 1784457647.1247559,
+    "ast_hash": "71b4240a47652abdfeacc46e52b152f8",
+    "semantic_hash": ""
+  },
+  "public/images/help/products-background-2.jpg": {
+    "mtime": 1784475473.286269,
+    "ast_hash": "33afebbdadb3432d1f3eaa384a2cb869",
+    "semantic_hash": ""
+  },
+  "public/images/products/prak-x1/main.png": {
+    "mtime": 1784475498.6771355,
+    "ast_hash": "b057fc68486a861fc5eb2e4c58337302",
+    "semantic_hash": ""
+  },
+  "public/images/products/micky/main.png": {
+    "mtime": 1784476458.0468962,
+    "ast_hash": "6e9dfaba2814d823e1c172e675217191",
+    "semantic_hash": ""
+  },
+  "public/images/products/vodni-balonky/main.png": {
+    "mtime": 1784475867.9194016,
+    "ast_hash": "ab85454396bea366cb7828ab10903b3e",
+    "semantic_hash": ""
+  },
+  "lib/udaje.ts": {
+    "mtime": 1784478167.3045814,
+    "ast_hash": "c724ea6055d66a4e32820ba138104704",
+    "semantic_hash": ""
+  },
+  "public/images/products/penove-plechovky/main.png": {
+    "mtime": 1784477193.7226713,
+    "ast_hash": "ea7cf79c0603bea0f9bc05a419fc410f",
+    "semantic_hash": ""
+  },
+  "public/images/products/terc/main.png": {
+    "mtime": 1784477540.7115688,
+    "ast_hash": "9fbe7b913f823fe5240abc354e087259",
+    "semantic_hash": ""
+  },
+  "components/SearchOverlay.tsx": {
+    "mtime": 1784478816.3322744,
+    "ast_hash": "97776fccb804387f724dafa21c9f49f7",
     "semantic_hash": ""
   }
 }

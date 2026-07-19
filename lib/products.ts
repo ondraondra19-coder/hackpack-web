@@ -99,7 +99,7 @@ export const products: Product[] = [
     name: "Prak SLINGR X1",
     price: { CZK: 499 },
     categories: ["zbrane"],
-    img: "/images/products/prak-x1/main.jpg",
+    img: "/images/products/prak-x1/main.png",
     description:
       "Lehký a odolný prak, který zvládne celé odpoledne přestřelek. Pohodlný úchop padne do dětské i dospělácké ruky a pružná guma pošle měkkou munici pěkně daleko. Střílí vodní balónky i měkké míčky — vyber si munici podle nálady a vyraz do akce.",
     inStock: true,
@@ -112,22 +112,12 @@ export const products: Product[] = [
     name: "Míčky do praku SLINGR",
     price: { CZK: 149 },
     categories: ["munice"],
-    img: "/images/products/micky/main.jpg",
+    img: "/images/products/micky/main.png",
     description:
       "Balení náhradních míčků do praku SLINGR. Měkké, lehké a barevné — dost velké na přesný zásah, ale šetrné, takže nikoho nebolí. Ideální doplněk, ať ti uprostřed bitvy nedojde munice.",
     inStock: true,
     stock: 0,
     tags: ["míčky", "munice", "náboje", "prak", "slingr", "náhradní", "kuličky"],
-    variants: [
-      {
-        type: "Balení",
-        options: [
-          { label: "100 ks", value: "100ks" },
-          { label: "250 ks", value: "250ks" },
-          { label: "500 ks", value: "500ks" },
-        ],
-      },
-    ],
     related: ["prak-x1", "vodni-balonky", "terc"],
   },
   {
@@ -135,7 +125,7 @@ export const products: Product[] = [
     name: "Vodní balónky SLINGR",
     price: { CZK: 99 },
     categories: ["munice"],
-    img: "/images/products/vodni-balonky/main.jpg",
+    img: "/images/products/vodni-balonky/main.png",
     description:
       "Sada vodních balónků pro horké letní bitvy. Rychle se plní, pořádně stříkají a při zásahu neškodně prasknou. Nabij prak, zamiř na kámoše a rozjeď vodní válku na zahradě.",
     inStock: true,
@@ -148,13 +138,26 @@ export const products: Product[] = [
     name: "Terč SLINGR",
     price: { CZK: 249 },
     categories: ["prislusenstvi"],
-    img: "/images/products/terc/main.jpg",
+    img: "/images/products/terc/main.png",
     description:
       "Skládací terč pro trénink přesnosti i dlouhé souboje o nejvyšší skóre. Postav ho na dvorek, trefuj se do zón a zjisti, kdo má nejlepší mušku. Skvělý parťák k praku i pro sólo střelbu.",
     inStock: true,
     stock: 0,
     tags: ["terč", "příslušenství", "trénink", "přesnost", "prak", "slingr", "cíl", "skóre"],
-    related: ["prak-x1", "micky-do-praku", "vodni-balonky"],
+    related: ["prak-x1", "micky-do-praku", "penove-plechovky"],
+  },
+  {
+    slug: "penove-plechovky",
+    name: "Pěnové plechovky SLINGR",
+    price: { CZK: 349 },
+    categories: ["prislusenstvi"],
+    img: "/images/products/penove-plechovky/main.png",
+    description:
+      "Sada lehkých pěnových plechovek na sestřelení. Postav pyramidu, zamiř prakem a shoď je jednou ranou — a pak zase odznova. Měkká pěna nic nepoškrábe ani nerozbije, takže se dá střílet klidně na terase i v obýváku. Ideální na trénink mušky i na souboj o to, kdo srazí víc.",
+    inStock: true,
+    stock: 0,
+    tags: ["plechovky", "pěnové", "sestřelení", "terč", "cíl", "příslušenství", "prak", "slingr", "trénink", "přesnost"],
+    related: ["prak-x1", "micky-do-praku", "terc"],
   },
 ];
 

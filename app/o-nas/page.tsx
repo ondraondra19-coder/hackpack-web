@@ -19,10 +19,7 @@ export default function ONasPage() {
 
   // Jména členů týmu se nepřekládají — role ano.
   const team = [
-    { name: "Jan Novák",       role: t("roleFounder"), img: "/images/tym/jan.jpg"   },
-    { name: "Petra Svobodová", role: t("roleSupport"), img: "/images/tym/petra.jpg" },
-    { name: "Lukáš Dvořák",    role: t("roleLogistics"), img: "/images/tym/lukas.jpg" },
-    { name: "Marie Horáková",  role: t("roleMarketing"), img: "/images/tym/marie.jpg" },
+    { name: "Ondřej Kubrický", role: t("roleFounder"), img: "/images/tym/ondrej.jpg" },
   ];
 
   return (
@@ -94,15 +91,15 @@ export default function ONasPage() {
           <div className="mb-20">
             <p className="text-text-subtle text-xs font-semibold uppercase tracking-widest mb-3 text-center">{t("teamEyebrow")}</p>
             <h2 className="text-3xl font-extrabold text-text-base mb-10 text-center">{t("teamTitle")}</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="flex flex-wrap justify-center gap-10">
               {team.map((member) => (
-                <div key={member.name} className="flex flex-col items-center text-center gap-3">
-                  <div className="relative w-32 h-32 rounded-full overflow-hidden bg-secondary">
+                <div key={member.name} className="flex flex-col items-center text-center gap-4">
+                  <div className="relative w-40 h-40 rounded-full overflow-hidden bg-secondary ring-2 ring-primary/20">
                     <Image src={member.img} alt="" fill className="object-cover" />
                   </div>
                   <div>
-                    <p className="text-text-base font-semibold text-sm">{member.name}</p>
-                    <p className="text-text-subtle text-xs mt-0.5">{member.role}</p>
+                    <p className="text-text-base font-semibold text-base">{member.name}</p>
+                    <p className="text-text-subtle text-sm mt-0.5">{member.role}</p>
                   </div>
                 </div>
               ))}

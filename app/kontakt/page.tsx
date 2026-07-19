@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ChevronRight, Phone, Mail, MapPin, Clock, Check, Send } from "lucide-react";
 import { useT } from "@/lib/useT";
+import { UDAJE, telHref, mailHref } from "@/lib/udaje";
 
 export default function KontaktPage() {
   const t = useT("contact");
@@ -85,22 +86,22 @@ export default function KontaktPage() {
               <div>
                 <h2 className="text-lg font-bold text-text-base mb-5">{t("detailsHeading")}</h2>
                 <div className="flex flex-col gap-5">
-                  <a href="tel:+420737565577" className="flex items-start gap-4 group">
+                  <a href={telHref} className="flex items-start gap-4 group">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Phone size={18} className="text-primary-ink" />
                     </div>
                     <div>
                       <p className="text-text-subtle text-xs mb-0.5">{t("phone")}</p>
-                      <p className="text-text-base font-semibold group-hover:text-primary-ink transition-colors">+420 737 565 577</p>
+                      <p className="text-text-base font-semibold group-hover:text-primary-ink transition-colors">{UDAJE.phone}</p>
                     </div>
                   </a>
-                  <a href="mailto:info@dodelat.cz" className="flex items-start gap-4 group">
+                  <a href={mailHref} className="flex items-start gap-4 group">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Mail size={18} className="text-primary-ink" />
                     </div>
                     <div>
                       <p className="text-text-subtle text-xs mb-0.5">{t("email")}</p>
-                      <p className="text-text-base font-semibold group-hover:text-primary-ink transition-colors">info@dodelat.cz</p>
+                      <p className="text-text-base font-semibold group-hover:text-primary-ink transition-colors">{UDAJE.email}</p>
                     </div>
                   </a>
                   <div className="flex items-start gap-4">
@@ -109,8 +110,8 @@ export default function KontaktPage() {
                     </div>
                     <div>
                       <p className="text-text-subtle text-xs mb-0.5">{t("address")}</p>
-                      <p className="text-text-base font-semibold">{t("addressStreet")}</p>
-                      <p className="text-text-muted text-sm">{t("addressCity")}</p>
+                      <p className="text-text-base font-semibold">{UDAJE.addressStreet}</p>
+                      <p className="text-text-muted text-sm">{UDAJE.addressCity}</p>
                     </div>
                   </div>
                 </div>

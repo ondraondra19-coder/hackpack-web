@@ -11,7 +11,11 @@ export default function VideoHero() {
   const t = useT("videohero");
 
   return (
-    <section className="relative w-full overflow-hidden bg-header h-[clamp(560px,86svh,880px)]">
+    // Desktop: sekce má stejný poměr stran jako video (832×384 ≈ 13/6), takže se
+    // ukáže celé bez ořezu (object-cover se stejným poměrem už nic neusekne).
+    // Mobil: video vyplní obrazovku pod hlavičkou (object-cover přijatelně ořízne
+    // boky, aby na úzkém displeji nezbyl proužek).
+    <section className="relative w-full overflow-hidden bg-header h-[calc(100svh_-_4rem_-_env(safe-area-inset-top))] lg:h-auto lg:aspect-[832/384]">
 
       {/* Pozadí — video. Dekorativní (obsah nese text vedle), proto aria-hidden.
           muted+playsInline je nutné, aby autoplay prošel na mobilech i v Safari. */}

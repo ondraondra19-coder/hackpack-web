@@ -9,6 +9,7 @@
 // vrátí reason "domain_unverified" a panel to čitelně zobrazí.
 import { getContactsClient } from "./newsletter";
 import { renderCampaignEmail } from "./email";
+import { UDAJE } from "./udaje";
 
 const MAX_SUBJECT_LENGTH = 200;
 const MAX_BODY_LENGTH = 20000;
@@ -19,7 +20,7 @@ function campaignFrom(): string {
   return (
     process.env.RESEND_CAMPAIGN_FROM ??
     process.env.RESEND_FROM_EMAIL ??
-    "SLINGR <info@slingr.cz>"
+    `SLINGR <${UDAJE.email}>`
   );
 }
 

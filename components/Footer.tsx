@@ -15,11 +15,12 @@ import HomeLink from "./HomeLink";
 import { categories, getCategoryName } from "@/lib/products";
 import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
+import { UDAJE, telHref, mailHref, adresaSidla } from "@/lib/udaje";
 
 const socialLinks = [
-  { icon: Instagram, label: "Instagram", href: "https://instagram.com/slingr.cz" },
-  { icon: Facebook,  label: "Facebook",  href: "https://facebook.com/slingr.cz"  },
-  { icon: Youtube,   label: "YouTube",   href: "https://youtube.com/@slingr"     },
+  { icon: Instagram, label: "Instagram", href: UDAJE.instagram },
+  { icon: Facebook,  label: "Facebook",  href: UDAJE.facebook  },
+  { icon: Youtube,   label: "YouTube",   href: UDAJE.youtube   },
 ];
 
 export default function Footer() {
@@ -106,22 +107,22 @@ export default function Footer() {
             {/* Kontakty */}
             <div className="flex flex-col gap-2.5 pt-1 border-t border-white/8">
               <a
-                href="tel:+420737565577"
+                href={telHref}
                 className="inline-flex items-center gap-2.5 text-white/60 text-sm hover:text-white/70 transition-colors"
               >
                 <Phone size={13} className="text-primary shrink-0" />
-                <span>+420 737 565 577</span>
+                <span>{UDAJE.phone}</span>
               </a>
               <a
-                href="mailto:info@dodelat.cz"
+                href={mailHref}
                 className="inline-flex items-center gap-2.5 text-white/60 text-sm hover:text-white/70 transition-colors"
               >
                 <Mail size={13} className="text-primary shrink-0" />
-                <span>info@dodelat.cz</span>
+                <span>{UDAJE.email}</span>
               </a>
               <div className="inline-flex items-start gap-2.5 text-white/60 text-sm">
                 <MapPin size={13} className="text-primary shrink-0 mt-0.5" />
-                <span>{t("address")}</span>
+                <span>{adresaSidla}</span>
               </div>
               <div className="inline-flex items-start gap-2.5 text-white/60 text-sm">
                 <Clock size={13} className="text-primary shrink-0 mt-0.5" />

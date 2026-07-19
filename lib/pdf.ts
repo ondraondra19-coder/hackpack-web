@@ -10,6 +10,7 @@ import PDFDocument from "pdfkit";
 import path from "path";
 import type { Order } from "./orders";
 import { CURRENCIES, formatPrice, type Currency, type CurrencyCode } from "./currency";
+import { UDAJE } from "./udaje";
 import { approxConvert } from "./discounts";
 import { orderIdToVariableSymbol } from "./qrPlatba";
 
@@ -164,7 +165,7 @@ export async function generatePaymentReceiptPdf(order: Order): Promise<Buffer> {
   doc
     .fontSize(8)
     .fillColor(SUBTLE)
-    .text("Potřebujete pomoct? Napište nám na info@slingr.cz.", MARGIN, 780, { width: CONTENT_WIDTH, align: "center" });
+    .text(`Potřebujete pomoct? Napište nám na ${UDAJE.email}.`, MARGIN, 780, { width: CONTENT_WIDTH, align: "center" });
 
   doc.end();
   return done;
