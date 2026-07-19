@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "components/ProduktClient.tsx": {
-    "mtime": 1784455044.7842536,
-    "ast_hash": "f58d0e6ad3972e0f70a462a1f151e110",
+    "mtime": 1784456591.997929,
+    "ast_hash": "e3b3f6e960eea57125e182b49b5508da",
     "semantic_hash": ""
   },
   "components/RatingWidget.tsx": {
@@ -480,18 +480,18 @@
     "semantic_hash": ""
   },
   "messages/cs.json": {
-    "mtime": 1784454990.959616,
-    "ast_hash": "b6e0ba4d5116bc636a3d8efaa7b45458",
+    "mtime": 1784456565.0611186,
+    "ast_hash": "d12e8eff14d19ca3898f2cf1ecd029cc",
     "semantic_hash": ""
   },
   "messages/en.json": {
-    "mtime": 1784454998.8565617,
-    "ast_hash": "933352baaa111bb6296e6bb7253d7325",
+    "mtime": 1784456579.9376132,
+    "ast_hash": "7c24688929fc8ee43db7164ec36d8263",
     "semantic_hash": ""
   },
   "messages/sk.json": {
-    "mtime": 1784454995.0384696,
-    "ast_hash": "551345c586d703da46338ec168850fe2",
+    "mtime": 1784456576.3004634,
+    "ast_hash": "a64d53a551c0e900a0449a4c797077b0",
     "semantic_hash": ""
   },
   "next.config.ts": {

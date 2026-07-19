@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Check, ChevronRight, Package, RefreshCw, ShieldCheck, ChevronLeft, Bell, Play, X, Tag, Star } from "lucide-react";
+import { ShoppingCart, Check, ChevronRight, RefreshCw, ChevronLeft, Bell, Play, X, Star, Truck } from "lucide-react";
 import type { Product, ModelColor, ModelColorLayered } from "@/lib/products";
 import { useCart, type PriceRaw } from "@/lib/cart";
 import { useCurrency } from "@/lib/CurrencyContext";
@@ -51,22 +51,20 @@ const TILE_STYLE: React.CSSProperties = {
 function StockBadge({ available, anyInStock }: { available: number; anyInStock: boolean }) {
   const t = useT("product");
   const state = !anyInStock ? "none" : available === 0 ? "variant" : available >= 5 ? "plenty" : "low";
-  // Barevná pilulka — sklad tím dostane vlastní vizuální „chip" a nesplyne
-  // s cenou vedle. Tři stavy: dost skladem / poslední kusy / nedostupné.
+  // Obdélníkový rámeček (ne oválná pilulka) bez tečky. Tři stavy:
+  // dost skladem / poslední kusy / nedostupné — každý svou barvou rámečku.
   const chipClass =
-    state === "plenty" ? "bg-emerald-50 text-emerald-700" :
-    state === "low"    ? "bg-amber-50 text-amber-700" :
-                         "bg-rose-50 text-rose-700";
-  const dotClass = state === "plenty" ? "bg-emerald-500" : state === "low" ? "bg-amber-400 animate-pulse" : "bg-rose-400";
+    state === "plenty" ? "border-emerald-200 bg-emerald-50 text-emerald-700" :
+    state === "low"    ? "border-amber-200 bg-amber-50 text-amber-700" :
+                         "border-rose-200 bg-rose-50 text-rose-700";
   const label =
     state === "none"    ? t("stockNone") :
     state === "variant" ? t("stockVariant") :
     state === "plenty"  ? t("stockPlenty") :
                           t.plural(available, "stockLow");
   return (
-    <span key={state} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold ${chipClass}`}>
-      <span className={`w-1.5 h-1.5 rounded-full inline-block ${dotClass}`} />
-      <span>{label}</span>
+    <span key={state} className={`inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-bold ${chipClass}`}>
+      {label}
     </span>
   );
 }
@@ -553,6 +551,11 @@ export default function ProduktClient({
   const [added, setAdded] = useState(false);
   const [qty, setQty] = useState(1);
   const [notifyOpen, setNotifyOpen] = useState(false);
+  const [descOpen, setDescOpen] = useState(false);
+
+  // Popis produktu — v info panelu jen zkrácený náhled, plný text ve výsuvném
+  // panelu po kliknutí na „Číst dále".
+  const descriptionText = getProductDescription(product, locale);
 
   const model     = product.models?.find(m => m.id === modelId);
   const isLayered = model?.layered ?? false;
@@ -580,7 +583,6 @@ export default function ProduktClient({
   const discountPercent  = model ? model.discountPercent : product.discountPercent;
   const hasSale = !!discountPercent && !!rawOriginalPrice;
   const originalTotalPrice = hasSale ? getPrice(rawOriginalPrice, currency) + comboExtra : 0;
-  const savings = hasSale ? Math.max(0, originalTotalPrice - totalPrice) : 0;
 
   // Jedno "product_viewed" za návštěvu detailu — čeká na currencyMounted, ať
   // se neposílá s cenou v (možná chybné) výchozí měně před hydratací.
@@ -871,47 +873,54 @@ export default function ProduktClient({
                   {productName}
                 </h1>
 
-                {/* Volitelné hodnocení pod názvem */}
+                {/* Volitelné hodnocení pod názvem (jen když produkt má data) */}
                 {product.rating !== undefined && (
-                  <div className="flex items-center gap-2 mt-2" aria-label={t("ratingAria", { rating: product.rating })}>
+                  <div className="flex items-center gap-2 mt-2.5" aria-label={t("ratingAria", { rating: product.rating })}>
                     <span className="flex">
                       {[0, 1, 2, 3, 4].map((i) => (
                         <Star
                           key={i}
-                          size={15}
+                          size={16}
                           className={i < Math.round(product.rating!) ? "text-amber-400" : "text-zinc-300"}
                           fill="currentColor"
                           aria-hidden="true"
                         />
                       ))}
                     </span>
-                    <span className="text-sm font-bold text-text-muted">{product.rating.toFixed(1)}</span>
                     {product.reviewCount !== undefined && (
-                      <span className="text-sm text-text-subtle">({product.reviewCount}×)</span>
+                      <span className="text-sm text-text-muted">
+                        <b className="font-bold text-text-base">{product.reviewCount}</b> {t("reviews")}
+                      </span>
                     )}
                   </div>
                 )}
 
-                {/* Cena — velká + přeškrtnutá původní na jednom řádku (jen 2 věci) */}
-                <div className="mt-4 flex items-end gap-3 flex-wrap">
-                  <span className="text-4xl sm:text-[2.75rem] font-extrabold text-primary-ink leading-none">
-                    {currencyMounted ? formatPrice(totalPrice, currency) : <span className="opacity-0">—</span>}
-                  </span>
-                  {currencyMounted && hasSale && (
-                    <span className="text-xl font-medium text-text-subtle line-through leading-none pb-1">
-                      {formatPrice(originalTotalPrice, currency)}
-                    </span>
+                {/* Cena — zlevněná v obdélníkovém rámečku, přeškrtnutá původní, Včetně DPH */}
+                <div className="mt-4 flex items-center gap-3 flex-wrap">
+                  {!currencyMounted ? (
+                    <span className="text-3xl sm:text-4xl font-extrabold opacity-0">—</span>
+                  ) : hasSale ? (
+                    <>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-white bg-rose-600 rounded-md px-3 py-1.5 leading-none">
+                        {formatPrice(totalPrice, currency)}
+                      </span>
+                      <span className="text-xl font-medium text-text-subtle line-through leading-none">
+                        {formatPrice(originalTotalPrice, currency)}
+                      </span>
+                      <span className="text-sm text-text-subtle">{t("inclVat")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl sm:text-4xl font-extrabold text-primary-ink leading-none">
+                        {formatPrice(totalPrice, currency)}
+                      </span>
+                      <span className="text-sm text-text-subtle">{t("inclVat")}</span>
+                    </>
                   )}
                 </div>
 
-                {/* Chipy — „ušetříš" a sklad, každý jako samostatná pilulka */}
-                <div className="mt-3 flex items-center gap-2.5 flex-wrap">
-                  {currencyMounted && hasSale && savings > 0 && (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1.5">
-                      <Tag size={13} aria-hidden="true" />
-                      {t("youSave", { amount: formatPrice(savings, currency), percent: discountPercent ?? 0 })}
-                    </span>
-                  )}
+                {/* Sklad — obdélníkový rámeček bez tečky */}
+                <div className="mt-3">
                   <StockBadge available={availableQty} anyInStock={anyInStock} />
                 </div>
 
@@ -1071,7 +1080,22 @@ export default function ProduktClient({
                 );
               })}
 
-              {/* ── Cart button + trust bar v jednom obdélníku ── */}
+              {/* ── Náhled popisku + „Číst dále" (plný text ve výsuvném panelu) ── */}
+              <div className="border-t border-border pt-4">
+                <p className="text-text-muted text-sm leading-relaxed">
+                  <span className="line-clamp-2">{descriptionText}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setDescOpen(true)}
+                  className="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold text-primary-ink hover:gap-1.5 transition-all"
+                >
+                  {t("readMore")}
+                  <ChevronRight size={14} aria-hidden="true" />
+                </button>
+              </div>
+
+              {/* ── Cart button v obdélníku ── */}
               <div className="rounded-2xl border border-border bg-secondary overflow-hidden">
 
                 {/* Tlačítko košíku */}
@@ -1156,27 +1180,18 @@ export default function ProduktClient({
                   )}
                 </div>
 
-                {/* Trust bar */}
-                <div className="border-t border-border grid grid-cols-3">
-                  {[
-                    { icon: Package,     label: t("trustShipping"), sub: t("trustShippingSub") },
-                    { icon: RefreshCw,   label: t("trustReturns"),  sub: t("trustReturnsSub")  },
-                    { icon: ShieldCheck, label: t("trustWarranty"), sub: t("trustWarrantySub") },
-                  ].map((item, i) => (
-                    <div key={item.label} className={`flex flex-col items-center justify-center gap-1.5 py-4 px-2 ${i < 2 ? "border-r border-border" : ""}`}>
-                      <item.icon size={20} className="text-primary-ink" />
-                      <span className="text-text-base text-xs font-bold leading-none">{item.label}</span>
-                      <span className="text-text-subtle text-[11px] leading-none">{item.sub}</span>
-                    </div>
-                  ))}
+                {/* Trust — dva řádky: odeslání do 24 h + záruka vrácení peněz */}
+                <div className="border-t border-border divide-y divide-border">
+                  <div className="flex items-center gap-2.5 px-4 py-3">
+                    <Truck size={18} className="text-primary-ink shrink-0" aria-hidden="true" />
+                    <span className="text-text-base text-sm font-semibold">{t("ship24")}</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 px-4 py-3">
+                    <RefreshCw size={18} className="text-primary-ink shrink-0" aria-hidden="true" />
+                    <span className="text-text-base text-sm font-semibold">{t("moneyBack14")}</span>
+                  </div>
                 </div>
 
-              </div>
-
-              {/* ── Description ── */}
-              <div className="pt-1 border-t border-border">
-                <p className="text-text-base font-semibold text-sm mb-2">{t("description")}</p>
-                <p className="text-text-muted text-sm leading-relaxed">{getProductDescription(product, locale)}</p>
               </div>
 
             </div>
@@ -1232,6 +1247,38 @@ export default function ProduktClient({
           )}
 
         </div>
+
+        {/* ── Výsuvný panel s plným popisem ── */}
+        {descOpen && (
+          <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={t("descTitle")}>
+            <button
+              type="button"
+              aria-label={t("close")}
+              onClick={() => setDescOpen(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              style={{ animation: "drawerFade 0.2s ease-out" }}
+            />
+            <div
+              className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col"
+              style={{ animation: "drawerIn 0.25s ease-out" }}
+            >
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border shrink-0">
+                <h2 className="text-lg font-extrabold text-text-base uppercase tracking-wide">{t("descTitle")}</h2>
+                <button
+                  type="button"
+                  onClick={() => setDescOpen(false)}
+                  aria-label={t("close")}
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:bg-surface hover:text-text-base transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 py-5">
+                <p className="text-text-muted text-sm leading-relaxed whitespace-pre-line">{descriptionText}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </>
   );
