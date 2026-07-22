@@ -17,6 +17,7 @@
 
 import { randomBytes } from "crypto";
 import { getRedis } from "./redis";
+import { orderIdToVariableSymbol } from "./qrPlatba";
 
 export type OrderStatus = "nova" | "zabalena" | "odeslana" | "na_ceste" | "dorucena" | "zrusena";
 export type PaymentMethod = "karta" | "dobirka" | "prevod";
@@ -197,11 +198,37 @@ export async function listOrders(limit: number = 50, offset: number = 0): Promis
   return { orders, total };
 }
 
+/** Ověří, že zadané číslo objednávky patří nějaké SKUTEČNÉ objednávce.
+ *  Číslo, které zákazník zná z potvrzení a e-mailů, je variabilní symbol
+ *  (viz orderIdToVariableSymbol) — porovnáváme proti němu, aby přes formulář
+ *  na /reklamace šlo vrátit jen reálně vytvořenou objednávku, ne libovolný
+ *  vymyšlený řetězec. */
+export async function orderNumberExists(orderNumber: string): Promise<boolean> {
+  const target = orderIdToVariableSymbol(orderNumber);
+  if (target === "0") return false; // žádné číslice → nic k porovnání
+  const redis = getRedis();
+  const ids = await redis.zrange<string[]>("orders:index", 0, -1);
+  if (!ids || ids.length === 0) return false;
+  return ids.some((id) => orderIdToVariableSymbol(id) === target);
+}
+
 export async function getOrder(id: string): Promise<Order | null> {
   const redis = getRedis();
   const raw = await redis.get<string | Order>(`orders:data:${id}`);
   if (!raw) return null;
   return typeof raw === "string" ? (JSON.parse(raw) as Order) : raw;
+}
+
+/** Najde objednávku podle čísla, které zná zákazník (variabilní symbol).
+ *  Používá admin vrácení, aby k reklamaci ukázal položky a částku k vrácení. */
+export async function getOrderByNumber(orderNumber: string): Promise<Order | null> {
+  const target = orderIdToVariableSymbol(orderNumber);
+  if (target === "0") return null;
+  const redis = getRedis();
+  const ids = await redis.zrange<string[]>("orders:index", 0, -1);
+  if (!ids || ids.length === 0) return null;
+  const match = ids.find((id) => orderIdToVariableSymbol(id) === target);
+  return match ? getOrder(match) : null;
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {

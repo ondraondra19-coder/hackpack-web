@@ -3,12 +3,16 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { getPostBySlug, parseBlogContent, splitBold } from "@/lib/blog";
+import { isMagazineEnabled } from "@/lib/featureFlags";
 
 // Obsah spravuje admin a může se změnit kdykoliv — žádné statické
 // generování/cache, ať se úpravy projeví hned.
 export const dynamic = "force-dynamic";
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  // Magazín je dočasně skrytý (viz isMagazineEnabled) — článek se tváří jako 404.
+  if (!isMagazineEnabled()) notFound();
+
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();

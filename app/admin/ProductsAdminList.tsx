@@ -9,6 +9,7 @@ import {
   type Product,
   type PriceValue,
 } from "@/lib/products";
+import { formatPrice } from "@/lib/currency";
 
 // Sjednotí PriceValue (může to být holé číslo NEBO objekt {CZK,EUR,USD})
 // do plného objektu, ať se s tím v editoru pracuje jednotně.
@@ -97,6 +98,11 @@ export default function ProductsAdminList({ products, stock, discounts, initialQ
   const [savingAll, setSavingAll] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(initialQuery ?? "");
+  // Rozbalené sety — u kterých slugů je vidět rozpad na komponenty.
+  const [expandedSets, setExpandedSets] = useState<Record<string, boolean>>({});
+
+  const toggleSet = (slug: string) =>
+    setExpandedSets((prev) => ({ ...prev, [slug]: !prev[slug] }));
 
   const changedStockKeys = Object.keys(currentStock).filter((k) => currentStock[k] !== savedStock[k]);
   const changedPriceKeys = Object.keys(currentPrices).filter((k) => !priceEquals(currentPrices[k], savedPrices[k]));
@@ -110,15 +116,46 @@ export default function ProductsAdminList({ products, stock, discounts, initialQ
     }));
   };
 
-  const handlePriceChange = (key: string, currency: "CZK" | "EUR" | "USD", value: number) => {
-    setCurrentPrices((prev) => ({
-      ...prev,
-      [key]: { ...prev[key], [currency]: Math.max(0, value) },
-    }));
+  // ── Modal pro ceny ve všech měnách ──────────────────────────────────────
+  // Katalog má u většiny produktů jen CZK. Kliknutím na cenu se otevře okno,
+  // kde jde doplnit EUR/USD i zlevněnou cenu. Modal edituje jen svůj DRAFT;
+  // teprve „Hotovo" ho zapíše do rozpracovaných změn (uloží se přes spodní lištu).
+  const [priceModal, setPriceModal] = useState<{ key: string; label: string } | null>(null);
+  const [draft, setDraft] = useState<{ CZK: string; EUR: string; USD: string; sale: string }>({
+    CZK: "",
+    EUR: "",
+    USD: "",
+    sale: "",
+  });
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const openPriceModal = (key: string, label: string) => {
+    const p = currentPrices[key] ?? { CZK: 0 };
+    setDraft({
+      CZK: p.CZK ? String(p.CZK) : "",
+      EUR: p.EUR !== undefined ? String(p.EUR) : "",
+      USD: p.USD !== undefined ? String(p.USD) : "",
+      sale: currentSale[key] ? String(currentSale[key]) : "",
+    });
+    setModalError(null);
+    setPriceModal({ key, label });
   };
 
-  const handleSaleChange = (key: string, value: number) => {
-    setCurrentSale((prev) => ({ ...prev, [key]: Math.max(0, value) }));
+  const applyPriceModal = () => {
+    if (!priceModal) return;
+    const czk = parseFloat(draft.CZK) || 0;
+    if (czk <= 0) {
+      setModalError("Cena v CZK musí být kladné číslo.");
+      return;
+    }
+    const eur = draft.EUR.trim() === "" ? undefined : Math.max(0, parseFloat(draft.EUR) || 0);
+    const usd = draft.USD.trim() === "" ? undefined : Math.max(0, parseFloat(draft.USD) || 0);
+    const priceObj: { CZK: number; EUR?: number; USD?: number } = { CZK: czk };
+    if (eur !== undefined) priceObj.EUR = eur;
+    if (usd !== undefined) priceObj.USD = usd;
+    setCurrentPrices((prev) => ({ ...prev, [priceModal.key]: priceObj }));
+    setCurrentSale((prev) => ({ ...prev, [priceModal.key]: Math.max(0, parseFloat(draft.sale) || 0) }));
+    setPriceModal(null);
   };
 
   // Uloží VŠECHNY změněné varianty i ceny napříč všemi produkty najednou.
@@ -262,73 +299,146 @@ export default function ProductsAdminList({ products, stock, discounts, initialQ
     );
   };
 
-  const renderPriceControls = (priceKey: string) => {
+  // Buňka ceny v tabulce — jen souhrn (CZK + které měny jsou nastavené + sleva).
+  // Kliknutím se otevře modal s poli pro všechny měny.
+  const renderPriceCell = (priceKey: string, label: string) => {
     const current = currentPrices[priceKey] ?? { CZK: 0 };
     const saved = savedPrices[priceKey] ?? { CZK: 0 };
-    const hasChanged = !priceEquals(current, saved);
+    const hasChanged = !priceEquals(current, saved) || (currentSale[priceKey] ?? 0) !== (savedSale[priceKey] ?? 0);
 
-    const fields: { code: "CZK" | "EUR" | "USD"; symbol: string }[] = [
-      { code: "CZK", symbol: "Kč" },
-      { code: "EUR", symbol: "€" },
-      { code: "USD", symbol: "$" },
-    ];
-
-    // Zlevněná cena (CZK) + dopočítané procento pro tenhle klíč.
-    const baseCZK = current.CZK ?? 0;
     const saleCZK = currentSale[priceKey] ?? 0;
-    const saleChanged = (currentSale[priceKey] ?? 0) !== (savedSale[priceKey] ?? 0);
-    const salePercent = Math.round(percentFromSale(baseCZK, saleCZK));
+    const salePercent = Math.round(percentFromSale(current.CZK ?? 0, saleCZK));
     const saleActive = salePercent >= 1;
 
-    return (
-      <div className="flex items-center gap-1.5 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
-        {fields.map(({ code, symbol }) => {
-          // EUR/USD nemusí být u produktu vyplněné vůbec — pak pole nezobrazujeme,
-          // ať editor nenutí zadávat měny, které produkt v katalogu nemá.
-          if (code !== "CZK" && current[code] === undefined && saved[code] === undefined) return null;
-          return (
-            <div
-              key={code}
-              className={`flex items-center border rounded-lg px-1.5 py-0.5 transition-colors ${
-                hasChanged ? "bg-zinc-200 border-zinc-400" : "bg-[#f1f1f1] border-[#e5e7eb]"
-              }`}
-            >
-              <input
-                type="number"
-                step="0.01"
-                value={current[code] ?? 0}
-                onChange={(e) => handlePriceChange(priceKey, code, parseFloat(e.target.value) || 0)}
-                className="w-12 bg-transparent text-right text-xs font-bold font-mono focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-[10px] font-mono text-zinc-400 ml-0.5">{symbol}</span>
-            </div>
-          );
-        })}
+    const extras = [
+      current.EUR !== undefined ? `€ ${current.EUR}` : null,
+      current.USD !== undefined ? `$ ${current.USD}` : null,
+    ].filter(Boolean);
 
-        {/* Zlevněná cena — admin zadá cílovou CZK cenu, procento se dopočítá
-            a při uložení se aplikuje na EUR/USD. Prázdné / 0 = bez slevy. */}
-        <div className="flex items-center gap-1 pl-1.5 ml-0.5 border-l border-[#e5e7eb]">
-          <span className="text-[9px] font-mono uppercase tracking-wider text-rose-400">Sleva</span>
-          <div
-            className={`flex items-center border rounded-lg px-1.5 py-0.5 transition-colors ${
-              saleChanged ? "bg-rose-100 border-rose-300" : saleActive ? "bg-rose-50 border-rose-200" : "bg-[#f1f1f1] border-[#e5e7eb]"
-            }`}
-          >
-            <input
-              type="number"
-              step="1"
-              min={0}
-              placeholder="—"
-              value={saleCZK || ""}
-              onChange={(e) => handleSaleChange(priceKey, parseFloat(e.target.value) || 0)}
-              className="w-12 bg-transparent text-right text-xs font-bold font-mono text-rose-700 placeholder-zinc-300 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <span className="text-[10px] font-mono text-rose-300 ml-0.5">Kč</span>
-          </div>
-          <span className={`text-[10px] font-bold font-mono w-10 text-left ${saleActive ? "text-rose-600" : "text-zinc-300"}`}>
-            {saleActive ? `−${salePercent} %` : "—"}
+    return (
+      <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          onClick={() => openPriceModal(priceKey, label)}
+          title="Upravit ceny ve všech měnách"
+          className={`flex flex-col items-end gap-0.5 rounded-lg px-2.5 py-1.5 border transition-colors ${
+            hasChanged ? "bg-zinc-200 border-zinc-400" : "border-transparent hover:bg-zinc-100"
+          }`}
+        >
+          <span className="flex items-center gap-1.5">
+            <span className="text-xs font-bold font-mono text-[#0f0f10]">{formatPrice(current.CZK ?? 0)}</span>
+            {saleActive && <span className="text-[10px] font-bold font-mono text-rose-600">−{salePercent} %</span>}
+            {hasChanged && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />}
           </span>
+          <span className="text-[10px] font-mono text-zinc-400">
+            {extras.length > 0 ? extras.join(" · ") : "jen CZK — klikni pro víc měn"}
+          </span>
+        </button>
+      </div>
+    );
+  };
+
+  // Rozpad setu na komponenty + ekonomika balíčku. Všechno se počítá z živých
+  // (editovaných) cen a skladu, takže se panel přepočítá hned, jak admin něco
+  // změní v jiném řádku. Vše v CZK — admin edituje primárně koruny.
+  const renderBundleBreakdown = (product: Product) => {
+    const items = (product.bundle ?? []).map((part) => {
+      const comp = getProductBySlug(part.slug);
+      const unit = currentPrices[part.slug]?.CZK ?? 0;
+      const compStock = currentStock[`${part.slug}|-|-`] ?? 0;
+      const perSet = Math.max(1, Math.floor(part.quantity));
+      return {
+        part,
+        comp,
+        unit,
+        lineTotal: unit * part.quantity,
+        compStock,
+        setsFromThis: Math.floor(compStock / perSet),
+      };
+    });
+
+    const sumOfParts = items.reduce((s, i) => s + i.lineTotal, 0);
+    const bundlePrice = currentPrices[product.slug]?.CZK ?? 0;
+    const savings = sumOfParts - bundlePrice;
+    const savingsPct = sumOfParts > 0 ? Math.round((savings / sumOfParts) * 100) : 0;
+    const setStock = items.length ? Math.min(...items.map((i) => i.setsFromThis)) : 0;
+
+    return (
+      <div className="rounded-xl border border-[#e5e7eb] bg-[#fcfbf9] p-4 space-y-3">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider font-bold text-zinc-400 font-mono">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Obsah setu · {items.length} {items.length === 1 ? "položka" : items.length >= 2 && items.length <= 4 ? "položky" : "položek"}
         </div>
+
+        <div className="divide-y divide-[#e5e7eb]/70">
+          {items.map(({ part, comp, unit, lineTotal, compStock, setsFromThis }) => {
+            const isBottleneck = setsFromThis === setStock;
+            return (
+              <div key={part.slug} className="flex items-center gap-3 py-2">
+                <div className="w-8 h-8 rounded-md bg-[#f1f1f3] border border-[#e5e7eb] overflow-hidden flex-shrink-0 relative">
+                  {comp && <Image src={comp.img} alt={comp.name} fill className="object-cover" unoptimized />}
+                </div>
+                <span className="text-[11px] font-bold font-mono text-zinc-500 w-8 flex-shrink-0">{part.quantity}×</span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-[#0f0f10] truncate">{comp?.name ?? part.slug}</div>
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery(part.slug)}
+                    className="text-[10px] font-mono text-zinc-400 hover:text-zinc-700 hover:underline truncate"
+                    title="Vyfiltrovat komponentu v seznamu"
+                  >
+                    {part.slug}
+                  </button>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-[11px] font-mono text-zinc-400">{formatPrice(unit)} / ks</div>
+                  <div className="text-xs font-bold font-mono text-[#0f0f10]">{formatPrice(lineTotal)}</div>
+                </div>
+                <div
+                  className={`text-right flex-shrink-0 w-24 ${isBottleneck ? "text-amber-700" : "text-zinc-400"}`}
+                  title={isBottleneck ? "Tahle komponenta limituje, kolik setů jde složit" : undefined}
+                >
+                  <div className="text-[11px] font-mono">{compStock} skladem</div>
+                  <div className="text-[10px] font-mono">
+                    = {setsFromThis} {setsFromThis === 1 ? "set" : "setů"}
+                    {isBottleneck && items.length > 1 && " ⚠"}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[#e5e7eb] pt-3 text-xs">
+          <div>
+            <span className="text-zinc-400 font-mono text-[10px] uppercase tracking-wider block">Po kusech</span>
+            <span className="font-bold font-mono text-zinc-500 line-through">{formatPrice(sumOfParts)}</span>
+          </div>
+          <div>
+            <span className="text-zinc-400 font-mono text-[10px] uppercase tracking-wider block">Cena setu</span>
+            <span className="font-bold font-mono text-[#0f0f10]">{formatPrice(bundlePrice)}</span>
+          </div>
+          <div>
+            <span className="text-zinc-400 font-mono text-[10px] uppercase tracking-wider block">Úspora</span>
+            <span className={`font-bold font-mono ${savings > 0 ? "text-emerald-600" : savings < 0 ? "text-rose-600" : "text-zinc-500"}`}>
+              {savings > 0 ? "−" : savings < 0 ? "+" : ""}
+              {formatPrice(Math.abs(savings))}
+              {sumOfParts > 0 && <span className="ml-1 text-[10px]">({savings >= 0 ? "−" : "+"}{Math.abs(savingsPct)} %)</span>}
+            </span>
+          </div>
+          <div className="ml-auto text-right">
+            <span className="text-zinc-400 font-mono text-[10px] uppercase tracking-wider block">Skladem</span>
+            <span className="font-bold font-mono text-[#0f0f10]">{setStock} {setStock === 1 ? "set" : "setů"}</span>
+          </div>
+        </div>
+
+        {savings < 0 && (
+          <div className="text-[11px] font-mono text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-1.5">
+            Pozor: set je dražší než součet komponent po kusech.
+          </div>
+        )}
       </div>
     );
   };
@@ -404,51 +514,180 @@ export default function ProductsAdminList({ products, stock, discounts, initialQ
                 // proto radši řekneme rovnou, že na tenhle produkt tabulka nestačí.
                 const hasVariants = getProductCombinations(product).length > 1;
 
+                const bundle = isBundle(product);
+                const expanded = bundle && expandedSets[product.slug];
+
                 return (
-                  <tr key={product.slug} className="group hover:bg-[#fcfbf9]/60 transition-colors">
-                    <td className="py-3 pl-2">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#f1f1f3] border border-[#e5e7eb] overflow-hidden flex-shrink-0 relative">
-                          <Image src={product.img} alt={product.name} fill className="object-cover" unoptimized />
+                  <React.Fragment key={product.slug}>
+                    <tr className="group hover:bg-[#fcfbf9]/60 transition-colors">
+                      <td className="py-3 pl-2">
+                        <div className="flex items-center space-x-3">
+                          {/* Rozklikávací šipka jen u setů; ostatní řádky dostanou
+                              stejně široký prázdný slot, ať jsou obrázky zarovnané. */}
+                          {bundle ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleSet(product.slug)}
+                              aria-label={expanded ? "Sbalit set" : "Rozbalit set"}
+                              className="w-4 h-4 flex-shrink-0 flex items-center justify-center text-zinc-400 hover:text-zinc-800 transition-colors"
+                            >
+                              <svg
+                                className={`w-3.5 h-3.5 transition-transform ${expanded ? "rotate-90" : ""}`}
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2.5}
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          ) : (
+                            <span className="w-4 flex-shrink-0" />
+                          )}
+                          <div className="w-10 h-10 rounded-lg bg-[#f1f1f3] border border-[#e5e7eb] overflow-hidden flex-shrink-0 relative">
+                            <Image src={product.img} alt={product.name} fill className="object-cover" unoptimized />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <h4 className="text-xs font-bold text-[#0f0f10] leading-tight truncate">
+                                {product.name}
+                              </h4>
+                              {bundle && (
+                                <span className="text-[8px] font-bold font-mono px-1 py-0.5 rounded bg-zinc-800 text-white uppercase tracking-wider flex-shrink-0">
+                                  Set
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] font-mono text-zinc-400 block mt-0.5 truncate">
+                              {product.slug}
+                            </span>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-bold text-[#0f0f10] leading-tight truncate">
-                            {product.name}
-                          </h4>
-                          <span className="text-[10px] font-mono text-zinc-400 block mt-0.5 truncate">
-                            {product.slug}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className="py-3">
-                      {hasVariants ? (
-                        <div className="text-right text-[10px] font-mono text-amber-700">
-                          produkt má varianty — uprav v kódu
-                        </div>
-                      ) : (
-                        renderPriceControls(product.slug)
-                      )}
-                    </td>
-
-                    <td className="py-3 pr-2">
-                      <div className="flex items-center justify-end gap-2">
-                        {!hasVariants && qty === 0 && (
-                          <span className="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 uppercase tracking-wider">
-                            Vyprodáno
-                          </span>
+                      <td className="py-3">
+                        {hasVariants ? (
+                          <div className="text-right text-[10px] font-mono text-amber-700">
+                            produkt má varianty — uprav v kódu
+                          </div>
+                        ) : (
+                          renderPriceCell(product.slug, product.name)
                         )}
-                        {!hasVariants && renderVariantControls(comboKey)}
-                      </div>
-                    </td>
-                  </tr>
+                      </td>
+
+                      <td className="py-3 pr-2">
+                        <div className="flex items-center justify-end gap-2">
+                          {!hasVariants && qty === 0 && (
+                            <span className="text-[9px] font-bold font-mono px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 uppercase tracking-wider">
+                              Vyprodáno
+                            </span>
+                          )}
+                          {!hasVariants && renderVariantControls(comboKey)}
+                        </div>
+                      </td>
+                    </tr>
+
+                    {expanded && (
+                      <tr className="bg-[#fcfbf9]/60">
+                        <td colSpan={3} className="px-2 pb-4 pt-0">
+                          {renderBundleBreakdown(product)}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 );
               })
             )}
           </tbody>
         </table>
       </div>
+
+      {/* ── Modal: ceny ve všech měnách ── */}
+      {priceModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setPriceModal(null)} />
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-[#e5e7eb] p-5">
+            <div className="mb-4">
+              <h3 className="text-sm font-bold text-[#0f0f10]">Ceny ve všech měnách</h3>
+              <p className="text-[11px] font-mono text-zinc-400 truncate">{priceModal.label}</p>
+            </div>
+
+            <div className="space-y-3">
+              {([
+                { code: "CZK" as const, symbol: "Kč", label: "Česká koruna", required: true },
+                { code: "EUR" as const, symbol: "€", label: "Euro", required: false },
+                { code: "USD" as const, symbol: "$", label: "Americký dolar", required: false },
+              ]).map(({ code, symbol, label, required }) => (
+                <label key={code} className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-zinc-600">
+                    {label} {required && <span className="text-rose-500">*</span>}
+                  </span>
+                  <span className="flex items-center border rounded-lg px-2 py-1 bg-[#f1f1f3] border-[#e5e7eb] focus-within:border-zinc-400 focus-within:bg-white transition-colors">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={draft[code]}
+                      onChange={(e) => setDraft((d) => ({ ...d, [code]: e.target.value }))}
+                      placeholder={required ? "0" : "—"}
+                      className="w-24 bg-transparent text-right text-sm font-bold font-mono focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-[11px] font-mono text-zinc-400 ml-1 w-4 text-center">{symbol}</span>
+                  </span>
+                </label>
+              ))}
+
+              {/* Zlevněná cena (CZK) — procento se dopočítá a při uložení aplikuje na EUR/USD */}
+              <div className="pt-3 mt-1 border-t border-[#e5e7eb]">
+                <label className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-rose-500">Zlevněná cena (CZK)</span>
+                  <span className="flex items-center border rounded-lg px-2 py-1 bg-rose-50 border-rose-200 focus-within:border-rose-300 transition-colors">
+                    <input
+                      type="number"
+                      step="1"
+                      min={0}
+                      value={draft.sale}
+                      onChange={(e) => setDraft((d) => ({ ...d, sale: e.target.value }))}
+                      placeholder="—"
+                      className="w-24 bg-transparent text-right text-sm font-bold font-mono text-rose-700 placeholder-zinc-300 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <span className="text-[11px] font-mono text-rose-300 ml-1 w-4 text-center">Kč</span>
+                  </span>
+                </label>
+                {(() => {
+                  const base = parseFloat(draft.CZK) || 0;
+                  const sale = parseFloat(draft.sale) || 0;
+                  const pct = Math.round(percentFromSale(base, sale));
+                  return (
+                    <p className={`text-[10px] font-mono text-right mt-1 ${pct >= 1 ? "text-rose-600" : "text-zinc-300"}`}>
+                      {pct >= 1 ? `Sleva −${pct} % (EUR/USD se dopočítají)` : "Bez slevy"}
+                    </p>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {modalError && <p className="text-[11px] text-rose-600 mt-3">{modalError}</p>}
+
+            <div className="flex justify-end gap-2 mt-5">
+              <button
+                type="button"
+                onClick={() => setPriceModal(null)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-500 hover:bg-zinc-100 transition-colors"
+              >
+                Zrušit
+              </button>
+              <button
+                type="button"
+                onClick={applyPriceModal}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#0f0f10] text-white hover:bg-zinc-800 transition-colors"
+              >
+                Hotovo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

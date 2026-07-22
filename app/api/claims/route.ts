@@ -7,6 +7,7 @@
 // /api/messages a /api/newsletter.
 import { NextResponse } from "next/server";
 import { addClaim, checkAndSetClaimCooldown } from "@/lib/claims";
+import { orderNumberExists } from "@/lib/orders";
 import { sendClaimAdminEmail, sendClaimConfirmationEmail } from "@/lib/email";
 import { getClientIp } from "@/lib/clientIp";
 import { isValidEmail } from "@/lib/emailValidation";
@@ -22,8 +23,12 @@ export type ClaimsErrorCode =
   | "invalid_name"
   | "invalid_email"
   | "invalid_phone"
+  | "invalid_phone_format"
   | "invalid_order"
+  | "invalid_order_format"
+  | "order_not_found"
   | "invalid_account"
+  | "invalid_account_format"
   | "invalid_reason"
   | "cooldown"
   | "failed";
@@ -34,6 +39,28 @@ function fail(code: ClaimsErrorCode, error: string, status: number, extra?: Reco
 
 function isFilled(value: unknown, max: number): value is string {
   return typeof value === "string" && value.trim().length > 0 && value.trim().length <= max;
+}
+
+// Realistický telefon: povolíme +, mezery, závorky, pomlčky a lomítko, ale
+// musí zůstat 9–15 číslic. Zabrání to nesmyslům jako "vkjnvwoi".
+function isValidPhone(value: string): boolean {
+  const v = value.trim();
+  if (!/^\+?[0-9 ()/-]+$/.test(v)) return false;
+  const digits = v.replace(/\D/g, "");
+  return digits.length >= 9 && digits.length <= 15;
+}
+
+// Číslo objednávky = variabilní symbol z potvrzení → jen číslice (4–12).
+function isValidOrderFormat(value: string): boolean {
+  return /^\d{4,12}$/.test(value.replace(/\s+/g, ""));
+}
+
+// Číslo účtu: buď český formát [předčíslí-]číslo/kódbanky, nebo IBAN.
+function isValidAccount(value: string): boolean {
+  const compact = value.replace(/\s+/g, "");
+  const iban = compact.toUpperCase();
+  if (/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) return true;
+  return /^(\d{1,6}-)?\d{2,10}\/\d{4}$/.test(compact);
 }
 
 export async function POST(req: Request) {
@@ -53,12 +80,26 @@ export async function POST(req: Request) {
     if (!isFilled(telefon, MAX_PHONE_LENGTH)) {
       return fail("invalid_phone", "Neplatné telefonní číslo.", 400);
     }
+    if (!isValidPhone(telefon)) {
+      return fail("invalid_phone_format", "Telefonní číslo nemá platný formát.", 400);
+    }
     if (!isFilled(cisloObjednavky, MAX_ORDER_LENGTH)) {
       return fail("invalid_order", "Neplatné číslo objednávky.", 400);
+    }
+    if (!isValidOrderFormat(cisloObjednavky)) {
+      return fail("invalid_order_format", "Číslo objednávky nemá platný formát.", 400);
+    }
+    // Vracet lze jen SKUTEČNĚ vytvořenou objednávku — číslo se ověří proti
+    // uloženým objednávkám (variabilní symbol z potvrzení), ne jen na formát.
+    if (!(await orderNumberExists(cisloObjednavky))) {
+      return fail("order_not_found", "Objednávka s tímto číslem neexistuje.", 400);
     }
     // Číslo účtu je povinné — bez něj nemáme kam vrátit peníze.
     if (!isFilled(cisloUctu, MAX_ACCOUNT_LENGTH)) {
       return fail("invalid_account", "Neplatné číslo účtu.", 400);
+    }
+    if (!isValidAccount(cisloUctu)) {
+      return fail("invalid_account_format", "Číslo účtu nemá platný formát.", 400);
     }
     // Důvod je NEPOVINNÝ (u odstoupení do 14 dnů ho zákon zakazuje vyžadovat) —
     // validujeme jen délku, a jen když ho zákazník vyplní.
@@ -67,11 +108,15 @@ export async function POST(req: Request) {
     }
 
     // ── Anti-spam: 1 žádost / IP adresa / 5 minut ──────────────────────────
-    const ip = getClientIp(req);
-    const { allowed, ttlSeconds } = await checkAndSetClaimCooldown(ip);
-    if (!allowed) {
-      const minutes = Math.max(1, Math.ceil(ttlSeconds / 60));
-      return fail("cooldown", `Další žádost můžete odeslat za ${minutes} min.`, 429, { minutes });
+    // V dev prostředí limit přeskočíme, ať jde formulář testovat opakovaně
+    // (jinak by po prvním odeslání 5 minut vracel jen chybu cooldown).
+    if (process.env.NODE_ENV === "production") {
+      const ip = getClientIp(req);
+      const { allowed, ttlSeconds } = await checkAndSetClaimCooldown(ip);
+      if (!allowed) {
+        const minutes = Math.max(1, Math.ceil(ttlSeconds / 60));
+        return fail("cooldown", `Další žádost můžete odeslat za ${minutes} min.`, 429, { minutes });
+      }
     }
 
     const claim = await addClaim({
@@ -89,8 +134,9 @@ export async function POST(req: Request) {
     await Promise.all([sendClaimConfirmationEmail(claim), sendClaimAdminEmail(claim)]);
 
     // Číslo případu vrací SERVER — klient si ho nesmí vymýšlet (dřív ho
-    // generoval Math.random(), takže se s ničím uloženým neshodovalo).
-    return NextResponse.json({ ok: true, ticket: claim.ticket });
+    // generoval Math.random(), takže se s ničím uloženým neshodovalo). `date`
+    // slouží klientovi k výpočtu lhůty na odeslání zboží (14 dní od oznámení).
+    return NextResponse.json({ ok: true, ticket: claim.ticket, date: claim.date });
   } catch (err) {
     console.error("Claims POST error:", err);
     return fail("failed", "Odeslání se nezdařilo.", 500);

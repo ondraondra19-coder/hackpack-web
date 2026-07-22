@@ -10,7 +10,7 @@ import type { CurrentSession } from '@/lib/session';
 import type { Permission } from '@/lib/permissions';
 import type { Product } from '@/lib/products';
 import type { Message } from '@/lib/messages';
-import type { Claim } from '@/lib/claims';
+import type { ClaimWithOrder } from '@/lib/claims';
 import type { Discount } from '@/lib/discounts';
 import ReviewsAdminList from './recenze/ReviewsAdminList';
 import AccountsAdminPanel from './AccountsAdminPanel';
@@ -64,7 +64,7 @@ export default function AdminDashboard({
   const [accounts, setAccounts] = useState(initialAccounts);
   const [discounts, setDiscounts] = useState(initialDiscounts);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [claims, setClaims] = useState<Claim[]>([]);
+  const [claims, setClaims] = useState<ClaimWithOrder[]>([]);
   const router = useRouter();
 
   const hasPermission = (perm: Permission) => session.isMain || session.permissions.includes(perm);
@@ -232,14 +232,14 @@ export default function AdminDashboard({
   return (
     <div className="flex h-screen bg-[#f7f6f4] text-[#0f0f10] font-sans antialiased overflow-hidden selection:bg-primary/10 selection:text-primary-ink">
 
-      {/* Overlay pro zavření sidebaru na mobilu kliknutím mimo — stejný vzor jako profil dropdown níže */}
+      {/* Overlay pro zavření výsuvné lišty kliknutím mimo — na všech velikostech */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 z-20 bg-black/40 lg:hidden" onClick={() => setIsSidebarOpen(false)} />
+        <div className="fixed inset-0 z-20 bg-black/40" onClick={() => setIsSidebarOpen(false)} />
       )}
 
-      {/* 1. LEVÁ LIŠTA (SIDEBAR) — na mobilu výsuvný panel, na desktopu napevno vlevo */}
+      {/* 1. LEVÁ LIŠTA (SIDEBAR) — výsuvný panel na všech velikostech (drawer) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-[#1c1c1c] text-[#fafafa] flex flex-col justify-between shadow-xl transition-transform duration-200 lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-[#1c1c1c] text-[#fafafa] flex flex-col justify-between shadow-xl transition-transform duration-200 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -248,7 +248,7 @@ export default function AdminDashboard({
             <div className="flex items-center gap-2">
               <Image
                 src="/images/main/logo-white.png"
-                alt="SLINGR"
+                alt="Slingr"
                 width={500}
                 height={150}
                 className="h-12 w-auto object-contain"
@@ -259,7 +259,7 @@ export default function AdminDashboard({
               </span>
             </div>
             <button
-              className="lg:hidden p-2 -mr-2 text-zinc-400 hover:text-white transition-colors"
+              className="p-2 -mr-2 text-zinc-400 hover:text-white transition-colors"
               onClick={() => setIsSidebarOpen(false)}
               aria-label="Zavřít menu"
             >
@@ -350,7 +350,7 @@ export default function AdminDashboard({
         <header className="h-16 bg-white border-b border-[#e5e7eb] flex items-center justify-between gap-3 px-4 sm:px-8 z-10 shadow-sm">
 
           <button
-            className="lg:hidden p-2 -ml-2 text-zinc-500 hover:text-[#0f0f10] transition-colors shrink-0"
+            className="p-2 -ml-2 text-zinc-500 hover:text-[#0f0f10] transition-colors shrink-0"
             onClick={() => setIsSidebarOpen(true)}
             aria-label="Otevřít menu"
           >
@@ -401,7 +401,7 @@ export default function AdminDashboard({
 
         {/* 3. HLAVNÍ PLOCHA (OBSAH PODLE SEKCE) */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#f7f6f4]">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
 
             <div className="mb-6">
               <h1 className="text-xl font-bold tracking-tight text-[#0f0f10] capitalize">
@@ -409,9 +409,7 @@ export default function AdminDashboard({
               </h1>
             </div>
 
-            <div className="bg-white border border-[#e5e7eb] rounded-2xl p-6 min-h-[400px] flex flex-col justify-between shadow-sm relative overflow-hidden">
-
-              <div className={activeTab === 'reviews' || activeTab === 'accounts' || activeTab === 'discounts' || activeTab === 'messages' || activeTab === 'claims' || activeTab === 'campaigns' ? 'w-full' : undefined}>
+            <div className="w-full">
                 {activeTab === 'dashboard' && (
                   <DashboardHome
                     products={products}
@@ -437,7 +435,7 @@ export default function AdminDashboard({
                 {activeTab === 'reviews' && (
                   <div className="space-y-4">
                     <p className="text-zinc-500 text-xs leading-relaxed max-w-md">
-                      Výpis hodnocení, která lidé zanechali u tvých gadgetů. Nevhodné nebo spamové komentáře odsud smažeš.
+                      Výpis hodnocení, která lidé zanechali u tvých produktů. Nevhodné nebo spamové komentáře odsud smažeš.
                     </p>
                     <ReviewsAdminList
                       reviews={reviews}
@@ -458,8 +456,9 @@ export default function AdminDashboard({
                 {activeTab === 'claims' && hasPermission('claims') && (
                   <div className="space-y-4">
                     <p className="text-zinc-500 text-xs leading-relaxed max-w-lg">
-                      Reklamace, vrácení a výměny odeslané přes formulář na /reklamace. Číslo případu
-                      dostal zákazník e-mailem a odkazuje se na něj — proto ho měň jen výjimečně.
+                      Vrácení zboží (odstoupení do 14 dnů) z formuláře na /reklamace. Nahoře vidíš, co
+                      má teprve dorazit a co už přišlo k vrácení peněz. U každého případu je napárovaná
+                      objednávka s položkami a částkou. Číslo případu dostal zákazník e-mailem, proto ho neměň.
                     </p>
                     <ClaimsAdminList claims={claims} onChange={setClaims} />
                   </div>
@@ -505,15 +504,6 @@ export default function AdminDashboard({
                   </div>
                 )}
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[#e5e7eb] flex items-center justify-between text-[11px] text-zinc-400 font-mono">
-                <span>ACTIVE_ROUTE</span>
-                <span className="text-primary-ink bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
-                  /admin/{activeTab}
-                </span>
-              </div>
-
-            </div>
           </div>
         </main>
       </div>

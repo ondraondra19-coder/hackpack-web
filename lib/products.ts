@@ -107,12 +107,18 @@ export type Product = {
 export const products: Product[] = [
   {
     slug: "prak-x1",
-    name: "Prak SLINGR X1",
+    name: "Prak Slingr X1",
+    name_en: "Slingr X1 Slingshot",
+    name_sk: "Prak Slingr X1",
     price: { CZK: 499 },
     categories: ["zbrane"],
     img: "/images/products/prak-x1/main.png",
     description:
       "Lehký a odolný prak, který zvládne celé odpoledne přestřelek. Pohodlný úchop padne do dětské i dospělácké ruky a pružná guma pošle měkkou munici pěkně daleko. Střílí vodní balónky i měkké míčky — vyber si munici podle nálady a vyraz do akce.",
+    description_en:
+      "A light, durable slingshot that can handle a whole afternoon of skirmishes. The comfortable grip fits kids' and adults' hands alike, and the elastic band sends soft ammo nice and far. It fires water balloons and soft balls — pick your ammo by mood and head into action.",
+    description_sk:
+      "Ľahký a odolný prak, ktorý zvládne celé popoludnie prestreliek. Pohodlný úchop padne do detskej aj dospeláckej ruky a pružná guma pošle mäkkú muníciu pekne ďaleko. Strieľa vodné balóny aj mäkké loptičky — vyber si muníciu podľa nálady a vyraz do akcie.",
     inStock: true,
     stock: 0,
     tags: ["prak", "zbraň", "slingr", "střílení", "venku", "hračka", "děti", "vodní balónky", "míčky"],
@@ -120,12 +126,18 @@ export const products: Product[] = [
   },
   {
     slug: "micky-do-praku",
-    name: "Míčky do praku SLINGR",
+    name: "Míčky do praku Slingr",
+    name_en: "Slingr Slingshot Balls",
+    name_sk: "Loptičky do praku Slingr",
     price: { CZK: 149 },
     categories: ["munice"],
     img: "/images/products/micky/main.png",
     description:
-      "Balení náhradních míčků do praku SLINGR. Měkké, lehké a barevné — dost velké na přesný zásah, ale šetrné, takže nikoho nebolí. Ideální doplněk, ať ti uprostřed bitvy nedojde munice.",
+      "Balení náhradních míčků do praku Slingr. Měkké, lehké a barevné — dost velké na přesný zásah, ale šetrné, takže nikoho nebolí. Ideální doplněk, ať ti uprostřed bitvy nedojde munice.",
+    description_en:
+      "A pack of spare balls for the Slingr slingshot. Soft, light and colorful — big enough for an accurate hit, yet gentle so they don't hurt anyone. The perfect add-on so you don't run out of ammo mid-battle.",
+    description_sk:
+      "Balenie náhradných loptičiek do praku Slingr. Mäkké, ľahké a farebné — dosť veľké na presný zásah, ale šetrné, takže nikoho nebolia. Ideálny doplnok, aby ti uprostred bitky nedošla munícia.",
     inStock: true,
     stock: 0,
     tags: ["míčky", "munice", "náboje", "prak", "slingr", "náhradní", "kuličky"],
@@ -133,12 +145,18 @@ export const products: Product[] = [
   },
   {
     slug: "vodni-balonky",
-    name: "Vodní balónky SLINGR",
+    name: "Vodní balónky Slingr",
+    name_en: "Slingr Water Balloons",
+    name_sk: "Vodné balóny Slingr",
     price: { CZK: 99 },
     categories: ["munice"],
     img: "/images/products/vodni-balonky/main.png",
     description:
       "Sada vodních balónků pro horké letní bitvy. Rychle se plní, pořádně stříkají a při zásahu neškodně prasknou. Nabij prak, zamiř na kámoše a rozjeď vodní válku na zahradě.",
+    description_en:
+      "A set of water balloons for hot summer battles. They fill quickly, splash hard and burst harmlessly on impact. Load your slingshot, aim at your buddy and start a water war in the garden.",
+    description_sk:
+      "Sada vodných balónov pre horúce letné bitky. Rýchlo sa plnia, poriadne striekajú a pri zásahu neškodne prasknú. Nabi prak, zamier na kamoša a rozbehni vodnú vojnu na záhrade.",
     inStock: true,
     stock: 0,
     tags: ["vodní balónky", "balónky", "munice", "voda", "léto", "prak", "slingr", "zahrada"],
@@ -146,12 +164,18 @@ export const products: Product[] = [
   },
   {
     slug: "terc",
-    name: "Terč SLINGR",
+    name: "Terč Slingr",
+    name_en: "Slingr Target",
+    name_sk: "Terč Slingr",
     price: { CZK: 249 },
     categories: ["prislusenstvi"],
     img: "/images/products/terc/main.png",
     description:
       "Skládací terč pro trénink přesnosti i dlouhé souboje o nejvyšší skóre. Postav ho na dvorek, trefuj se do zón a zjisti, kdo má nejlepší mušku. Skvělý parťák k praku i pro sólo střelbu.",
+    description_en:
+      "A folding target for accuracy practice and long battles for the highest score. Set it up in the yard, hit the zones and find out who has the best aim. A great companion for the slingshot and for solo shooting too.",
+    description_sk:
+      "Skladací terč na tréning presnosti aj dlhé súboje o najvyššie skóre. Postav ho na dvor, trafuj sa do zón a zisti, kto má najlepšiu mušku. Skvelý parťák k praku aj na sólo streľbu.",
     inStock: true,
     stock: 0,
     tags: ["terč", "příslušenství", "trénink", "přesnost", "prak", "slingr", "cíl", "skóre"],
@@ -159,12 +183,18 @@ export const products: Product[] = [
   },
   {
     slug: "penove-plechovky",
-    name: "Pěnové plechovky SLINGR",
+    name: "Pěnové plechovky Slingr",
+    name_en: "Slingr Foam Cans",
+    name_sk: "Penové plechovky Slingr",
     price: { CZK: 349 },
     categories: ["prislusenstvi"],
     img: "/images/products/penove-plechovky/main.png",
     description:
       "Sada lehkých pěnových plechovek na sestřelení. Postav pyramidu, zamiř prakem a shoď je jednou ranou — a pak zase odznova. Měkká pěna nic nepoškrábe ani nerozbije, takže se dá střílet klidně na terase i v obýváku. Ideální na trénink mušky i na souboj o to, kdo srazí víc.",
+    description_en:
+      "A set of light foam cans to knock down. Build a pyramid, aim with your slingshot and topple them in one shot — then start over. The soft foam won't scratch or break anything, so you can shoot on the terrace or even in the living room. Ideal for aim practice and for a duel over who knocks down more.",
+    description_sk:
+      "Sada ľahkých penových plechoviek na zostrelenie. Postav pyramídu, zamier prakom a zhoď ich jednou ranou — a potom zase odznova. Mäkká pena nič nepoškriabe ani nerozbije, takže sa dá strieľať pokojne na terase aj v obývačke. Ideálne na tréning mušky aj na súboj o to, kto zrazí viac.",
     inStock: true,
     stock: 0,
     tags: ["plechovky", "pěnové", "sestřelení", "terč", "cíl", "příslušenství", "prak", "slingr", "trénink", "přesnost"],
@@ -180,12 +210,18 @@ export const products: Product[] = [
   // vyměnit za vlastní fotky v /public/images/products/<slug>/.
   {
     slug: "set-startovaci",
-    name: "Startovací set SLINGR",
+    name: "Startovací set Slingr",
+    name_en: "Slingr Starter Set",
+    name_sk: "Štartovací set Slingr",
     price: { CZK: 799 },
     categories: ["vyhodne-sety"],
-    img: "/images/products/prak-x1/main.png",
+    img: "/images/products/startovaci-set/main.png",
     description:
       "Všechno, co potřebuješ na první bitvu, v jednom balení. Prak, náhradní míčky a skládací terč — stačí vybalit a jde se střílet. Nejlevnější způsob, jak začít: dohromady ušetříš skoro stovku oproti nákupu po kusech.",
+    description_en:
+      "Everything you need for your first battle in one package. A slingshot, spare balls and a folding target — just unpack and start shooting. The cheapest way to get started: together you save almost a hundred crowns compared to buying separately.",
+    description_sk:
+      "Všetko, čo potrebuješ na prvú bitku, v jednom balení. Prak, náhradné loptičky a skladací terč — stačí vybaliť a ide sa strieľať. Najlacnejší spôsob, ako začať: dokopy ušetríš skoro stovku oproti nákupu po kusoch.",
     inStock: true,
     stock: 0,
     tags: ["set", "balíček", "výhodný", "startovací", "prak", "míčky", "terč", "dárek", "začátečník"],
@@ -199,11 +235,17 @@ export const products: Product[] = [
   {
     slug: "set-vodni-bitva",
     name: "Set Vodní bitva",
+    name_en: "Water Battle Set",
+    name_sk: "Set Vodná bitka",
     price: { CZK: 599 },
     categories: ["vyhodne-sety"],
-    img: "/images/products/vodni-balonky/main.png",
+    img: "/images/products/vodni-bitva-set/main.png",
     description:
       "Letní balíček na horké dny. Prak a dvojitá zásoba vodních balónků, ať ti munice nedojde uprostřed války na zahradě. Nabij, zamiř, střílej — a pak znovu, dokud nejste všichni mokří.",
+    description_en:
+      "A summer bundle for hot days. A slingshot and a double supply of water balloons so you don't run out of ammo mid-war in the garden. Load, aim, fire — and again, until everyone's soaked.",
+    description_sk:
+      "Letný balíček na horúce dni. Prak a dvojitá zásoba vodných balónov, aby ti munícia nedošla uprostred vojny na záhrade. Nabi, zamier, strieľaj — a potom znova, kým nie ste všetci mokrí.",
     inStock: true,
     stock: 0,
     tags: ["set", "balíček", "výhodný", "voda", "vodní balónky", "léto", "prak", "zahrada", "bitva"],
@@ -211,44 +253,6 @@ export const products: Product[] = [
     bundle: [
       { slug: "prak-x1", quantity: 1 },
       { slug: "vodni-balonky", quantity: 2 },
-    ],
-  },
-  {
-    slug: "set-duel",
-    name: "Set Duel pro dva",
-    price: { CZK: 1349 },
-    categories: ["vyhodne-sety"],
-    img: "/images/products/prak-x1/main.png",
-    description:
-      "Dva praky, dvojitá munice a jeden terč — souboj může začít. Ideální pro sourozence, kamarády nebo rodiče proti dítěti. Každý má svůj prak, takže se nikdo nemusí střídat a čekat.",
-    inStock: true,
-    stock: 0,
-    tags: ["set", "balíček", "výhodný", "duel", "dva hráči", "souboj", "prak", "míčky", "terč", "dárek"],
-    related: ["set-startovaci", "set-arzenal", "prak-x1"],
-    bundle: [
-      { slug: "prak-x1", quantity: 2 },
-      { slug: "micky-do-praku", quantity: 2 },
-      { slug: "terc", quantity: 1 },
-    ],
-  },
-  {
-    slug: "set-arzenal",
-    name: "Set Kompletní arzenál",
-    price: { CZK: 1149 },
-    categories: ["vyhodne-sety"],
-    img: "/images/products/terc/main.png",
-    description:
-      "Úplně všechno z naší nabídky v jednom balení. Prak, míčky, vodní balónky, terč i pěnové plechovky — na trénink mušky, na vodní válku i na souboj o nejvyšší skóre. Kdo chce mít doma kompletní výbavu, bere tenhle.",
-    inStock: true,
-    stock: 0,
-    tags: ["set", "balíček", "výhodný", "kompletní", "arzenál", "všechno", "prak", "munice", "terč", "plechovky", "dárek"],
-    related: ["set-duel", "set-startovaci", "penove-plechovky"],
-    bundle: [
-      { slug: "prak-x1", quantity: 1 },
-      { slug: "micky-do-praku", quantity: 1 },
-      { slug: "vodni-balonky", quantity: 1 },
-      { slug: "terc", quantity: 1 },
-      { slug: "penove-plechovky", quantity: 1 },
     ],
   },
 ];

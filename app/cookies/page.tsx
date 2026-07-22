@@ -77,7 +77,7 @@ export default function CookiesPage() {
 
   return (
     <>
-      <title>{`${COOKIES_TITLE[locale]} | SLINGR`}</title>
+      <title>{`${COOKIES_TITLE[locale]} | Slingr`}</title>
 
       <Header />
       <LegalLayout

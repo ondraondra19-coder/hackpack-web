@@ -570,10 +570,10 @@ function returnInstructionsBlock(): string {
   return `
     <p style="margin:0 0 6px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#9ca3af;">Jak zboží vrátit</p>
     <div style="background:#f7f6f4;border-radius:12px;padding:14px 18px;margin:0 0 20px;font-size:13px;line-height:1.8;color:#3f3f46;">
-      1. Zboží zabal tak, aby se cestou nepoškodilo — ideálně do původního obalu.<br />
-      2. Přilož kopii dokladu o koupi nebo číslo objednávky.<br />
+      1. Zboží zabal do původního obalu tak, aby se cestou nepoškodilo. Musí být kompletní a nepoškozené.<br />
+      2. Do zásilky vlož kopii dokladu o koupi.<br />
       3. Pošli na adresu <strong>${esc(returnAddress)}</strong>, a to do 14 dnů od tohoto oznámení.<br />
-      4. Zásilku prosím <strong>neposílej na dobírku</strong> — nemůžeme ji převzít.
+      4. Zásilku <strong>neposílej na dobírku</strong>, nepřevezmeme ji. Náklady na zpáteční dopravu hradíš ty.
     </div>`;
 }
 

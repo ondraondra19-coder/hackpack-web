@@ -20,7 +20,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SLINGR",
+  // `default` je titulek homepage a fallback; `template` se použije všude, kde
+  // stránka nastaví vlastní `title` (např. kategorie → "Zbraně | Slingr").
+  // Produkty si nastavují `title.absolute`, protože značku už nesou v názvu.
+  title: {
+    default: "Slingr | praky a výbava na venkovní bitvy",
+    template: "%s | Slingr",
+  },
   description:
     "Praky, měkká munice, vodní balónky a terče na venkovní bitvy. Rozjeď vodní válku nebo souboj o nejlepší mušku — expedice do 24 hodin.",
 };

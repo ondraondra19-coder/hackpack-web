@@ -9,7 +9,7 @@
 import { UDAJE, adresaSidla, companyField } from "./udaje";
 
 export type CompanyInfo = {
-  /** Obchodní firma, např. "SLINGR s.r.o." */
+  /** Obchodní firma, např. "Slingr s.r.o." */
   name: string;
   /** IČO */
   companyId: string;

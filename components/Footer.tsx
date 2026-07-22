@@ -15,6 +15,7 @@ import HomeLink from "./HomeLink";
 import { categories, getCategoryName } from "@/lib/products";
 import { useT } from "@/lib/useT";
 import { useLang } from "@/lib/LangContext";
+import { isMagazineEnabled } from "@/lib/featureFlags";
 import { UDAJE, telHref, mailHref, adresaSidla } from "@/lib/udaje";
 
 const socialLinks = [
@@ -46,7 +47,6 @@ export default function Footer() {
       links: [
         { label: t("orderStatus"),     href: "/objednavky" },
         { label: t("returnsLink"),     href: "/reklamace"  },
-        { label: t("claims"),          href: "/reklamace"  },
         { label: t("shippingPayment"), href: "/doprava"    },
         { label: t("faq"),             href: "/faq"        },
       ],
@@ -55,7 +55,8 @@ export default function Footer() {
       heading: t("headingAbout"),
       links: [
         { label: t("aboutUs"), href: "/o-nas"   },
-        { label: t("blog"),          href: "/blog"    },
+        // Odkaz na magazín jen když je zapnutý (viz isMagazineEnabled).
+        ...(isMagazineEnabled() ? [{ label: t("blog"), href: "/blog" }] : []),
         { label: t("contact"),       href: "/kontakt" },
       ],
     },
@@ -83,7 +84,7 @@ export default function Footer() {
             <HomeLink className="inline-block">
               <Image
                 src="/images/main/logo-white.png"
-                alt="SLINGR"
+                alt="Slingr"
                 width={1024}
                 height={559}
                 className="h-20 w-auto object-contain"
@@ -178,7 +179,7 @@ export default function Footer() {
       <div className="border-t border-white/8">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/50 text-xs">
-            © {new Date().getFullYear()} SLINGR s.r.o. — {t("rights")}
+            © {new Date().getFullYear()} Slingr s.r.o. — {t("rights")}
           </p>
           <div className="flex items-center gap-1">
             {legalLinks.map((link, i, arr) => (

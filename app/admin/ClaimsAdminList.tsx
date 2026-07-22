@@ -1,26 +1,60 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Mail, Phone, Package } from "lucide-react";
-import type { Claim, ClaimStatus } from "@/lib/claims";
+import { ChevronDown, Mail, Phone } from "lucide-react";
+import type { ClaimStatus, ClaimWithOrder } from "@/lib/claims";
+import { CURRENCIES, formatPrice, type CurrencyCode } from "@/lib/currency";
 
 type ClaimsAdminListProps = {
-  claims: Claim[];
-  onChange: (claims: Claim[]) => void;
+  claims: ClaimWithOrder[];
+  onChange: (claims: ClaimWithOrder[]) => void;
 };
 
+// Stavy vrácení popisují CESTU zásilky, ať admin hned ví, co má přijít a co
+// přišlo. Hodnoty enumu zůstávají (novy/vyrizuje_se/vyrizeno), mění se jen
+// význam a popisky — žádná migrace uložených dat.
 const STATUS_LABELS: Record<ClaimStatus, string> = {
-  novy: "Nový",
-  vyrizuje_se: "Vyřizuje se",
+  novy: "Čeká na zásilku",
+  vyrizuje_se: "Zboží dorazilo",
   vyrizeno: "Vyřízeno",
 };
 
-const STATUS_ORDER: ClaimStatus[] = ["novy", "vyrizuje_se", "vyrizeno"];
-
 function statusClasses(status: ClaimStatus): string {
-  if (status === "novy") return "bg-primary/10 text-primary-ink border-primary/20";
-  if (status === "vyrizuje_se") return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-green-50 text-green-700 border-green-200";
+  // Minimalisticky: neutrální šedá, vyřízené jen ztlumené.
+  if (status === "vyrizeno") return "border-zinc-200 bg-white text-zinc-400";
+  return "border-zinc-200 bg-zinc-50 text-zinc-600";
+}
+
+// Jaké přechody nabídnout u daného stavu (a jak je pojmenovat).
+function nextActions(status: ClaimStatus): { to: ClaimStatus; label: string }[] {
+  if (status === "novy")
+    return [
+      { to: "vyrizuje_se", label: "Zboží dorazilo" },
+      { to: "vyrizeno", label: "Vyřídit (peníze vráceny)" },
+    ];
+  if (status === "vyrizuje_se")
+    return [
+      { to: "vyrizeno", label: "Vyřídit (peníze vráceny)" },
+      { to: "novy", label: "Zpět na „čeká“" },
+    ];
+  return [{ to: "vyrizuje_se", label: "Znovu otevřít" }];
+}
+
+function money(total: number, currency: string): string {
+  return formatPrice(total, CURRENCIES[currency as CurrencyCode] ?? CURRENCIES.CZK);
+}
+
+// Součet částek k vrácení, seskupený podle měny (obvykle jen CZK).
+function refundTotals(claims: ClaimWithOrder[]): string {
+  const byCurrency = new Map<string, number>();
+  for (const c of claims) {
+    if (!c.order) continue;
+    byCurrency.set(c.order.currency, (byCurrency.get(c.order.currency) ?? 0) + c.order.total);
+  }
+  if (byCurrency.size === 0) return "—";
+  return Array.from(byCurrency.entries())
+    .map(([cur, sum]) => money(sum, cur))
+    .join(" + ");
 }
 
 function ClaimCard({
@@ -29,19 +63,15 @@ function ClaimCard({
   onSetStatus,
   onDelete,
 }: {
-  claim: Claim;
+  claim: ClaimWithOrder;
   busy: boolean;
-  onSetStatus: (claim: Claim, status: ClaimStatus) => void;
+  onSetStatus: (claim: ClaimWithOrder, status: ClaimStatus) => void;
   onDelete: (id: string) => void;
 }) {
-  const isOpen = claim.status !== "vyrizeno";
+  const isDone = claim.status === "vyrizeno";
 
   return (
-    <div
-      className={`border rounded-xl p-4 transition-colors ${
-        isOpen ? "border-zinc-300 bg-[#fafafa]" : "border-[#e5e7eb] bg-white"
-      }`}
-    >
+    <div className={`border rounded-xl p-4 transition-colors ${isDone ? "border-[#e5e7eb] bg-white" : "border-zinc-300 bg-[#fafafa]"}`}>
       <div className="flex justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
@@ -52,25 +82,34 @@ function ClaimCard({
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${statusClasses(claim.status)}`}>
               {STATUS_LABELS[claim.status]}
             </span>
-            <span className="text-[11px] text-zinc-400">
-              {new Date(claim.date).toLocaleString("cs-CZ")}
-            </span>
+            <span className="text-[11px] text-zinc-400">{new Date(claim.date).toLocaleString("cs-CZ")}</span>
           </div>
 
-          <div className="flex items-center gap-3 mb-2 flex-wrap text-[11px] text-zinc-500">
-            <span className="inline-flex items-center gap-1">
-              <Package size={11} /> Vrácení do 14 dnů
-            </span>
-            <span className="inline-flex items-center gap-1">
-              obj. <span className="font-mono text-zinc-600">{claim.cisloObjednavky}</span>
-            </span>
-            <span className="inline-flex items-center gap-1">
-              účet <span className="font-mono text-zinc-600">{claim.cisloUctu}</span>
-            </span>
+          {/* Co se vrací + kolik peněz vrátit (z napárované objednávky) */}
+          <div className="rounded-lg border border-zinc-200 bg-white px-3 py-2 mb-2">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <span className="text-[11px] text-zinc-500">
+                obj. <span className="font-mono text-zinc-700">{claim.cisloObjednavky}</span>
+              </span>
+              <span className="text-xs font-semibold text-[#0f0f10]">
+                {claim.order ? `Vrátit ${money(claim.order.total, claim.order.currency)}` : "Objednávka nenalezena"}
+              </span>
+            </div>
+            {claim.order && claim.order.items.length > 0 && (
+              <p className="mt-1.5 text-[11px] text-zinc-600 leading-relaxed">
+                <span className="text-zinc-400">Vrací se:</span>{" "}
+                {claim.order.items.map((i) => `${i.quantity}× ${i.name}`).join(", ")}
+              </p>
+            )}
+          </div>
+
+          <div className="mb-2 text-[11px] text-zinc-500">
+            účet <span className="font-mono text-zinc-600">{claim.cisloUctu}</span>
           </div>
 
           {claim.duvod && (
             <p className="text-xs text-zinc-600 leading-relaxed whitespace-pre-wrap mb-2">
+              <span className="text-zinc-400">Důvod: </span>
               {claim.duvod}
             </p>
           )}
@@ -92,14 +131,14 @@ function ClaimCard({
         </div>
 
         <div className="flex flex-col items-end gap-2 shrink-0">
-          {STATUS_ORDER.filter((s) => s !== claim.status).map((s) => (
+          {nextActions(claim.status).map((a) => (
             <button
-              key={s}
-              onClick={() => onSetStatus(claim, s)}
+              key={a.to}
+              onClick={() => onSetStatus(claim, a.to)}
               disabled={busy}
               className="text-xs font-semibold text-zinc-500 hover:text-[#0f0f10] disabled:opacity-50 whitespace-nowrap"
             >
-              {s === "vyrizeno" ? "Označit vyřízeno" : `Označit „${STATUS_LABELS[s].toLowerCase()}“`}
+              {a.label}
             </button>
           ))}
           <button
@@ -115,12 +154,21 @@ function ClaimCard({
   );
 }
 
+function SummaryTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+      <p className="text-lg font-bold leading-none text-[#0f0f10]">{value}</p>
+      <p className="text-[11px] text-zinc-500 mt-1">{label}</p>
+    </div>
+  );
+}
+
 export default function ClaimsAdminList({ claims, onChange }: ClaimsAdminListProps) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
 
-  async function handleSetStatus(claim: Claim, status: ClaimStatus) {
+  async function handleSetStatus(claim: ClaimWithOrder, status: ClaimStatus) {
     setBusyId(claim.id);
     setError(null);
     try {
@@ -142,7 +190,7 @@ export default function ClaimsAdminList({ claims, onChange }: ClaimsAdminListPro
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Opravdu smazat tuto žádost? Zákazník se na její číslo může odkazovat.")) return;
+    if (!confirm("Opravdu smazat toto vrácení? Zákazník se na jeho číslo případu může odkazovat.")) return;
 
     setBusyId(id);
     setError(null);
@@ -161,36 +209,64 @@ export default function ClaimsAdminList({ claims, onChange }: ClaimsAdminListPro
   }
 
   if (claims.length === 0) {
-    return <p className="text-sm text-zinc-500">Zatím žádné reklamace.</p>;
+    return <p className="text-sm text-zinc-500">Zatím žádná vrácení.</p>;
   }
 
-  const open = claims.filter((c) => c.status !== "vyrizeno");
+  const waiting = claims.filter((c) => c.status === "novy");
+  const arrived = claims.filter((c) => c.status === "vyrizuje_se");
   const done = claims.filter((c) => c.status === "vyrizeno");
+  const openClaims = [...waiting, ...arrived];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {error && <p className="text-sm text-primary-ink">{error}</p>}
 
-      {open.length === 0 && <p className="text-sm text-zinc-500">Žádné otevřené žádosti.</p>}
+      {/* Souhrn: co má přijít, co přišlo, kolik celkem vrátit */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <SummaryTile label="Čeká na zásilku (má přijít)" value={String(waiting.length)} />
+        <SummaryTile label="Zboží dorazilo (k vrácení peněz)" value={String(arrived.length)} />
+        <SummaryTile label="Celkem k vrácení (otevřené)" value={refundTotals(openClaims)} />
+      </div>
 
-      {open.map((claim) => (
-        <ClaimCard
-          key={claim.id}
-          claim={claim}
-          busy={busyId === claim.id}
-          onSetStatus={handleSetStatus}
-          onDelete={handleDelete}
-        />
-      ))}
+      {/* Čeká na zásilku */}
+      <section className="space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          Čeká na zásilku
+          <span className="text-zinc-400 font-normal normal-case"> ({waiting.length})</span>
+        </h4>
+        {waiting.length === 0 ? (
+          <p className="text-xs text-zinc-400">Nic nečeká na doručení.</p>
+        ) : (
+          waiting.map((claim) => (
+            <ClaimCard key={claim.id} claim={claim} busy={busyId === claim.id} onSetStatus={handleSetStatus} onDelete={handleDelete} />
+          ))
+        )}
+      </section>
 
+      {/* Zboží dorazilo */}
+      <section className="space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+          Zboží dorazilo — vrátit peníze
+          <span className="text-zinc-400 font-normal normal-case"> ({arrived.length})</span>
+        </h4>
+        {arrived.length === 0 ? (
+          <p className="text-xs text-zinc-400">Žádná doručená zásilka nečeká na vyřízení.</p>
+        ) : (
+          arrived.map((claim) => (
+            <ClaimCard key={claim.id} claim={claim} busy={busyId === claim.id} onSetStatus={handleSetStatus} onDelete={handleDelete} />
+          ))
+        )}
+      </section>
+
+      {/* Vyřízené */}
       {done.length > 0 && (
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             onClick={() => setShowDone((v) => !v)}
             className="w-full flex items-center justify-between gap-2 px-1 py-2 text-xs font-semibold text-zinc-500 hover:text-[#0f0f10] transition-colors"
           >
             <span>
-              Vyřízené žádosti <span className="text-zinc-400 font-normal">({done.length})</span>
+              Vyřízená vrácení <span className="text-zinc-400 font-normal">({done.length})</span>
             </span>
             <ChevronDown size={15} className={`transition-transform duration-150 ${showDone ? "rotate-180" : ""}`} />
           </button>
@@ -198,13 +274,7 @@ export default function ClaimsAdminList({ claims, onChange }: ClaimsAdminListPro
           {showDone && (
             <div className="space-y-3 mt-1">
               {done.map((claim) => (
-                <ClaimCard
-                  key={claim.id}
-                  claim={claim}
-                  busy={busyId === claim.id}
-                  onSetStatus={handleSetStatus}
-                  onDelete={handleDelete}
-                />
+                <ClaimCard key={claim.id} claim={claim} busy={busyId === claim.id} onSetStatus={handleSetStatus} onDelete={handleDelete} />
               ))}
             </div>
           )}

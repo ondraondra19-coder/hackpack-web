@@ -5,6 +5,7 @@
 import type { MetadataRoute } from "next";
 import { products, categories } from "@/lib/products";
 import { getAllPosts } from "@/lib/blog";
+import { isMagazineEnabled } from "@/lib/featureFlags";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://slingr.vercel.app").replace(/\/$/, "");
 
@@ -22,13 +23,20 @@ const STATIC_PAGES: { path: string; priority: number; changeFrequency: MetadataR
   { path: "/obchodni-podminky", priority: 0.2, changeFrequency: "yearly" },
   { path: "/ochrana-osobnich-udaju", priority: 0.2, changeFrequency: "yearly" },
   { path: "/cookies", priority: 0.2, changeFrequency: "yearly" },
-  { path: "/blog", priority: 0.6, changeFrequency: "weekly" },
+  // /blog se přidává jen když je magazín zapnutý — viz níž.
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const posts = await getAllPosts();
+  // Magazín je dočasně skrytý (viz isMagazineEnabled) — nepustíme /blog ani
+  // články do sitemapy, ať je Google neindexuje, dokud jsou schované.
+  const magazineOn = isMagazineEnabled();
+  const posts = magazineOn ? await getAllPosts() : [];
 
-  const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.map((p) => ({
+  const staticPages = magazineOn
+    ? [...STATIC_PAGES, { path: "/blog", priority: 0.6, changeFrequency: "weekly" as const }]
+    : STATIC_PAGES;
+
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map((p) => ({
     url: `${SITE_URL}${p.path}`,
     changeFrequency: p.changeFrequency,
     priority: p.priority,

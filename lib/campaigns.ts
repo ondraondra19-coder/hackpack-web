@@ -20,7 +20,7 @@ function campaignFrom(): string {
   return (
     process.env.RESEND_CAMPAIGN_FROM ??
     process.env.RESEND_FROM_EMAIL ??
-    `SLINGR <${UDAJE.email}>`
+    `Slingr <${UDAJE.email}>`
   );
 }
 

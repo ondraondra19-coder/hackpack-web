@@ -26,6 +26,20 @@ export type Claim = {
 
 export type NewClaimInput = Omit<Claim, "id" | "ticket" | "date" | "status">;
 
+// Shrnutí objednávky napárované k vrácení — admin díky němu vidí, CO se vrací
+// a KOLIK peněz má poslat zpět, aniž by musel objednávku dohledávat ručně.
+// Naplňuje ho /api/admin/claims (párování přes variabilní symbol).
+export type ClaimOrderSummary = {
+  id: string;
+  total: number;
+  currency: string;
+  items: { name: string; quantity: number }[];
+  status: string;
+  paymentStatus: string;
+};
+
+export type ClaimWithOrder = Claim & { order: ClaimOrderSummary | null };
+
 const LIST_KEY = "claims:list";
 const COUNTER_KEY = "claims:counter";
 const MAX_CLAIMS = 2000; // pojistka proti neomezenému růstu klíče

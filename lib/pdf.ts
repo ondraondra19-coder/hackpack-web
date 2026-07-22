@@ -65,7 +65,7 @@ export async function generatePaymentReceiptPdf(order: Order): Promise<Buffer> {
   });
 
   // ── Hlavička ──────────────────────────────────────────────────────────
-  doc.fontSize(20).fillColor(DARK).text("SLINGR", MARGIN, MARGIN);
+  doc.fontSize(20).fillColor(DARK).text("Slingr", MARGIN, MARGIN);
   doc.fontSize(10).fillColor(SUBTLE).text(`Objednávka #${vs}`, MARGIN, MARGIN + 26);
   doc
     .fontSize(10)

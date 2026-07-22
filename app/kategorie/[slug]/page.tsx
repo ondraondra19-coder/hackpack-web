@@ -1,5 +1,6 @@
 // app/kategorie/[slug]/page.tsx
-import { getCategoryBySlug, categories } from "@/lib/products";
+import type { Metadata } from "next";
+import { getCategoryBySlug, categories, getProductsByCategory } from "@/lib/products";
 import { getProductsForDisplay } from "@/lib/productDiscounts";
 import { getStockMap } from "@/lib/stock";
 import { notFound } from "next/navigation";
@@ -8,6 +9,27 @@ import KategorieClient from "@/components/KategorieClient";
 
 export function generateStaticParams() {
   return categories.map(cat => ({ slug: cat.slug }));
+}
+
+// Titulek záložky pro kategorii — název kategorie + značka přes šablonu
+// z layoutu (např. „Zbraně | Slingr"). Popis se sestaví z názvů produktů,
+// ať má stránka pro vyhledávače konkrétní, ne generický text.
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const category = getCategoryBySlug(slug);
+  if (!category) return { title: "Kategorie nenalezena" };
+
+  const names = getProductsByCategory(slug).map((p) => p.name);
+  const description =
+    names.length > 0
+      ? `${category.name} v e-shopu Slingr: ${names.slice(0, 5).join(", ")}. Expedice do 24 hodin.`
+      : `${category.name} v e-shopu Slingr — praky a výbava na venkovní bitvy.`;
+
+  return {
+    title: category.name,
+    description,
+    openGraph: { title: `${category.name} | Slingr`, description, type: "website" },
+  };
 }
 
 export const revalidate = 180;

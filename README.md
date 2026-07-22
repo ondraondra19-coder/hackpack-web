@@ -1,4 +1,4 @@
-# SLINGR
+# Slingr
 
 E-shop s praky a outdoorovým battle vybavením. Next.js (App Router) +
 TypeScript + Tailwind, data v Upstash Redis, platby přes Stripe, doprava

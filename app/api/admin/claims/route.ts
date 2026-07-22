@@ -3,7 +3,9 @@
 // /api/admin/messages — chráněné session + oprávněním "claims".
 import { NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/session";
-import { getAllClaims, setClaimStatus, deleteClaim, CLAIM_STATUSES, type ClaimStatus } from "@/lib/claims";
+import { getAllClaims, setClaimStatus, deleteClaim, CLAIM_STATUSES, type ClaimStatus, type ClaimWithOrder } from "@/lib/claims";
+import { listOrders } from "@/lib/orders";
+import { orderIdToVariableSymbol } from "@/lib/qrPlatba";
 
 async function requireAccess() {
   const session = await getCurrentSession();
@@ -21,10 +23,34 @@ export async function GET() {
 
   try {
     const claims = await getAllClaims();
-    return NextResponse.json({ claims });
+
+    // Objednávky načteme JEDNOU a napárujeme přes variabilní symbol (číslo,
+    // které zákazník zadává do formuláře) — ať admin u každého vrácení rovnou
+    // vidí položky a částku k vrácení, bez dohledávání.
+    const { orders } = await listOrders(1000, 0);
+    const byVs = new Map(orders.map((o) => [orderIdToVariableSymbol(o.id), o]));
+
+    const enriched: ClaimWithOrder[] = claims.map((claim) => {
+      const order = byVs.get(orderIdToVariableSymbol(claim.cisloObjednavky)) ?? null;
+      return {
+        ...claim,
+        order: order
+          ? {
+              id: order.id,
+              total: order.total,
+              currency: order.currency,
+              items: order.items.map((i) => ({ name: i.name, quantity: i.quantity })),
+              status: order.status,
+              paymentStatus: order.paymentStatus,
+            }
+          : null,
+      };
+    });
+
+    return NextResponse.json({ claims: enriched });
   } catch (error) {
     console.error("Admin claims GET error:", error);
-    return NextResponse.json({ claims: [], error: "Nepodařilo se načíst reklamace." }, { status: 500 });
+    return NextResponse.json({ claims: [], error: "Nepodařilo se načíst vrácení." }, { status: 500 });
   }
 }
 

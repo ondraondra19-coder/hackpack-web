@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Značkový tyrkys (SLINGR). Je to středně světlý odstín — unese tmavý text
+  /* Značkový tyrkys (Slingr). Je to středně světlý odstín — unese tmavý text
      (černá na #28bfa6 má 8.07:1), ale ne bílý (2.32:1). Jako barvu TEXTU na
      světlém pozadí (na bílé jen 2.32:1) použij --color-primary-ink, ne tuhle. */
   --color-primary: #28bfa6;

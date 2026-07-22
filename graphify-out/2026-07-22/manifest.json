@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   "app/admin/AdminDashboard.tsx": {
-    "mtime": 1784755660.3617113,
-    "ast_hash": "a244af3a84988ec4e6564a9088f2b74b",
+    "mtime": 1784752996.801378,
+    "ast_hash": "947ec331429296345e5ac44618b41aa2",
     "semantic_hash": ""
   },
   "app/admin/AnalyticsPanel.tsx": {
@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "app/admin/ProductsAdminList.tsx": {
-    "mtime": 1784754828.6360178,
-    "ast_hash": "3d2bec4cbb30f47666c883c2e82ba86a",
+    "mtime": 1784670842.2885215,
+    "ast_hash": "eca8341f7ed32f82c03a39a8c10ce883",
     "semantic_hash": ""
   },
   "app/admin/login/page.tsx": {
@@ -460,18 +460,18 @@
     "semantic_hash": ""
   },
   "messages/cs.json": {
-    "mtime": 1784754557.9267035,
-    "ast_hash": "d8fcd5ba35339efbd08dda9196cd5c01",
+    "mtime": 1784753878.3225944,
+    "ast_hash": "45bbaed0d44e41052ecc1c8e3149e7f6",
     "semantic_hash": ""
   },
   "messages/en.json": {
-    "mtime": 1784754563.7183685,
-    "ast_hash": "b45443f7b7360d53c21d4ba969a3517f",
+    "mtime": 1784753885.1685388,
+    "ast_hash": "9586e36cc73823d86950d63ab35e4240",
     "semantic_hash": ""
   },
   "messages/sk.json": {
-    "mtime": 1784754582.8685012,
-    "ast_hash": "5691aa1116e133352eb5df4a3e4f81a3",
+    "mtime": 1784753892.3507144,
+    "ast_hash": "10d097e544e4d3ccb64f5beeb1abecbd",
     "semantic_hash": ""
   },
   "next.config.ts": {
@@ -835,8 +835,8 @@
     "semantic_hash": ""
   },
   "components/ProductRow.tsx": {
-    "mtime": 1784754541.3032603,
-    "ast_hash": "e274180648085b055ca23c59fb718386",
+    "mtime": 1784454066.95996,
+    "ast_hash": "2ca9cd90949ca604d10c0974ab9d688b",
     "semantic_hash": ""
   },
   "components/HowItWorks.tsx": {

@@ -1,4 +1,5 @@
 import { getAllPosts } from "@/lib/blog";
+import { isMagazineEnabled } from "@/lib/featureFlags";
 import BlogPreviewList from "./BlogPreviewList";
 
 // Serverová komponenta jen kvůli načtení článků — vykreslení je v
@@ -8,6 +9,9 @@ import BlogPreviewList from "./BlogPreviewList";
 // napsal admin. Překládat je by znamenalo psát každý článek třikrát, což je
 // redakční rozhodnutí, ne technické.
 export default async function BlogPreview() {
+  // Magazín je dočasně skrytý (viz isMagazineEnabled) — nenačítáme ani Redis.
+  if (!isMagazineEnabled()) return null;
+
   // getAllPosts() vrací už seřazeno od nejnovějšího.
   const shown = (await getAllPosts()).slice(0, 3);
 

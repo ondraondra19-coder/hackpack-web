@@ -6,14 +6,15 @@
 // zelené „Odeslání do 24 hodin!" a u docházejících kusů „Zbývá N skladem".
 // Nadpis sekce vlevo, vpravo „Zobrazit vše" + šipky (desktop). Znovupoužitelné
 // pro libovolnou sekci (kategorie, novinky…).
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, ArrowRight, Star, Truck, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, Star, Truck, Plus, Check } from "lucide-react";
 import type { Product } from "@/lib/products";
 import { getProductName } from "@/lib/products";
 import { useCurrency } from "@/lib/CurrencyContext";
-import { formatPrice, getPrice } from "@/lib/currency";
+import { formatPrice, getPrice, CURRENCIES } from "@/lib/currency";
+import { useCart } from "@/lib/cart";
 import { useLang } from "@/lib/LangContext";
 import { useT } from "@/lib/useT";
 
@@ -63,6 +64,8 @@ function ProductCard({
   locale: string;
 }) {
   const { currency } = useCurrency();
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
 
   const hasSale = !!product.discountPercent && !!product.originalPrice;
   const current = formatPrice(getPrice(product.price, currency), currency);
@@ -73,6 +76,35 @@ function ProductCard({
   const known = available !== undefined;
   const inStock = known ? available > 0 : product.inStock;
   const low = known && available > 0 && available <= LOW_STOCK_THRESHOLD;
+
+  // Rychlé přidání „+" dává smysl jen u produktů BEZ voleb — u variant/barev/
+  // velikostí/modelů musí zákazník nejdřív vybrat, takže tam „+" nechá proklik
+  // na detail. Set (bundle) bez voleb se přidá stejně jako obyčejný produkt.
+  const needsConfig = !!(
+    product.variants?.length ||
+    product.colors?.length ||
+    product.sizes?.length ||
+    product.models?.length
+  );
+  const canQuickAdd = inStock && !needsConfig;
+
+  function quickAdd(e: React.MouseEvent | React.KeyboardEvent) {
+    e.preventDefault(); // nesmí navigovat na detail (jsme uvnitř <Link>)
+    e.stopPropagation();
+    addItem(
+      {
+        slug: product.slug,
+        name: getProductName(product, locale),
+        priceCZK: getPrice(product.price, CURRENCIES.CZK),
+        priceRaw: product.price,
+        img: product.img,
+        stockKey: "-|-", // produkt bez variant, stejný klíč jako na detailu
+      },
+      available,
+    );
+    setAdded(true);
+    window.setTimeout(() => setAdded(false), 1200);
+  }
 
   return (
     <Link
@@ -105,10 +137,31 @@ function ProductCard({
           className="object-contain p-5 transition-transform duration-300 group-hover:scale-105"
         />
 
-        {/* Hover CTA „+" */}
-        <span className="absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
-          <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
-        </span>
+        {/* Hover CTA „+" — u produktů bez voleb přidá 1× rovnou do košíku */}
+        {canQuickAdd ? (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label={added ? t("added") : t("quickAdd")}
+            onClick={quickAdd}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") quickAdd(e);
+            }}
+            className={`absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 cursor-pointer opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 hover:brightness-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+              added ? "bg-emerald-600 text-white" : "bg-primary text-on-primary"
+            }`}
+          >
+            {added ? (
+              <Check size={20} strokeWidth={2.5} aria-hidden="true" />
+            ) : (
+              <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
+            )}
+          </span>
+        ) : inStock ? (
+          <span className="absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+            <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
+          </span>
+        ) : null}
       </div>
 
       {/* Text */}

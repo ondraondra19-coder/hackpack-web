@@ -189,7 +189,7 @@ export default function MagazinAdminList() {
               <input
                 value={form.title}
                 onChange={(e) => updateField("title", e.target.value)}
-                placeholder="Např. 5 tipů, jak prodloužit výdrž baterie"
+                placeholder="Např. 5 tipů na nezapomenutelnou vodní bitvu"
                 className="w-full text-sm border border-zinc-300 rounded-lg px-3 py-2"
               />
             </div>
@@ -202,7 +202,7 @@ export default function MagazinAdminList() {
                 <input
                   value={form.slug}
                   onChange={(e) => { setSlugTouched(true); updateField("slug", slugify(e.target.value)); }}
-                  placeholder="5-tipu-jak-prodlouzit-vydrz-baterie"
+                  placeholder="5-tipu-na-vodni-bitvu"
                   className="w-full text-sm border border-zinc-300 rounded-lg px-3 py-2 font-mono"
                 />
               </div>

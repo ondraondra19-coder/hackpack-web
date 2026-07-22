@@ -11,3 +11,16 @@ export function isBankTransferEnabled(): boolean {
   if (process.env.NODE_ENV === "development") return true;
   return process.env.NEXT_PUBLIC_ENABLE_BANK_TRANSFER === "true";
 }
+
+// Magazín (SEO články) je dočasně skrytý z veřejné části webu, dokud nebude
+// nový obsah — staré články z původního techshopu nechceme ukazovat. Skrývá
+// se HOMEPAGE náhled, stránka /blog i jednotlivé články a odkaz v patičce.
+// Data v Redisu i editace v admin panelu zůstávají netknuté — až budou nové
+// články hotové, magazín se zapne bez zásahu do kódu.
+//
+// Na rozdíl od bankovního převodu je vypnutý i ve vývoji, ať je demo čisté
+// bez ohledu na to, kde běží. Chceš-li magazín zobrazit (lokálně i v produkci):
+// nastav NEXT_PUBLIC_ENABLE_MAGAZINE=true (v .env.local nebo na Vercelu) a redeploy.
+export function isMagazineEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_MAGAZINE === "true";
+}
