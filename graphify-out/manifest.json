@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "app/informace/page.tsx": {
-    "mtime": 1784834011.9716685,
-    "ast_hash": "8618d358f42d6fceda523d8fd8396b7a",
+    "mtime": 1784842047.8517542,
+    "ast_hash": "f83515fe2d1874335607a0f4540850f2",
     "semantic_hash": ""
   },
   "app/kategorie/[slug]/page.tsx": {
@@ -605,8 +605,8 @@
     "semantic_hash": ""
   },
   "lib/shipping/pricing.ts": {
-    "mtime": 1784288340.2171755,
-    "ast_hash": "817dfa1e4d67eda205af0d8050ef4c21",
+    "mtime": 1784842061.2937262,
+    "ast_hash": "7bc77b7a3dd4665e188fe55dc8d19583",
     "semantic_hash": ""
   },
   "lib/fees.ts": {

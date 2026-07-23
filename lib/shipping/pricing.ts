@@ -35,8 +35,10 @@ export const PAYMENT_CANONICAL_NAMES: Record<PaymentId, string> = {
 // potvrzení objednávky ("tuzemskou adresu netiskni se zemí"). Kdyby anglický
 // zákazník uložil "Czechia", ta podmínka by tiše přestala platit.
 export const COUNTRY_CZECHIA = "Česká republika";
+// Zatím doručujeme jen po ČR. Slovensko je připravené na později (konstanta
+// zůstává), ale do nabízených zemí (COUNTRIES) ani do checkoutu nejde.
 export const COUNTRY_SLOVAKIA = "Slovensko";
-export const COUNTRIES = [COUNTRY_CZECHIA, COUNTRY_SLOVAKIA] as const;
+export const COUNTRIES = [COUNTRY_CZECHIA] as const;
 
 // Cena dopravy pro daný způsob v dané měně. Neznámý způsob → 0,
 // chybějící měna → fallback na CZK.

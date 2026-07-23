@@ -16,7 +16,7 @@ import { approxConvert } from "@/lib/discounts";
 import { CURRENCIES } from "@/lib/currency";
 import { DOBIRKA_FEE } from "@/lib/fees";
 import { trackEvent } from "@/lib/analytics";
-import { COUNTRY_CZECHIA, COUNTRY_SLOVAKIA } from "@/lib/shipping/pricing";
+import { COUNTRY_CZECHIA } from "@/lib/shipping/pricing";
 import { useT } from "@/lib/useT";
 import { isValidEmail } from "@/lib/emailValidation";
 import { shippingLabel } from "@/lib/shippingLabels";
@@ -570,9 +570,9 @@ export default function InformacePage() {
   const tc = useT("checkout");
 
   // Hodnota je česká a kanonická (ukládá se do objednávky), popisek přeložený.
+  // Zatím doručujeme jen po ČR (viz lib/shipping/pricing.ts COUNTRIES).
   const countryOptions = [
-    { value: COUNTRY_CZECHIA,  label: t("countryCzechia")  },
-    { value: COUNTRY_SLOVAKIA, label: t("countrySlovakia") },
+    { value: COUNTRY_CZECHIA, label: t("countryCzechia") },
   ];
 
   const [form, setForm] = useState<FormState>(defaultForm());

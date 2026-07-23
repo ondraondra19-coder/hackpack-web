@@ -8162,7 +8162,7 @@
       "label": "COUNTRIES",
       "file_type": "code",
       "source_file": "lib/shipping/pricing.ts",
-      "source_location": "L39",
+      "source_location": "L41",
       "_origin": "ast",
       "id": "lib_shipping_pricing_countries",
       "community": 79,
@@ -8172,7 +8172,7 @@
       "label": "getShippingPrice()",
       "file_type": "code",
       "source_file": "lib/shipping/pricing.ts",
-      "source_location": "L43",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "lib_shipping_pricing_getshippingprice",
       "community": 13,
@@ -36364,7 +36364,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "lib/shipping/pricing.ts",
-      "source_location": "L39",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "lib_shipping_pricing",
       "target": "lib_shipping_pricing_countries",
@@ -36374,7 +36374,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "lib/shipping/pricing.ts",
-      "source_location": "L43",
+      "source_location": "L45",
       "weight": 1.0,
       "source": "lib_shipping_pricing",
       "target": "lib_shipping_pricing_getshippingprice",
@@ -38824,5 +38824,5 @@
       "source_file": "README-stock.md"
     }
   ],
-  "built_at_commit": "e1fb4c0969c17554881c7d6e253c3ee76f38c212"
+  "built_at_commit": "fffa2d12ad3d689a7afebeb9f4b2cc30233beb28"
 }
